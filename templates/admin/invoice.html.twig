@@ -1,0 +1,168 @@
+{# empty Twig template #}
+
+{% extends 'admin/easy_admin/main.html.twig' %}
+
+{% block main %}
+    <div class="content animate-panel">
+
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="hpanel">
+                <div class="panel-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h4>Invoice <small>{{ order.ref }}</small></h4>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="text-right">
+                                <button class="btn btn-default btn-sm"><i class="fa fa-pencil"></i> Edit </button>
+                                <button class="btn btn-default btn-sm"><i class="fa fa-check "></i> Save </button>
+                                <button class="btn btn-primary btn-sm"><i class="fa fa-dollar"></i> Make A Payment</button>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+                <div class="panel-body p-xl">
+                    <div class="row m-b-xl">
+                        <div class="col-sm-6">
+                            <h4>{{ order.ref }} </h4>
+
+                            <address>
+                                <strong>{{ order.restaurant.name }}</strong><br>
+                                {{ order.restaurant.address }}<br>
+                                Salinas, CA 93905<br>
+                                <abbr title="Phone">P:</abbr> (831) 758-7200
+                            </address>
+                        </div>
+                        <div class="col-sm-6 text-right">
+                            <span>To:</span>
+                            <address>
+                                <strong>{{ order.client.lastname }} {{ order.client.firstname }}</strong><br>
+                                60 Mortensen Avenue<br>
+                                Salinas, CA 123343<br>
+                                <abbr title="Phone">P:</abbr> {{ order.client.phoneNumber }}
+                            </address>
+                            <p>
+                                <span><strong>Invoice Date:</strong> {{ order.dateCreated|date('D, d M Y') }}</span><br/>
+                                <span><strong>Due Date:</strong> May 24, 2016</span>
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="table-responsive m-t">
+                        <table class="table table-striped">
+                            <thead>
+                            <tr>
+                                <th>Item List</th>
+                                <th>Quantity</th>
+                                <th>Unit Price</th>
+                                <th>Total Price</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {% for ord in order.orderdetails %}
+                                <tr>
+                                    <td>
+                                        <div><strong>{{ord.menu.name}}</strong></div>
+                                        <small>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod
+                                            tempor incididunt ut labore.
+                                        </small>
+                                    </td>
+                                    <td>{{ord.quantity}}</td>
+                                    <td>{{ord.price}}</td>
+                                    <td>{{ord.price * ord.quantity}}</td>
+                                </tr>
+                            {%endfor%}
+                            {#<tr>
+                                <td>
+                                    <div><strong>Lorem Ipsum is that it has a more-or-less normal</strong></div>
+                                    <small>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod
+                                        tempor incididunt ut labore.
+                                    </small>
+                                </td>
+                                <td>1</td>
+                                <td>$26.00</td>
+                                <td>$5.98</td>
+                                <td>$31,98</td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div><strong>Lorem Ipsum is that it has</strong></div>
+                                    <small>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod
+                                        tempor incididunt ut labore et dolore magna aliqua.
+                                        Eiusmod tempor incididunt ut labore et dolore magna aliqua.
+                                    </small>
+                                </td>
+                                <td>2</td>
+                                <td>$80.00</td>
+                                <td>$36.80</td>
+                                <td>$196.80</td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div><strong>Has a more-or-less normal</strong></div>
+                                    <small>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod
+                                        tempor incididunt ut labore et dolore magna aliqua.
+                                    </small>
+                                </td>
+                                <td>3</td>
+                                <td>$420.00</td>
+                                <td>$193.20</td>
+                                <td>$1033.20</td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div><strong>That it has a more-or-less</strong></div>
+                                    <small>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod
+                                        tempor incididunt ut labore et dolore magna aliqua.
+                                    </small>
+                                </td>
+                                <td>4</td>
+                                <td>$320.00</td>
+                                <td>$233.10</td>
+                                <td>$193.10</td>
+                            </tr>#}
+
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="row m-t">
+                        <div class="col-md-4 col-md-offset-8">
+                            <table class="table table-striped text-right">
+                                <tbody>
+                                <tr>
+                                    <td><strong>Sub Total :</strong></td>
+                                    <td>$1026.00</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>TAX :</strong></td>
+                                    <td>$235.98</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>TOTAL :</strong></td>
+                                    <td>$1261.98</td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="m-t"><strong>Comments</strong>
+                                It is a long established fact that a reader will be distracted by the readable content of a page
+                                when looking at its layout. The point of using Lorem Ipsum is that it has a more-or-less
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+
+</div>
+{% endblock %}

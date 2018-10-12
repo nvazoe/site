@@ -1,0 +1,45 @@
+easy_admin:
+    entities:
+        User:
+            class: App\Entity\User
+            label: "Utilisateurs"
+        CategoryMenu:
+            class: App\Entity\CategoryMenu
+            label: "Catégorie de menu"
+        TypeMenu:
+            class: App\Entity\TypeMenu
+            label: "Type de menu"
+        Menu:
+            class: App\Entity\Menu
+            label: "Menus"
+            disabled_actions: ['delete']
+            list:
+                actions: ['show', 'edit']
+        MenuOption:
+            class: App\Entity\MenuOption
+            label: "Option de menu"
+        MenuMenuOption:
+            class: App\Entity\MenuMenuOption
+            label: "Menu - options"
+        Product:
+            class: App\Entity\Product
+            label: "Produits"
+        MenuOptionProducts:
+            class: App\Entity\MenuOptionProducts
+            label: "Options - Produits"
+        Restaurant:
+            class: App\Entity\Restaurant
+            label: "Restaurants"
+        Order:
+            class: App\Entity\Order
+            label: "Commandes"
+        OrderStatus:
+            class: App\Entity\OrderStatus
+            label: "Statut de commande"
+    design:
+        form_theme: '%env(APP_TEMPLATE_ADMIN)%%env(DS)%easy_admin%env(DS)%form%env(DS)%bootstrap_3_horizontal_layout.html.twig'
+        templates:
+            layout: '%env(APP_TEMPLATE_ADMIN)%%env(DS)%easy_admin%env(DS)%main.html.twig'
+            #menu: '%env(APP_TEMPLATE_ADMIN)%%env(DS)%easy_admin%env(DS)%menu.html.twig'
+            list: '%env(APP_TEMPLATE_ADMIN)%%env(DS)%easy_admin%env(DS)%list.html.twig'
+

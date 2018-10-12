@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8" />
+        <title>{% block title %}Admin{% endblock %}</title>
+        <link rel="stylesheet" href="{{ asset('css/app.css') }}" />
+        {% block stylesheets %}{% endblock %}
+    </head>
+    <body{% if app.request.get('_route')=="adminlogin" %} class="signwrapper"{% endif %}>
+        {% block content %}
+            <!-- Header -->
+            {% block header %}{% endblock %}
+            <!-- Header ./ -->
+
+
+            <!-- Navigation -->
+            {% block nav %}{% endblock %}
+            <!-- Navigation -->
+
+            {% block main_content %}{% endblock %}
+        {% endblock %} <!-- End bloc content -->
+
+		{% block head_javascript %}
+            {% block adminlte_options %}{% endblock %}
+                <script src="{{ asset('js/app.js') }}"></script>
+                
+            {% endblock head_javascript %}
+        {% block body_javascript %}{% endblock body_javascript %}
+
+		{% if error is defined %}
+			{% if error %}
+				<div class="appmsg" data-type="error" data-msg="{{ error.messageKey|trans(error.messageData, 'security') }}"></div>
+			{% endif %}
+		{% endif %}
+        {% block javascripts %}{% endblock %}
+		{% for label, messages in app.flashes %}
+        {% for message in messages %}
+            {% if label == 'success' %}
+                <div class="appmsg" data-type="success" data-msg="{{ message }}"></div>
+            {% elseif label == 'notice' %}
+                <div class="appmsg" data-type="warning" data-msg="{{ message }}"></div>
+            {% elseif label == 'error' %}
+                <div class="appmsg" data-type="error" data-msg="{{ message }}"></div>
+            {% endif %}
+        {% endfor %}
+    {% endfor %}
+    </body>
+</html>

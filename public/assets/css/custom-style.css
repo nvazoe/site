@@ -1,0 +1,46 @@
+/*
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+*/
+/* 
+    Created on : 2018-10-08, 15:51:07
+    Author     : user
+*/
+
+.gtco-nav ul {
+    line-height: 100px;
+}
+
+#gtco-header .form-wrap {
+    border-top: 10px solid #c5d325;
+}
+
+.btn-primary:hover, .btn-primary:focus, .btn-primary:active {
+    background: #8dbf24 !important;
+    border-color: #8dbf24 !important;
+}
+
+.btn-primary {
+    background: #c5d325;
+    border: 2px solid #c5d325 !important;
+}
+
+.primary-color {
+    color: #c5d325!important;
+}
+
+.fh5co-card-item .fh5co-text h2 {
+    color: #c5d325;
+}
+
+#gtco-features {
+    background: #8dbf24;
+}
+
+@media(min-width: 1200px){
+    .col-lg-4.col-md-4.col-sm-6 {
+        max-height: 500px;
+        height: 500px;
+    }
+}

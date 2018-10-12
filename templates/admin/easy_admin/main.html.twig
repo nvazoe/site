@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="{{ app.request.locale|split('_')|first|default('en') }}">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="robots" content="noindex, nofollow, noarchive, nosnippet, noodp, noimageindex, notranslate, nocache" />
+        <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
+        <meta name="apple-mobile-web-app-title" content="Decadate">
+        <meta name="generator" content="Decadate" />
+        <meta name="application-name" content="Decadate">
+        <meta name="apple-mobile-web-app-capable" content="yes">
+        <meta name="apple-mobile-web-app-status-bar-style" content="black">
+        <meta name="HandheldFriendly" content="true"/>   
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" /> 
+
+        <title>{% block page_title %}{{ block('content_title')|striptags|raw }}{% endblock %}</title>
+
+        {% block head_stylesheets %}
+            <link rel="stylesheet" href="{{ asset('bundles/easyadmin/stylesheet/easyadmin-all.min.css') }}">
+            <link rel="stylesheet" href="{{ asset('css/app.css') }}">
+            <link rel="stylesheet" href="{{ asset('js/jquery-ui/themes/base/all.css') }}">
+            {#<style>
+                {{ easyadmin_config('_internal.custom_css')|raw }}
+            </style>#}
+        {% endblock %}
+
+        {% block head_favicon %}
+            {% set favicon = easyadmin_config('design.assets.favicon') %}
+            <link rel="icon" type="{{ favicon.mime_type }}" href="{{ asset(favicon.path) }}" />
+        {% endblock %}
+
+    </head>
+
+    {% block body %}
+        <body id="{% block body_id %}{% endblock %}" {% block body_class %}{% endblock %}>
+            {% block wrapper %}
+                {% block header %}
+                    <div id="header">
+                        <div class="color-line"></div>
+                        <div id="logo" class="light-version">
+                            {% block header_logo %}
+                                <a class="logo {{ easyadmin_config('site_name')|length > 14 ? 'logo-long' }}" title="{{ easyadmin_config('site_name')|striptags }}" href="{{ path('easyadmin') }}">
+                                    {{ easyadmin_config('site_name')|raw }}
+                                </a>
+                            {% endblock header_logo %}
+                        </div>
+                        <nav role="navigation">
+                            <div class="header-link hide-menu"><i class="fa fa-bars"></i></div>
+                            <div class="small-logo">
+                                <span class="text-primary">{{ easyadmin_config('site_name')|raw }}</span>
+                            </div>
+                            {% block global_actions %}
+                            <form role="search" class="navbar-form-custom" method="post" action="#">
+                                <div class="form-group">
+                                    <input type="text" placeholder="Search something special" class="form-control" name="search">
+                                </div>
+                            </form>
+                            {% endblock global_actions %}
+                            <div class="navbar-right">
+                                {% set _logout_path = easyadmin_logout_path() %}
+                                <ul class="nav navbar-nav no-borders">
+
+                                    <li class="dropdown">
+                                        <a class="dropdown-toggle label-menu-corner" data-toggle="dropdown" href="#" aria-expanded="false"><i class="pe-7s-user"></i></a>
+                                        {% block header_custom_menu %}
+                                            <ul class="dropdown-menu hdropdown notification animated flipInX">
+                                                {% block user_menu_dropdown %}
+                                                    <li>{% if app.user|default(false) == false %}
+                                                            {{ 'user.anonymous'|trans(domain = 'EasyAdminBundle') }}
+                                                        {% elseif not _logout_path %}
+                                                            {{ app.user.username|default('user.unnamed'|trans(domain = 'EasyAdminBundle')) }}
+                                                        {% else %}
+                                                            {{ app.user.username|default('user.unnamed'|trans(domain = 'EasyAdminBundle')) }}
+                                                        {% endif %}
+                                                    </li>
+                                                    <li>
+                                                        <a href="{{ _logout_path }}"><i class="fa fa-sign-out"></i> {{ 'user.signout'|trans(domain = 'EasyAdminBundle') }}</a>
+                                                    </li>
+                                                    {% if is_granted('ROLE_PREVIOUS_ADMIN') %}
+                                                        <li>
+                                                            <a href="?_switch_user=_exit"><i class="fa fa-sign-out"></i> {{ 'user.exit_impersonation'|trans(domain = 'EasyAdminBundle') }}</a>
+                                                        </li>
+                                                    {% endif %}
+                                                {% endblock user_menu_dropdown %}
+                                            </ul>
+                                        {% endblock %}
+                                    </li>
+                                    <li class="dropdown">
+                                        <a href="{{ _logout_path }}">
+                                            <i class="pe-7s-upload pe-rotate-90"></i>
+                                        </a>
+                                    </li>
+                                    <li class="dropdown">
+                                        <a href="#" class="run-tour">
+                                            <i class="pe-7s-help1"></i>
+                                        </a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </nav>
+                    </div>
+                {% endblock %}
+                <aside id="menu">
+                    {% block sidebar %}
+                    <div id="navigation">
+                        {% block main_menu_wrapper %}
+                            {{ include([
+                                _entity_config is defined ? _entity_config.templates.menu,
+                                easyadmin_config('design.templates.menu'),
+                                '@EasyAdmin/default/menu.html.twig'
+                            ]) }}
+                        {% endblock main_menu_wrapper %}
+                    </div>
+                    {% endblock sidebar %}
+                </aside>
+                <div id="wrapper">
+                    {% block content_header %}
+                        <div class="small-header ">
+                            <div class="hpanel">
+                                <div class="panel-body">
+                                    <div id="hbreadcrumb" class="pull-right">
+                                        <ol class="hbreadcrumb breadcrumb">
+                                            <li><a href="/gestion/"><i class="fa fa-home mr5"></i> Accueil</a></li>
+                                        </ol>
+                                    </div>
+                                    <h2 class="font-light m-b-xs">{% block content_title %}{% endblock %}</h2>
+                                    <small>{% block content_sub_title %}{% endblock %}</small>
+                                </div>
+                            </div>
+                        </div>
+                    {% endblock content_header %}
+                    <div class="content animate-panel">
+                    {% block content %}
+                        <section class="content-header">
+                        
+                        {% block flash_messages %}
+                            {{ include(_entity_config is defined ? _entity_config.templates.flash_messages : '@EasyAdmin/default/flash_messages.html.twig') }}
+                        {% endblock flash_messages %}
+                        {% block content_help %}
+                            {% if _entity_config is defined and _entity_config[app.request.query.get('action')]['help']|default(false) %}
+                                <div class="box box-widget help-entity">
+                                    <div class="box-body">
+                                        {{ _entity_config[app.request.query.get('action')]['help']|trans|raw }}
+                                    </div>
+                                </div>
+                            {% endif %}
+                        {% endblock content_help %}
+                        </section>
+
+                        <section id="main" class="maincontent">
+                            {% block main %}{% endblock %}
+                        </section>
+                    {% endblock content %}
+
+                    <!-- Footer-->
+                    <footer class="footer">
+                        <span class="pull-right">
+                            Example text
+                        </span>
+                        Company 2015-2020
+                    </footer>
+
+                </div>
+        {% endblock wrapper %} 
+        {% block head_javascript %}
+            {% block adminlte_options %}{% endblock %}
+                <script src="{{ asset('bundles/easyadmin/javascript/easyadmin-all.min.js') }}"></script>
+                <script src="{{ asset('js/app.js') }}"></script>
+                <script src="{{ asset('js/jquery-ui/jquery-ui.min.js') }}"></script>
+                <script src="{{ asset('js/form-menu.js') }}"></script>
+            {% endblock head_javascript %}
+        {% block body_javascript %}{% endblock body_javascript %}
+</body>
+{% endblock body %}
+</html>

@@ -1,0 +1,240 @@
+{# empty Twig template #}
+
+{% extends 'admin/easy_admin/main.html.twig' %}
+
+{% block main %}
+    <style>
+        .input-block {
+            display: inline-block;
+            border: 1px solid #ccc;
+            /* width: 57%; */
+            padding: 5px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+        }
+        .row.block {
+            margin-bottom: 20px;
+            border: 1px solid #cde;
+            border-radius: 5px;
+            padding: 10px;
+        }
+    </style>
+    <div class="row">
+        <div class="field-group col-xs-12 col-sm-12" style="">
+            <div class="hpanel">
+                <div class="panel-heading">
+                    <h3 class="box-title">
+                        AJOUTER/MODIFIER UN MENU
+                    </h3>
+                </div>
+
+                <div class="panel-body " id="box-body-_easyadmin_form_design_element_0">
+                    <form method="post" class="form-horizontal" enctype="multipart/form-data">
+                        <div class="form-group">
+                            <label class="col-sm-2 control-label required" for="dishmenu_name">Nom</label>
+                            <div class="col-sm-10">
+                                <input type="text" class="form-control" name="dishmenu[name]" id="dishmenu_name">
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="col-sm-2 control-label required" for="dishmenu_description">Description</label>
+                            <div class="col-sm-10">
+                                <textarea  class="form-control" name="dishmenu[description]" id="dishmenu_description"></textarea>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="col-sm-2 control-label required" for="dishmenu_restaurant">Restaurant</label>
+                            <div class="col-sm-10">
+                                <select id="dishmenu_restaurant" name="dishmenu[restaurant]" data-widget="select2" class="form-control">
+                                    {% for rest in restaurants %}
+                                    <option value="{{ rest.id }}">{{ rest.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="col-sm-2 control-label required" for="dishmenu_price">Prix</label>
+                            <div class="col-sm-10">
+                                <input type="text" name="dishmenu[price]" class="form-control" />
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="col-sm-2 control-label required" for="dishmenu_photo">Photo</label>
+                            <div class="col-sm-10">
+                                <input type="file" name="dishmenu[photo]" />
+                            </div>
+                        </div>
+                        
+                        {#{% for ca in categories %}#}
+                        <div class="global">
+                            <div class="row block" data-block="0">
+                                <div class="col-md-4">
+                                    <div class="form-group">
+                                        <label class="col-sm-4 control-label required" for="">Option de menu</label>
+                                        <div class="col-sm-8">
+                                            <input type="text" name="options[0][name]" class="form-control" placeholder="Nom option" data-option="name">
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-4">
+                                    <div class="form-group">
+                                        <label class="col-sm-4 control-label required" for="dishmenu_product">Choix</label>
+                                        <div class="col-sm-8">
+                                            <select id="dishmenu_restaurant" name="options[0][type]"  class="form-control" data-option="type" >
+
+                                            <option value="facultatif">Facultatif</option>
+                                            <<option value="obligatoire">Obligatoire</option>
+                                        </select>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-3">
+                                    <div class="form-group">
+                                        <label class="col-sm-4 control-label required" for="">Nombre de choix</label>
+                                        <div class="col-sm-8">
+                                            <input type="number" name="options[0][item]" class="form-control" min="0" placeholder="" data-option="item">
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                
+                                <div class="col-md-1">
+                                    <a class="btn btn-default duplicate">
+                                        <i class="fa fa-plus"></i>
+                                    </a>
+                                </div>
+                                    
+                                <div class="global-1">
+                                    <div class="col-md-8 col-md-offset-4 input-block">
+                                        <label class="col-sm-2 control-label required" for="productoption">Produits</label>
+                                        <div class="col-sm-3 ui-widget">
+                                            {#<input type="text" name="options[0][productoption][0][product]" class="form-control" placeholder="Chercher un produit" data-option="item" id="search-prd">#}
+                                            <select id="dishmenu_restaurant" name="options[0][productoption][0][product]" data-widget="select2" class="form-control" data-option-product="product">
+                                                {% for prd in products %}
+                                                <option value="{{ prd.id }}">{{ prd.name }}</option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                        <label class="col-sm-2 control-label required" for="dishmenu_product_price_product_discountpercent">Prix</label>
+                                        <div class="col-sm-3">
+                                            <input type="text" name="options[0][productoption][0][price]" id="" placeholder="%" class="form-control" value="0" data-option-product="price">
+                                        </div>
+                                        <div class="col-sm-1 col-sm-offset-1">
+                                            <a class="btn btn-default duplicate-1">
+                                                <i class="fa fa-plus"></i>
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                            </div>
+                        </div> 
+                            
+                        {#{% endfor %}#}
+                        
+                        
+                        <div class="form-group">
+                            <div class="col-sm-8 col-sm-offset-2">
+                                <a class="btn btn-default" href="?entity=DishMenu&action=list&menuIndex=3&submenuIndex=-1&sortField=id&sortDirection=DESC&page=1">Annuler</a>
+                                <button class="btn btn-primary" type="submit">Sauvegarder</button>
+                            </div>
+                        </div>
+
+                    </form>
+                </div>
+            </div>
+        </div>
+
+    </div>
+                        
+                        
+    <div class="col-md-8 col-md-offset-4 input-block clonable-1" style="display:none;">
+        <label class="col-sm-2 control-label required" for="dishmenu_product">Produits</label>
+        <div class="col-sm-3">
+            <select id="dishmenu_restaurant" name="dishmenu[product_id]" data-widget="select2" class="form-control" data-option-product="product" >
+                {% for prd in products %}
+                <option value="{{ prd.id }}">{{ prd.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <label class="col-sm-2 control-label required" for="dishmenu_product_price_product_discountpercent">Prix</label>
+        <div class="col-sm-3">
+            <input type="number" name="dishmenu[product][][price_product_discountpercent]" id="" placeholder="%" class="form-control" value="0" data-option-product="price">
+        </div>
+        <div class="col-sm-1 col-sm-offset-1">
+            <a class="btn btn-default substract-1">
+                <i class="fa fa-minus"></i>
+            </a>
+        </div>
+    </div>
+                        
+    <div class="row block clonable" style="display:none;">
+        <div class="col-md-4">
+            <div class="form-group">
+                <label class="col-sm-4 control-label required" for="">Option de menu</label>
+                <div class="col-sm-8">
+                    <input type="text" name="dishmenu[option][name]" class="form-control" placeholder="nom option" data-option="name">
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="form-group">
+                <label class="col-sm-4 control-label required" for="dishmenu_product">Choix</label>
+                <div class="col-sm-8">
+                    <select id="dishmenu_restaurant" name="dishmenu[option][type]" data-widget="select2" class="form-control" data-option="type" >
+
+                    <option value="facultatif">Facultatif</option>
+                    <<option value="obligatoire">Obligatoire</option>
+                </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="form-group">
+                <label class="col-sm-4 control-label required" for="">Nombre de choix</label>
+                <div class="col-sm-8">
+                    <input type="number" name="dishmenu[option][item]" class="form-control" placeholder="Si checkbox choisi" data-option="item" min="0">
+                </div>
+            </div>
+        </div>
+
+
+        <div class="col-md-1">
+            <a class="btn btn-default substract">
+                <i class="fa fa-minus"></i>
+            </a>
+        </div>
+
+        <div class="global-1">
+            <div class="col-md-8 col-md-offset-4 input-block">
+                <label class="col-sm-2 control-label required" for="productoption">Produits</label>
+                <div class="col-sm-3">
+                    <select id="dishmenu_restaurant" name="dishmenu[option][productoption][product]" data-widget="select2" class="form-control" data-option-product="product" >
+                        {% for prd in products %}
+                        <option value="{{ prd.id }}">{{ prd.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <label class="col-sm-2 control-label required" for="dishmenu_product_price_product_discountpercent">Prix</label>
+                <div class="col-sm-3">
+                    <input type="text" name="dishmenu[option][productoption][price]" id="" placeholder="%" class="form-control" value="0" data-option-product="price">
+                </div>
+                <div class="col-sm-1 col-sm-offset-1">
+                    <a class="btn btn-default duplicate-1">
+                        <i class="fa fa-plus"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+
+
+    </div>
+{% endblock %}

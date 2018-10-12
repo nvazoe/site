@@ -1,0 +1,28 @@
+{# empty Twig template #}
+{% extends 'base.html.twig' %}
+
+
+
+
+{% block body %}
+    
+    
+    <div class="container">
+        <div class="row">
+            {% for restau in restaurants %}
+                <div class="col-md-4">
+                    <div class="thumbnail">
+                        <img src="{% if not restau.image %}{{ asset('images/menu/dish.jpg')}}{%else%}{{ asset('images/menu/')}}{{restau.image}}{%endif%}" alt="">
+                        <div class="caption">
+                            <h4>{{restau.name}} {% if restau.address %}({{restau.address}} {{restau.city}}){%endif%}</h4>
+                            <p>{{ restau.description }}</p>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+    <div class="gototop js-top">
+            <a href="#" class="js-gotop"><i class="icon-arrow-up"></i></a>
+    </div>
+{% endblock %}

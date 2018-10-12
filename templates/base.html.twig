@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <title>{% block title %}Welcome!{% endblock %}</title>
+        <link href="https://fonts.googleapis.com/css?family=Lato:300,400,700" rel="stylesheet">
+	<link href="https://fonts.googleapis.com/css?family=Kaushan+Script" rel="stylesheet">
+	
+	<!-- Animate.css -->
+	<link rel="stylesheet" href="{{ asset('assets/css/animate.css') }}">
+	<!-- Icomoon Icon Fonts-->
+	<link rel="stylesheet" href="{{ asset('assets/css/icomoon.css') }}">
+	<!-- Themify Icons-->
+	<link rel="stylesheet" href="{{ asset('assets/css/themify-icons.css') }}">
+	<!-- Bootstrap  -->
+	<link rel="stylesheet" href="{{ asset('assets/css/bootstrap.css') }}">
+
+	<!-- Magnific Popup -->
+	<link rel="stylesheet" href="{{ asset('assets/css/magnific-popup.css') }}">
+
+	<!-- Bootstrap DateTimePicker -->
+	<link rel="stylesheet" href="{{ asset('assets/css/bootstrap-datetimepicker.min.css') }}">
+
+	<!-- Owl Carousel  -->
+	<link rel="stylesheet" href="{{ asset('assets/css/owl.carousel.min.css') }}">
+	<link rel="stylesheet" href="{{ asset('assets/css/owl.theme.default.min.css') }}">
+
+	<!-- Theme style  -->
+	{#<link rel="stylesheet" href="{{ asset('assets/css/style.css') }}">#}
+
+	<!-- Modernizr JS -->
+	<script src="{{ asset('assets/js/modernizr-2.6.2.min.js') }}"></script>
+	<!-- FOR IE9 below -->
+	<!--[if lt IE 9]>
+	<script src="js/respond.min.js"></script>
+	<![endif]-->
+        {% block stylesheets %}{% endblock %}
+    </head>
+    <body>
+        <header>
+        <nav>
+            <div class="container">
+                <div class="col-md-2" id="logo">
+                    Allo Zoé
+                </div>
+                <div class="col-md-2" id="categories-list">
+                    Catégories
+                </div>
+                <div class="col-md-5" id="search-context">
+                    <form id="form-search-restau" class="form-horizontal">
+                        <div class="form-group col-sm-6">
+                            <div class="col-sm-12">
+                                <select class="form-control">
+                                    <option>DES QUE POSSIBLE</option>
+                                    <option>Programmer une commande</option>
+                                </select>
+                            </div>
+                            
+                        </div>
+                        <div class="form-group col-sm-6">
+                            <label class="col-sm-2">Au</label>
+                            <div class="col-sm-10">
+                                <input class="form-control" placeholder="adresse">
+                            </div>
+                            
+                        </div>
+                    </form>
+                </div>
+                <div class="col-md-3" id="client">
+                    <div class="col-sm-6"><a href="#">Connexion</a></div>
+                    <div class="col-sm-6"><a href="#">Panier</a></div>
+                </div>
+            </div>
+        </nav>
+    </header>
+        {% block body %}{% endblock %}
+        
+        
+        <!-- jQuery -->
+	<script src="{{ asset('assets/js/jquery.min.js') }}"></script>
+	<!-- jQuery Easing -->
+	<script src="{{ asset('assets/js/jquery.easing.1.3.js') }}"></script>
+	<!-- Bootstrap -->
+	<script src="{{ asset('assets/js/bootstrap.min.js') }}"></script>
+	<!-- Waypoints -->
+	<script src="{{ asset('assets/js/jquery.waypoints.min.js') }}"></script>
+	<!-- Carousel -->
+	<script src="{{ asset('assets/js/owl.carousel.min.js') }}"></script>
+	<!-- countTo -->
+	<script src="{{ asset('assets/js/jquery.countTo.js') }}"></script>
+
+	<!-- Stellar Parallax -->
+	<script src{{ asset('assets/js/jquery.stellar.min.js') }}"></script>
+
+	<!-- Magnific Popup -->
+	<script src="{{ asset('assets/js/jquery.magnific-popup.min.js') }}"></script>
+	<script src="{{ asset('assets/js/magnific-popup-options.js') }}"></script>
+	
+	<script src="{{ asset('assets/js/moment.min.js') }}"></script>
+	<script src="{{ asset('assets/js/bootstrap-datetimepicker.min.js') }}"></script>
+
+
+	<!-- Main -->
+	<script src="{{ asset('assets/js/main.js') }}"></script>
+        {% block javascripts %}{% endblock %}
+    </body>
+</html>
