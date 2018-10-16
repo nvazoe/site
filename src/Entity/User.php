@@ -100,6 +100,11 @@ class User implements UserInterface, \Serializable
      */
     private $orderShippings;
 
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\MenuNote", mappedBy="user")
+     */
+    private $menuNotes;
+
     public function __construct()
     {
         $this->restaurants = new ArrayCollection();
@@ -108,6 +113,7 @@ class User implements UserInterface, \Serializable
         $this->orders = new ArrayCollection();
         $this->restaurantNotes = new ArrayCollection();
         $this->orderShippings = new ArrayCollection();
+        $this->menuNotes = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -454,6 +460,37 @@ class User implements UserInterface, \Serializable
             // set the owning side to null (unless already changed)
             if ($orderShipping->getDeliveryUser() === $this) {
                 $orderShipping->setDeliveryUser(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|MenuNote[]
+     */
+    public function getMenuNotes(): Collection
+    {
+        return $this->menuNotes;
+    }
+
+    public function addMenuNote(MenuNote $menuNote): self
+    {
+        if (!$this->menuNotes->contains($menuNote)) {
+            $this->menuNotes[] = $menuNote;
+            $menuNote->setUser($this);
+        }
+
+        return $this;
+    }
+
+    public function removeMenuNote(MenuNote $menuNote): self
+    {
+        if ($this->menuNotes->contains($menuNote)) {
+            $this->menuNotes->removeElement($menuNote);
+            // set the owning side to null (unless already changed)
+            if ($menuNote->getUser() === $this) {
+                $menuNote->setUser(null);
             }
         }
 

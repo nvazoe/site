@@ -65,10 +65,16 @@ class Menu
      */
     private $orderDetailsMenuProducts;
 
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\MenuNote", mappedBy="menu")
+     */
+    private $menuNotes;
+
     public function __construct()
     {
         $this->menuMenuOptions = new ArrayCollection();
         $this->orderDetailsMenuProducts = new ArrayCollection();
+        $this->menuNotes = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -220,6 +226,37 @@ class Menu
             // set the owning side to null (unless already changed)
             if ($orderDetailsMenuProduct->getMenu() === $this) {
                 $orderDetailsMenuProduct->setMenu(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|MenuNote[]
+     */
+    public function getMenuNotes(): Collection
+    {
+        return $this->menuNotes;
+    }
+
+    public function addMenuNote(MenuNote $menuNote): self
+    {
+        if (!$this->menuNotes->contains($menuNote)) {
+            $this->menuNotes[] = $menuNote;
+            $menuNote->setMenu($this);
+        }
+
+        return $this;
+    }
+
+    public function removeMenuNote(MenuNote $menuNote): self
+    {
+        if ($this->menuNotes->contains($menuNote)) {
+            $this->menuNotes->removeElement($menuNote);
+            // set the owning side to null (unless already changed)
+            if ($menuNote->getMenu() === $this) {
+                $menuNote->setMenu(null);
             }
         }
 

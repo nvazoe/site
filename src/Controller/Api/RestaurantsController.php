@@ -26,6 +26,7 @@ use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Cache\Adapter\FilesystemAdapter;
 use App\Entity\User;
 use App\Entity\Restaurant;
+use App\Entity\RestaurantNote;
 use App\Entity\Menu;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
@@ -113,6 +114,7 @@ class RestaurantsController extends Controller {
             $result['data']['longitude'] = $restau->getLongitude();
             $result['data']['latitude'] = $restau->getLatidude();
             $result['data']['status'] = $restau->getStatus();
+            $result['data']['image'] = $this->generateUrl('homepage', array(), UrlGeneratorInterface::ABSOLUTE_URL).'images/restaurant/'.$restau->getImage();
             $notes = $restau->getRestaurantNotes();
             if(count($notes)){
                 $t = 0;
@@ -216,6 +218,24 @@ class RestaurantsController extends Controller {
      *      description="Position longitude of the restaurant",
      *      strict=false
      * )
+     
+     * @QueryParam(
+     *      name="image",
+     *      description="image of the restaurant",
+     *      strict=false
+     * )
+     *
+     *  @QueryParam(
+     *      name="address",
+     *      description="address of the restaurant",
+     *      strict=false
+     * )
+     * 
+     *  @QueryParam(
+     *      name="city",
+     *      description="city address of the restaurant",
+     *      strict=false
+     * )
      * 
      *  @QueryParam(
      *      name="user",
@@ -231,26 +251,158 @@ class RestaurantsController extends Controller {
         $description = $request->query->get('description')?$request->query->get('description'):$request->request->get('description');
         $longitude = $request->query->get('longitude')?$request->query->get('longitude'):$request->request->get('longitude');
         $latitude = $request->query->get('latitude')?$request->query->get('latitude'):$request->request->get('latitude');
+        $address = $request->query->get('address')?$request->query->get('address'):$request->request->get('address');
+        $city = $request->query->get('city')?$request->query->get('city'):$request->request->get('city');
         $user = $request->query->get('user')?$request->query->get('user'):$request->request->get('user');
+        $image = $request->files->get('image');
         
-        if(is_null($em->getRepository(User::class)->find($user)))
+        /** Validate  user **/
+        if(!is_null($user)){
+            if(!is_numeric($user)){
+                $result = array('code' => 4000, 'description' => "user must be numeric");
+                return new JsonResponse($result, 400);
+            }
+        }else{
+            $result = array('code' => 4000, 'description' => "user is required");
+            return new JsonResponse($result, 400);
+        }
+        
+        $u = $em->getRepository(User::class)->find($user);
+        if(is_null($u)){
             return new JsonResponse(array(
-                'code' => 400,
-                'description' => "Identifiant user n'existe pas."
+                'code' => 4000,
+                'description' => "Unexisting user."
             ), 400);
-            
+        }
+        
+        /** Validate name **/
+        if(!is_null($name)){
+            if(!is_string($name)){
+                $result = array('code' => 4000, 'description' => "name must be string");
+                return new JsonResponse($result, 400);
+            }
+        }else{
+            $result = array('code' => 4000, 'description' => "name is required");
+            return new JsonResponse($result, 400);
+        }
+        
+        /** Validate description **/
+        if(!is_null($description)){
+            if(!is_string($description)){
+                $result = array('code' => 4000, 'description' => "description must be string");
+                return new JsonResponse($result, 400);
+            }
+        }
+        
+        
         $restau = new Restaurant();
+        
+        if (!is_null($image)) {
+            $fileName = md5(random_bytes(32)) . '.' . $image->guessExtension();
+            $public_path = $request->server->get('DOCUMENT_ROOT');
+            $dest_dir = $public_path . "/images/restaurant"; //die(var_dump($dest_dir));
+
+            if (file_exists($dest_dir) === FALSE) {
+                mkdir($dest_dir, 0777, true);
+            }
+
+            $image->move($dest_dir, $fileName);
+
+            $restau->setImage($fileName);
+        }
+        
         $restau->setName($name);
         $restau->setDescription($description);
         $restau->setLongitude($longitude);
         $restau->setLatidude($latitude);
-        $restau->setStatus(0);
-        $restau->setOwner($em->getRepository(User::class)->find($user));
+        $restau->setAddress($address);
+        $restau->setCity($city);
+        $restau->setStatus(false); 
+        $restau->setOwner($u);
         $em->persist($restau);
         $em->flush();
         
+        
         $result['code'] = 201;
         $result['restaurant_id'] = $restau->getId();
+        
+        return new JsonResponse($result, $result['code']);
+    }
+    
+    
+    /**
+     * @Post("/api/restaurants/{id}/notes")
+     * 
+     * *@SWG\Response(
+     *      response=201,
+     *      description="Add a note to a restaurant by client."
+     * )
+     * 
+     * @QueryParam(
+     *      name="client",
+     *      description="Client giving the note",
+     *      strict=true
+     * )
+     * 
+     * @QueryParam(
+     *      name="note",
+     *      description="Note given by a client on the restaurant",
+     *      strict=true
+     * )
+     *
+     * 
+     * 
+     * @SWG\Tag(name="Restaurants")
+     */
+    public function postRestauNoteAction(Request $request, $id){
+        $em = $this->getDoctrine()->getManager();
+        $client = $request->query->get('client')?$request->query->get('client'):$request->request->get('client');
+        $note = $request->query->get('note')?$request->query->get('note'):$request->request->get('note');
+        
+        $restau = $em->getRepository(Restaurant::class)->find($id);
+        if(!$restau){
+            $result = array('code' => 400, 'description' => "Unexisting restaurant.");
+            return new JsonResponse($result, 400);
+        }
+        
+        if($client){
+            if(!is_numeric($client)){
+                $result = array('code' => 4000, 'description' => 'client must be integer/numeric');
+                return new JsonResponse($result, 400);
+            }
+            
+            $cl = $em->getRepository(User::class)->find($client);
+            if(!in_array("ROLE_CLIENT", $cl->getRoles())){
+                $result = array('code' => 4015, 'description' => "User must be a client.");
+                return new JsonResponse($result, 400);
+            }
+        }else{
+            $result = array('code' => 4000, 'description' => 'client is required.');
+            return new JsonResponse($result, 400);
+        }
+        
+        if($note){
+            if(!is_int(intval($note))){
+                $result = array('code' => 4000, 'description' => 'note must be interger');
+                return new JsonResponse($result, 400);
+            }elseif(intval($note) < 1 || intval($note) > 5){
+                $result = array('code' => 4000, 'description' => 'note is between 1 and 5.');
+                return new JsonResponse($result, 400);
+            }
+        }else{
+            $result = array('code' => 4000, 'description' => 'note is required.');
+            return new JsonResponse($result, 400);
+        }
+        
+        $restaunote = RestaurantNote();
+        $restaunote->setUser($cl);
+        $restaunote->setRestaurant($restau);
+        $restaunote->setNote($note);
+        
+        $em->persist($restaunote);
+        $em->flush();
+        
+        $result['code'] = 201;
         
         return new JsonResponse($result, $result['code']);
     }
