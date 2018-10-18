@@ -1,0 +1,176 @@
+/*
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+*/
+/* 
+    Created on : 2018-10-17, 08:34:09
+    Author     : user
+*/
+
+#carousel figure > img {
+    position: relative;
+}
+
+figcaption.caption {
+    position: absolute;
+    top: 219px;
+    left: 140px;
+}
+
+figcaption.caption {
+    background-color: #fff;
+    padding: 30px;
+    border-radius: 5px;
+    /* font-size: 2em; */
+}
+
+p.header-text-1 {
+    font-size: 2em;
+}
+
+
+li.carousel-item.active {
+    max-height: 600px;
+}
+
+.type-menu-bar {
+    padding: 10px;
+    border-bottom: 1px solid #ccc;
+    margin-bottom: 10px;
+}
+
+.type-menu-bar ul{
+    margin-bottom: 0px;
+}
+
+.type-menu-bar ul.list-inline{
+    margin-left: 50px;
+}
+
+.type-menu-bar ul.list-inline li{
+    text-transform: uppercase;
+}
+
+.type-menu-bar ul.list-inline li a{
+    color: #000;
+}
+
+.type-menu-bar ul.list-inline li a:hover{
+    text-decoration: none;
+}
+
+.box {
+    border: 1px solid #ccc;
+    padding: 15px;
+    margin: 15px 0px;
+    height: 175px;
+    max-height: 175px;
+}
+
+.box-payment button.btn.btn-success {
+    width: 100%;
+}
+
+.box-basket{
+    margin-top: 0px;
+    border-top: 1px solid #ccc;
+    border: 1px solid #ccc;
+    padding: 15px;
+    font-weight: 600;
+    color: #ccc
+}
+.box-payment{
+    border: 1px solid #ccc;
+    margin-bottom: 0px;
+    border-bottom: none;
+    padding: 24px;
+    margin-top: 15px;
+}
+
+.logo span.vert {
+    color: #5fb709;
+    font-size: 2em;
+    font-weight: 500;
+}
+
+.logo span.noir {
+    color: #000;
+    font-size: 2em;
+    font-weight: 500;
+}
+
+.logo-white{
+    color: #fff;
+    font-size: 2em;
+    font-weight: 500;
+}
+
+.blck-descp {
+    display: inline-block;
+    width: 60%;
+    float: left;
+    padding: 5px;
+}
+
+.blck-picture {
+    display: inline-block;
+    width: 40%;
+}
+
+.logo:hover {
+    text-decoration: none;
+}
+svg.ue-gf {
+    position: relative;
+    top: 17px;
+}
+
+.categories {
+    padding-left: 8px;
+    color: #000;
+    text-decoration: none;
+}
+
+.categories:hover, .categories:visited, .categories:focus{
+    text-decoration: none;
+    color: #000;
+}
+
+.col-sm-4.item-category {
+    padding: 10px;
+}
+
+.list-categories {
+    background-color: #fff;
+}
+
+.list-categories:before {
+    background-color: #fff;
+}
+
+.item-category span a:hover{
+    color: #247A00;
+    text-decoration: none
+}
+
+.item-category span a{
+    color: #000;
+    text-decoration: none;
+    font-size: 1.3em;
+}
+
+.box-input {
+    display: inline-block;
+    border: 1px solid #ccc;
+    padding: 12px;
+    margin: 12px;
+}
+
+.input {
+    margin: 14px 0px 0px 140px;
+}
+
+.form-control{
+    border-radius: 0px;
+}
