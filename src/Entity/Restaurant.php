@@ -79,11 +79,17 @@ class Restaurant
      */
     private $city;
 
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\RestaurantSpeciality", mappedBy="restaurant")
+     */
+    private $restaurantSpecialities;
+
     public function __construct()
     {
         $this->menus = new ArrayCollection();
         $this->restaurantNotes = new ArrayCollection();
         $this->orders = new ArrayCollection();
+        $this->restaurantSpecialities = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -293,6 +299,37 @@ class Restaurant
     public function setCity(?string $city): self
     {
         $this->city = $city;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|RestaurantSpeciality[]
+     */
+    public function getRestaurantSpecialities(): Collection
+    {
+        return $this->restaurantSpecialities;
+    }
+
+    public function addRestaurantSpeciality(RestaurantSpeciality $restaurantSpeciality): self
+    {
+        if (!$this->restaurantSpecialities->contains($restaurantSpeciality)) {
+            $this->restaurantSpecialities[] = $restaurantSpeciality;
+            $restaurantSpeciality->setRestaurant($this);
+        }
+
+        return $this;
+    }
+
+    public function removeRestaurantSpeciality(RestaurantSpeciality $restaurantSpeciality): self
+    {
+        if ($this->restaurantSpecialities->contains($restaurantSpeciality)) {
+            $this->restaurantSpecialities->removeElement($restaurantSpeciality);
+            // set the owning side to null (unless already changed)
+            if ($restaurantSpeciality->getRestaurant() === $this) {
+                $restaurantSpeciality->setRestaurant(null);
+            }
+        }
 
         return $this;
     }

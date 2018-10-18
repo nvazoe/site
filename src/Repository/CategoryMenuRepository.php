@@ -47,4 +47,16 @@ class CategoryMenuRepository extends ServiceEntityRepository
         ;
     }
     */
+    
+    public function getCategories($limit, $page, $count=false)
+    {
+        if($count){
+            return $this->createQueryBuilder('e')->select('COUNT(e)')->getQuery()->getSingleScalarResult();
+        }else{
+            $qb=$this->createQueryBuilder('e')->select('e')    
+               ->setFirstResult( ($page-1)*$limit )
+               ->setMaxResults( $limit );
+            return $qb->getQuery()->getResult();            
+        }
+    }
 }

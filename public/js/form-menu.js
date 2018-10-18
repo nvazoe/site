@@ -91,7 +91,7 @@ function update_index_sub(selector){
 $('#search-prd').autocomplete({
     source:function(request, response){
         $.ajax({
-            url: "http://restau.me/search-product",
+            url: "http://restau.me/admin/search-product",
             data: {
               product: request.term
             },
@@ -103,6 +103,6 @@ $('#search-prd').autocomplete({
     minlength: 2,
     select: function(event, ui){
         console.log(ui);
-        //$('div').attr('data-produit', ui.item.value).css({display:'none'}).addClass('prd-menu').appendTo('body');
+        $('div').attr('data-produit', ui.item.value).css({display:'none'}).addClass('prd-menu').appendTo('body');
     }
 });

@@ -254,4 +254,65 @@ class ClientsController extends Controller {
         
         return new JsonResponse($result, $result['code']);
     }
+    
+    
+    /**
+     * @Get("/api/clients/{id}/orders")
+     * 
+     * *@SWG\Response(
+     *      response=200,
+     *      description="List orders of a client."
+     * )
+     * 
+     * @QueryParam(
+     *      name="limit",
+     *      description="limit per page",
+     *      strict=false,
+     *      default=100
+     * )
+     * 
+     * @QueryParam(
+     *      name="page",
+     *      description="Page of set",
+     *      strict=false,
+     *      default=1
+     * )
+     * 
+     * @SWG\Tag(name="Clients")
+     */
+    public function getClientOrders(Request $request, $id){
+        $em = $this->getDoctrine()->getManager();
+        $limit = $request->query->get('limit')?$request->query->get('limit'):$request->request->get('limit');
+        $page = $request->query->get('page')?$request->query->get('page'):$request->request->get('page');
+        
+        // Default values
+        $limit = ($limit == null) ? 100 : $limit;
+        $page = ($page == null) ? 1 : $page;
+        
+        $client = $em->getRepository(User::class)->find($id);
+        if(!$client){
+            $result = array('code' => 400, 'description' => "Unexisting client");
+            return new JsonResponse($result, 400);
+        }
+        
+        $array = [];
+        $orders = $client->getOrders();
+        foreach ($orders as $k=>$l){
+            $array[$k]["id"] = $l->getId();
+            $array[$k]['amount'] = $l->getAmount();
+            $array[$k]['reference'] = $l->getRef();
+            $array[$k]['status']['id'] = $l->getOrderStatus()->getId();
+            $array[$k]['status']['name'] = $l->getOrderStatus()->getName();
+            $array[$k]['restaurant']['id'] = $l->getRestaurant()->getId();
+            $array[$k]['restaurant']['name'] = $l->getRestaurant()->getName();
+        }
+        $result['code'] = 200;
+        if(count($array) > 0){
+            $result['items'] = $array;
+            $result['total'] = count($array);
+            $result['current_page'] = $page;
+            $result['per_page'] = $limit;
+        }
+        return new JsonResponse($result);
+    }
 }

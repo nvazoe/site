@@ -28,9 +28,15 @@ class CategoryMenu
      */
     private $menus;
 
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\RestaurantSpeciality", mappedBy="category")
+     */
+    private $restaurantSpecialities;
+
     public function __construct()
     {
         $this->menus = new ArrayCollection();
+        $this->restaurantSpecialities = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -83,5 +89,36 @@ class CategoryMenu
     
     public function __toString(){
         return $this->getName();
+    }
+
+    /**
+     * @return Collection|RestaurantSpeciality[]
+     */
+    public function getRestaurantSpecialities(): Collection
+    {
+        return $this->restaurantSpecialities;
+    }
+
+    public function addRestaurantSpeciality(RestaurantSpeciality $restaurantSpeciality): self
+    {
+        if (!$this->restaurantSpecialities->contains($restaurantSpeciality)) {
+            $this->restaurantSpecialities[] = $restaurantSpeciality;
+            $restaurantSpeciality->setCategory($this);
+        }
+
+        return $this;
+    }
+
+    public function removeRestaurantSpeciality(RestaurantSpeciality $restaurantSpeciality): self
+    {
+        if ($this->restaurantSpecialities->contains($restaurantSpeciality)) {
+            $this->restaurantSpecialities->removeElement($restaurantSpeciality);
+            // set the owning side to null (unless already changed)
+            if ($restaurantSpeciality->getCategory() === $this) {
+                $restaurantSpeciality->setCategory(null);
+            }
+        }
+
+        return $this;
     }
 }

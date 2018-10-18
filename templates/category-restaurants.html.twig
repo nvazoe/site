@@ -1,0 +1,24 @@
+{# empty Twig template #}
+{% extends 'base.html.twig' %}
+
+{% block body %}
+    
+    <div class="container">
+        
+        <div class="ue-a6 ue-ht ue-bz"><div class="ue-a6 ue-f8 ue-bm"><h1 class="ue-bn ue-bo ue-cc ue-h3 ue-h4 ue-h5 ue-hu ue-hv">Livraison de {{ category.name }} </h1></div></div>
+        
+        <div class="row">
+            {% for restau in category.RestaurantSpecialities %}
+                <div class="col-md-4">
+                    <div class="thumbnail">
+                        <img src="{% if not restau.restaurant.image %}{{ asset('images/menu/dish.jpg')}}{%else%}{{ asset('images/restaurant/')}}{{restau.restaurant.image}}{%endif%}" alt="">
+                            <div class="caption">
+                                <h4><a href="{{ path('restau', {'id': restau.restaurant.id}) }}">{{restau.restaurant.name}} {% if restau.restaurant.address %}({{restau.restaurant.address}} {{restau.restaurant.city}}){%endif%}</a></h4>
+                                <p>{{ restau.restaurant.description }}</p>
+                            </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+{% endblock %}

@@ -25,7 +25,7 @@ class FrontController extends Controller{
     
     /**
      * @Method({"GET"})
-     * @Route("/", name="homepage")
+     * @Route("/home", name="home")
      * @Template("/index.html.twig")
      */ 
     public function indexAction(Request $request){

@@ -30,6 +30,9 @@ easy_admin:
         Restaurant:
             class: App\Entity\Restaurant
             label: "Restaurants"
+        RestaurantSpeciality:
+            class: App\Entity\RestaurantSpeciality
+            label: "Spécialité des restaurants"
         Order:
             class: App\Entity\Order
             label: "Commandes"

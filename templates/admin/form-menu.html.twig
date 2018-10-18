@@ -113,12 +113,12 @@
                                     <div class="col-md-8 col-md-offset-4 input-block">
                                         <label class="col-sm-2 control-label required" for="productoption">Produits</label>
                                         <div class="col-sm-3 ui-widget">
-                                            {#<input type="text" name="options[0][productoption][0][product]" class="form-control" placeholder="Chercher un produit" data-option="item" id="search-prd">#}
-                                            <select id="dishmenu_restaurant" name="options[0][productoption][0][product]" data-widget="select2" class="form-control" data-option-product="product">
+                                            <input type="text" name="options[0][productoption][0][product]" class="form-control" placeholder="Chercher un produit" data-option="item" id="search-prd">
+                                            {#<select id="dishmenu_restaurant" name="options[0][productoption][0][product]" data-widget="select2" class="form-control" data-option-product="product">
                                                 {% for prd in products %}
                                                 <option value="{{ prd.id }}">{{ prd.name }}</option>
                                                 {% endfor %}
-                                            </select>
+                                            </select>#}
                                         </div>
                                         <label class="col-sm-2 control-label required" for="dishmenu_product_price_product_discountpercent">Prix</label>
                                         <div class="col-sm-3">
