@@ -5,9 +5,12 @@ namespace App\Entity;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Vich\UploaderBundle\Mapping\Annotation as Vich;
+use Symfony\Component\HttpFoundation\File\File;
 
 /**
  * @ORM\Entity(repositoryClass="App\Repository\ProductRepository")
+ * @Vich\Uploadable
  */
 class Product
 {
@@ -42,6 +45,12 @@ class Product
      * @ORM\OneToMany(targetEntity="App\Entity\OrderDetailsMenuProduct", mappedBy="product")
      */
     private $orderDetailsMenuProducts;
+    
+    /**
+     * @Vich\UploadableField(mapping="products", fileNameProperty="image")
+     * @var File
+     */
+    private $imageFile;
 
     
 
@@ -156,6 +165,25 @@ class Product
         }
 
         return $this;
+    }
+    
+    
+    public function setImageFile(File $image = null)
+    {
+        $this->imageFile = $image;
+
+        // VERY IMPORTANT:
+        // It is required that at least one field changes if you are using Doctrine,
+        // otherwise the event listeners won't be called and the file is lost
+//        if ($image) {
+//            // if 'updatedAt' is not defined in your entity, use another property
+//            $this->updatedAt = new \DateTime('now');
+//        }
+    }
+
+    public function getImageFile()
+    {
+        return $this->imageFile;
     }
 
     

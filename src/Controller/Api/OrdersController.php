@@ -134,13 +134,13 @@ class OrdersController extends Controller{
             foreach ($menus as $key=>$val){
                 $result['data']['menus']["$key"]['id'] = $val->getMenu()->getId();
                 $result['data']['menus']["$key"]['name'] = $val->getMenuName();
-                $result['data']['menus']["$key"]['price'] = $val->getPrice();
+                $result['data']['menus']["$key"]['price'] = floatval($val->getPrice());
                 // Get products of menu
                 $products = $val->getOrderDetailsMenuProducts();
                 foreach ($products as $k=>$v){
                     $result['data']['menus']["$key"]['products']["$k"]['id'] = $v->getProduct()->getId();
                     $result['data']['menus']["$key"]['products']["$k"]['name'] = $v->getProduct()->getName();
-                    $result['data']['menus']["$key"]['products']["$k"]['price'] = $v->getPrice();
+                    $result['data']['menus']["$key"]['products']["$k"]['price'] = floatval($v->getPrice());
                 }
             }
         }else{

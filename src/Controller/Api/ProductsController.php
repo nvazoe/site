@@ -169,9 +169,13 @@ class ProductsController extends Controller {
         foreach ($products as $k => $l){
             $array[$k]["id"] = $l->getId();
             $array[$k]["name"] = $l->getName();
-            $array[$k]["price"] = $l->getPrice().'€';
-            if($l->getImage())
+            $array[$k]["price"] = floatval($l->getPrice());
+            if($l->getImage()){
                 $array[$k]["image"] = $this->generateUrl('homepage', array(), UrlGeneratorInterface::ABSOLUTE_URL).'images/product/'.$l->getImage();
+            }else{
+                $array[$k]["image"] = null;
+            }
+        
             
         }
         

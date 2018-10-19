@@ -55,7 +55,7 @@
                                 </div>
                             </div>
 
-                            <div class="blck-picture">
+                            <div class="blck-picture" data-toggle="modal" data-target="#info">
                                 <img class="img-responsive" src="{% if not menu.image %}{{ asset('images/menu/dish.jpg')}}{%else%}{{ asset('images/menu/')}}{{menu.image}}{%endif%}" alt="photo">
                             </div>
                         </div>
@@ -73,4 +73,44 @@
             </div>
         </div>
     </div>
+                
+                
+<!-- Modal -->
+<div class="modal fade" id="info" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <h4 class="modal-title" id="myModalLabel">Modal title</h4>
+      </div>
+      <div class="modal-body">
+          <div></div>
+          <section>
+              <header>
+                  <h2>NOM DU MENU</h2>
+                  <p>Marque</p>
+              </header>
+              <main>
+                  <div class="blck-option">
+                      <div class="option-title">Accompagnements</div>
+                      <div>
+                        <form>
+                            <div class="form-group">
+                                <input type="radio" name="options"><label>Option 1</label>
+                                <input type="radio" name="options"><label>Option 2</label>
+                                <input type="radio" name="options"><label>Option 3</label>
+                            </div>
+                        </form>
+                      </div>
+                      <div class="option-info">Pour être informé sur les allergènes présents dans les produits proposés par ce restaurant, cliquez ici.</div>
+                  </div>
+              </main>
+              <footer>
+                  <div class="ue-h4 ue-k ue-ua ue-ub"><div class="ue-a8 ue-c2 ue-a5 ue-vt"><div class="ue-a8"><div class="ue-vv"><div class="ue-a8 ue-m ue-cf ue-go ue-gp ue-gq ue-vn ue-vo ue-gt ue-gw ue-gx ue-gy ue-vp ue-vq ue-vr" style="height: 52px;"><button class="ue-a8 ue-ag ue-ad ue-ar ue-a5 ue-fw ue-bg ue-vs ue-tu ue-fk ue-ng"><svg viewBox="0 0 64 64" width="16px" height="16px" class=" ue-eb"><g><path d="M55 36H9a1 1 0 0 1-1-1v-6a1 1 0 0 1 1-1h46a1 1 0 0 1 1 1v6a1 1 0 0 1-1 1z"></path></g></svg></button><div class="ue-a8 ue-ag ue-ad ue-b6 ue-hj">1</div><button class="ue-a8 ue-ag ue-ad ue-ar ue-a5 ue-fw ue-bg ue-vs ue-tu ue-fk ue-ng"><svg viewBox="0 0 64 64" width="16px" height="16px" class=" ue-eb"><path d="M56 29v6a1 1 0 0 1-1 1H36v19a1 1 0 0 1-1 1h-6a1 1 0 0 1-1-1V36H9a1 1 0 0 1-1-1v-6a1 1 0 0 1 1-1h19V9a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v19h19a1 1 0 0 1 1 1z"></path></svg></button></div></div><div class="ue-at ue-vu"><button class="ue-tu ue-tv ue-bq ue-br ue-u ue-gh ue-dm ue-na ue-fu ue-ad ue-ed ue-fx ue-ar ue-a8 ue-ag ue-ec ue-nb ue-n ue-vx ue-vy ue-a1 ue-aj ue-m ue-o1 ue-ty ue-tz ue-vz ue-w0 ue-ng ue-w1 ue-w2" type="button"><div class="ue-m ue-a2 ue-n"><div class="ue-m ue-vw"><!-- react-text: 2064 -->Ajouter 1 au panier<!-- /react-text --><div class="ue-sf">3,70&nbsp;€</div></div></div></button></div></div></div></div>
+              </footer>
+          </section>
+      </div>
+    </div>
+  </div>
+</div>
 {% endblock %}

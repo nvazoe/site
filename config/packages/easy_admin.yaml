@@ -6,6 +6,18 @@ easy_admin:
         CategoryMenu:
             class: App\Entity\CategoryMenu
             label: "Catégorie de menu"
+            form:
+                fields:
+                    -
+                        property: name
+                        label: Nom
+                    -
+                        property: description
+                        label: Description
+                    -
+                        property: imageFile
+                        type: vich_image
+                        label: Image
         TypeMenu:
             class: App\Entity\TypeMenu
             label: "Type de menu"
@@ -15,6 +27,20 @@ easy_admin:
             disabled_actions: ['delete']
             list:
                 actions: ['show', 'edit']
+#            form:
+#                fields:
+#                    -
+#                        property: name
+#                        label: Nom
+#                    -
+#                        property: description
+#                        label: Description
+#                    -
+#                        property: price
+#                        label: Prix
+#                    -
+#                        property: imageFile
+#                        type: vich_image
         MenuOption:
             class: App\Entity\MenuOption
             label: "Option de menu"
@@ -24,6 +50,33 @@ easy_admin:
         Product:
             class: App\Entity\Product
             label: "Produits"
+            form:
+                fields:
+                    -
+                        property: name
+                        label: Nom
+                    -
+                        property: price
+                        label: Prix
+                    -
+                        property: imageFile
+                        type: vich_image
+            list:
+                fields:
+                    -
+                        property: id
+                        label: ID
+                    -
+                        property: name
+                        label: Nom
+                    -
+                        property: price
+                        label: Prix
+                    -
+                        property: image
+                        type: image
+                        base_path: /images/product
+                        
         MenuOptionProducts:
             class: App\Entity\MenuOptionProducts
             label: "Options - Produits"
@@ -39,6 +92,7 @@ easy_admin:
         OrderStatus:
             class: App\Entity\OrderStatus
             label: "Statut de commande"
+            
     design:
         form_theme: '%env(APP_TEMPLATE_ADMIN)%%env(DS)%easy_admin%env(DS)%form%env(DS)%bootstrap_3_horizontal_layout.html.twig'
         templates:

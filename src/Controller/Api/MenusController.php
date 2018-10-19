@@ -81,9 +81,12 @@ class MenusController extends Controller {
             $array[$k]["id"] = $l->getId();
             $array[$k]["name"] = $l->getName();
             $array[$k]["description"] = $l->getDescription();
-            $array[$k]["price"] = $l->getPrice().'€';
-            if($l->getImage())
+            $array[$k]["price"] = floatval($l->getPrice());
+            if($l->getImage()){
                 $array[$k]["image"] = $this->generateUrl('homepage', array(), UrlGeneratorInterface::ABSOLUTE_URL).'images/menu/'.$l->getImage();
+            }else{
+                $array[$k]["image"] = null;
+            }
             $array[$k]["restaurant"]["id"] = $l->getRestaurant() ? $l->getRestaurant()->getId() : null;
             $array[$k]["restaurant"]["name"] = $l->getRestaurant()? $l->getRestaurant()->getName() : null;
         }
@@ -119,12 +122,16 @@ class MenusController extends Controller {
             $result['data']['id'] = $menu->getId();
             $result['data']['name'] = $menu->getName();
             $result['data']['description'] = $menu->getDescription();
-            $result['data']['price'] = $menu->getPrice().'€';
+            $result['data']['price'] = floatval($menu->getPrice());
             $result['data']['restaurant']['id'] = $menu->getRestaurant() ? $menu->getRestaurant()->getId() : null;
             $result['data']['restaurant']['name'] = $menu->getRestaurant() ? $menu->getRestaurant()->getName() : null;
             $result['data']['category']['id'] = $menu->getCategoryMenu() ? $menu->getCategoryMenu()->getId() : null;
             $result['data']['category']['name'] = $menu->getCategoryMenu() ? $menu->getCategoryMenu()->getName() : null;
-            
+            if($menu->getImage()){
+                $result['data']["image"] = $this->generateUrl('homepage', array(), UrlGeneratorInterface::ABSOLUTE_URL).'images/menu/'.$l->getImage();
+            }else{
+                $result['data']["image"] = null;
+            }
             // Get options
             $options = $menu->getMenuMenuOptions();
             if(!is_null($options)){
@@ -137,7 +144,7 @@ class MenusController extends Controller {
                         foreach($products as $key=>$val){
                             $result['data']['options']["$k"]["products"]["$key"]['id'] = $val->getProduct()->getName();
                             $result['data']['options']["$k"]["products"]["$key"]['name'] = $val->getProduct()->getName();
-                            $result['data']['options']["$k"]["products"]["$key"]['price'] = $val->getAttribut();
+                            $result['data']['options']["$k"]["products"]["$key"]['price'] = floatval($val->getAttribut());
                         }
                     }
                 }

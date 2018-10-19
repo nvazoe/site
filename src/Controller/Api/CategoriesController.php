@@ -81,6 +81,8 @@ class CategoriesController extends Controller{
         foreach ($categories as $k => $l){
             $array[$k]["id"] = $l->getId();
             $array[$k]["name"] = $l->getName();
+            $array[$k]["description"] = $l->getDescription();
+            $array[$k]["image"] = $this->generateUrl('homepage', array(), UrlGeneratorInterface::ABSOLUTE_URL).'images/category/'.$l->getImage();
         }
             
         $result['code'] = 200;
@@ -139,9 +141,12 @@ class CategoriesController extends Controller{
             $array[$k]["id"] = $l->getId();
             $array[$k]["name"] = $l->getName();
             $array[$k]["description"] = $l->getDescription();
-            $array[$k]["price"] = $l->getPrice().'€';
-            if($l->getImage())
+            $array[$k]["price"] = floatval($l->getPrice());
+            if($l->getImage()){
                 $array[$k]["image"] = $this->generateUrl('homepage', array(), UrlGeneratorInterface::ABSOLUTE_URL).'images/menu/'.$l->getImage();
+            }else{
+                $array[$k]["image"] = null;
+            }
             $array[$k]["restaurant"]["id"] = $l->getRestaurant() ? $l->getRestaurant()->getId() : null;
             $array[$k]["restaurant"]["name"] = $l->getRestaurant()? $l->getRestaurant()->getName() : null;
         }

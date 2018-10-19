@@ -174,3 +174,11 @@ svg.ue-gf {
 .form-control{
     border-radius: 0px;
 }
+
+.caption a:hover {
+    text-decoration: none;
+}
+.caption a {
+    color: #000;
+}
+
