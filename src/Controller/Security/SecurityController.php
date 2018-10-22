@@ -13,7 +13,7 @@ class SecurityController extends Controller {
 
     /**
      * 
-     * @Route("/login", name="adminlogin")
+     * @Route("/admin/login", name="adminlogin")
      */
     public function adminLoginAction(Request $request, AuthenticationUtils $authenticationUtils) {
 
@@ -54,7 +54,7 @@ class SecurityController extends Controller {
             "error" => $error,
         );
 
-        return $this->render($this->get('theme')->getTheme() . '/login.html.twig', $params);
+        return $this->render('connexion.html.twig', $params);
     }
 
     

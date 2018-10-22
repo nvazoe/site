@@ -167,12 +167,6 @@ class OrdersController extends Controller{
      * )
      * 
      * @QueryParam(
-     *      name="reference",
-     *      description="Reference's order",
-     *      strict=true
-     * )
-     * 
-     * @QueryParam(
      *      name="restaurant",
      *      description="ID of restaurant where order is passed.",
      *      strict=true
@@ -199,7 +193,7 @@ class OrdersController extends Controller{
         $em = $this->getDoctrine()->getManager();
         
         $client = $request->query->get('client')?$request->query->get('client'):$request->request->get('client');
-        $reference = $request->query->get('reference')?$request->query->get('reference'):$request->request->get('reference');
+        //$reference = $request->query->get('reference')?$request->query->get('reference'):$request->request->get('reference');
         $restaurant = $request->query->get('restaurant')?$request->query->get('restaurant'):$request->request->get('restaurant');
         $amount = $request->query->get('amount')?$request->query->get('amount'):$request->request->get('amount');
         $address = $request->query->get('address')?$request->query->get('address'):$request->request->get('address');
@@ -216,16 +210,16 @@ class OrdersController extends Controller{
             return new JsonResponse($result, 400);
         }
         
-        if(!is_null($reference)){
-            if(!is_numeric($reference)){
-                $result = array('code' => 4000, 'description' => "reference must be string.");
-                return new JsonResponse($result, 400);
-            }
-            
-        }else{
-            $result = array('code' => 4000, 'description' => "reference is required.");
-            return new JsonResponse($result, 400);
-        }
+//        if(!is_null($reference)){
+//            if(!is_numeric($reference)){
+//                $result = array('code' => 4000, 'description' => "reference must be string.");
+//                return new JsonResponse($result, 400);
+//            }
+//            
+//        }else{
+//            $result = array('code' => 4000, 'description' => "reference is required.");
+//            return new JsonResponse($result, 400);
+//        }
         
         if(!is_null($restaurant)){
             if(!is_numeric($restaurant)){
@@ -293,7 +287,7 @@ class OrdersController extends Controller{
         // End validation
         $order = new Order();
         $order->setClient($cl);
-        $order->setRef($reference);
+        $order->setRef(md5(random_bytes(32)));
         $order->setRestaurant($resto);
         $order->setAmount($amount);
         $order->setAddress($address);
