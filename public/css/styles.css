@@ -74,6 +74,10 @@ li.carousel-item.active {
     max-height: 175px;
 }
 
+.box:hover {
+    cursor: pointer;
+}
+
 .box-payment button.btn.btn-success {
     width: 100%;
 }
@@ -83,6 +87,9 @@ li.carousel-item.active {
     border-top: 1px solid #ccc;
     border: 1px solid #ccc;
     padding: 15px;
+    
+}
+.box-basket > span{
     font-weight: 600;
     color: #ccc
 }

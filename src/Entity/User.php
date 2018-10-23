@@ -105,6 +105,26 @@ class User implements UserInterface, \Serializable
      */
     private $menuNotes;
 
+    /**
+     * @ORM\Column(type="string", length=4, nullable=true)
+     */
+    private $code;
+
+    /**
+     * @ORM\Column(type="boolean")
+     */
+    private $state;
+
+    /**
+     * @ORM\Column(type="datetime")
+     */
+    private $date_created;
+
+    /**
+     * @ORM\Column(type="datetime")
+     */
+    private $date_updated;
+
     public function __construct()
     {
         $this->restaurants = new ArrayCollection();
@@ -114,6 +134,8 @@ class User implements UserInterface, \Serializable
         $this->restaurantNotes = new ArrayCollection();
         $this->orderShippings = new ArrayCollection();
         $this->menuNotes = new ArrayCollection();
+        $this->date_created = new \DateTime();
+        $this->date_updated = new \DateTime();
     }
 
     public function getId(): ?int
@@ -493,6 +515,54 @@ class User implements UserInterface, \Serializable
                 $menuNote->setUser(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getCode(): ?string
+    {
+        return $this->code;
+    }
+
+    public function setCode(?string $code): self
+    {
+        $this->code = $code;
+
+        return $this;
+    }
+
+    public function getState(): ?bool
+    {
+        return $this->state;
+    }
+
+    public function setState(bool $state): self
+    {
+        $this->state = $state;
+
+        return $this;
+    }
+
+    public function getDateCreated(): ?\DateTimeInterface
+    {
+        return $this->date_created;
+    }
+
+    public function setDateCreated(\DateTimeInterface $date_created): self
+    {
+        $this->date_created = $date_created;
+
+        return $this;
+    }
+
+    public function getDateUpdated(): ?\DateTimeInterface
+    {
+        return $this->date_updated;
+    }
+
+    public function setDateUpdated(\DateTimeInterface $date_updated): self
+    {
+        $this->date_updated = $date_updated;
 
         return $this;
     }

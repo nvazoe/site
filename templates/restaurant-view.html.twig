@@ -42,7 +42,7 @@
             <div class="col-md-8">
                 {%for menu in restaurant.menus %}
                     <div class="col-sm-6">
-                        <div class="box">
+                        <div class="box" data-menu="{{ menu.id }}">
                             <div class="blck-descp">
                                 <div class="title text-uppercase">{{menu.name}}</div>
                                 <br>
@@ -68,7 +68,8 @@
                     <button class="btn btn-success">Paiement</button>
                 </div>
                 <div class="box-basket">
-                    Ajoutez des articles à votre panier et ils s'y afficheront
+                    <span>Ajoutez des articles à votre panier et ils s'y afficheront</span>
+                    
                 </div>
             </div>
         </div>
@@ -90,8 +91,8 @@
                         </div>
                         <section class="col-md-6">
                             <header>
-                                <h2>NOM DU MENU</h2>
-                                <p>Marque</p>
+                                <h3 id="menu-name">NOM DU MENU</h3>
+                                <p id="menu-description">Marque</p>
                             </header>
                             <main>
                                 <div class="blck-option">
@@ -128,7 +129,7 @@
                                         </div>
                                     </div>
                                     <div class="col-sm-8">
-                                        <button class="btn btn-success basket">Ajouter au panier</button>
+                                        <button class="btn btn-success basket" data-unit-price="9" id="unit-price">Ajouter au panier <span class="amount-menu"></span><span>€</span></button>
                                     </div>
                                 </div>
                             </footer>
@@ -139,4 +140,8 @@
             </div>
         </div>
     </div>
+{% endblock %}
+
+{% block javascripts %}
+    <script src="{{ asset('js/order-sys.js') }}"></script>
 {% endblock %}

@@ -48,26 +48,24 @@ class MenuRepository extends ServiceEntityRepository
     }
     */
     
-    public function findByRestau($restau, $limit, $page, $count = false)
+    public function findByRestau($restau, $limit, $page, $count = false, $category)
     {
-        if($count){
-            return $this->createQueryBuilder('m')
-            ->andWhere('m.restaurant = :val')
-            ->setParameter('val', $restau)
-            ->select('COUNT(m)')
-            ->getQuery()
-            ->getSingleScalarResult();
-        }
+        $select = $this->createQueryBuilder('m');
+        if($category)
+            $select = $select->andWhere ('m.categoryMenu = :val')->setParameter('val', $category);
         
-        return $this->createQueryBuilder('m')
-            ->andWhere('m.restaurant = :val')
-            ->setParameter('val', $restau)
-            ->orderBy('m.id', 'DESC')
-            ->setFirstResult( ($page-1)*$limit )
-            ->setMaxResults($limit)
-            ->getQuery()
-            ->getResult()
-        ;
+        if($restau)
+            $select = $select->andWhere('m.restaurant = :val')->setParameter('val', $restau);
+        
+        if($limit)
+            $select = $select->setFirstResult( ($page-1)*$limit )->setMaxResults($limit);
+        
+        if($count)
+            return $select->select('COUNT(m)')->getQuery()->getSingleScalarResult();
+        
+        
+        
+        return $select->getQuery()->getResult();
     }
     
     public function getMenus($limit, $page, $count=false)

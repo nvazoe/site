@@ -20,25 +20,25 @@ security:
 
             # http_basic: true
             # https://symfony.com/doc/current/security.html#a-configuring-how-your-users-will-authenticate
-            pattern: ^/
+            pattern: ^/admin
             form_login:
                 provider: user_db
                 login_path: adminlogin
                 check_path: adminlogin_check
                 default_target_path: /admin
-        api:
-            pattern: ^/api
-            stateless: true
-            simple_preauth:
-                authenticator: App\Security\ApiKeyAuthenticator
-            provider: user_db
-        front:
-            pattern: ^/
-            form_login:
-                provider: user_db
-                login_path: login
-                check_path: login_check
-                default_target_path: /
+#        api:
+#            pattern: ^/api
+#            stateless: true
+#            simple_preauth:
+#                authenticator: App\Security\ApiKeyAuthenticator
+#            provider: user_db
+#        front:
+#            pattern: ^/
+#            form_login:
+#                provider: user_db
+#                login_path: login
+#                check_path: login_check
+#                default_target_path: /
 
     # Easy way to control access for large sections of your site
     # Note: Only the *first* access control that matches will be used
@@ -49,4 +49,4 @@ security:
         - { path: ^/admin/login$, roles: IS_AUTHENTICATED_ANONYMOUSLY }
         - { path: ^/admin, roles: ROLE_ADMIN }
         
-        - { path: ^/api, roles: ROLE_USER }
+        - { path: ^/api, roles: IS_AUTHENTICATED_ANONYMOUSLY }

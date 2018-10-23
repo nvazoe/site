@@ -128,7 +128,7 @@ class MenusController extends Controller {
             $result['data']['category']['id'] = $menu->getCategoryMenu() ? $menu->getCategoryMenu()->getId() : null;
             $result['data']['category']['name'] = $menu->getCategoryMenu() ? $menu->getCategoryMenu()->getName() : null;
             if($menu->getImage()){
-                $result['data']["image"] = $this->generateUrl('homepage', array(), UrlGeneratorInterface::ABSOLUTE_URL).'images/menu/'.$l->getImage();
+                $result['data']["image"] = $this->generateUrl('homepage', array(), UrlGeneratorInterface::ABSOLUTE_URL).'images/menu/'.$menu->getImage();
             }else{
                 $result['data']["image"] = null;
             }

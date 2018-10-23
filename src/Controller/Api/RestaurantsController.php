@@ -78,8 +78,24 @@ class RestaurantsController extends Controller {
             $array[$k]['longitude'] = $l->getLongitude();
             $array[$k]['latitude'] = $l->getLatidude();
             $array[$k]['status'] = $l->getStatus();
-            if($l->getImage())
+            if($l->getImage()){
                 $array[$k]['image'] = $this->generateUrl('homepage', array(), UrlGeneratorInterface::ABSOLUTE_URL).'images/restaurant/'.$l->getImage();
+            }else{
+                $array[$k]['image'] = null;
+            }
+            
+            $notes = $l->getRestaurantNotes();
+            if(count($notes)){
+                $t = 0;
+                foreach ($notes as $u){
+                    $t += $u->getNote();
+                }
+                $array[$k]['notes']['avg'] = ceil($t/count($notes));
+                $array[$k]['notes']['avis'] = count($notes);
+            }else{
+                $array[$k]['notes']['avg'] = 0;
+                $array[$k]['notes']['avis'] = 0;
+            }
         }
         $result['code'] = 200;
         if(count($array) > 0){
@@ -95,7 +111,7 @@ class RestaurantsController extends Controller {
     /**
      * @Get("/api/restaurants/{id}")
      * 
-     * *@SWG\Response(
+     * @SWG\Response(
      *      response=200,
      *      description="Get restaurant informations"
      * )
@@ -123,6 +139,9 @@ class RestaurantsController extends Controller {
                 }
                 $result['data']['notes']['avg'] = ceil($t/count($notes));
                 $result['data']['notes']['avis'] = count($notes);
+            }else{
+                $result['data']['notes']['avg'] = 0;
+                $result['data']['notes']['avis'] = 0;
             }
         }else{
             $result['code'] = 400;
@@ -137,10 +156,11 @@ class RestaurantsController extends Controller {
     /**
      * @Get("/api/restaurants/{id}/menus")
      * 
-     * *@SWG\Response(
+     * @SWG\Response(
      *      response=200,
-     *      description="Get restaurant informations"
+     *      description="Get restaurant's menu informations"
      * )
+     * 
      * @QueryParam(
      *      name="limit",
      *      description="limit per page",
@@ -155,32 +175,52 @@ class RestaurantsController extends Controller {
      *      default=1
      * )
      * 
+     * @QueryParam(
+     *      name="category",
+     *      description="specify category restriction",
+     *      strict=false
+     * )
+     * 
      * @SWG\Tag(name="Restaurants")
      */
     public function getRestauMenusAction(Request $request, $id){
         $em = $this->getDoctrine()->getManager();
         $limit = $request->query->get('limit')?$request->query->get('limit'):$request->request->get('limit');
         $page = $request->query->get('page')?$request->query->get('page'):$request->request->get('page');
+        $category = $request->query->get('category')?$request->query->get('category'):$request->request->get('category');
         // Default values
         $limit = ($limit == null) ? 100 : $limit;
         $page = ($page == null) ? 1 : $page;
+        
+        if($category){
+            if(!is_numeric($category)){
+                $result = array('code' => 4000, 'description' => "category must be numeric");
+                return new JsonResponse($result, 400);
+            }
+        }
         
         if(!$em->getRepository(Restaurant::class)->find($id)) {
             $result = array('code' => 4000, 'description' => "Unexisting restaurant id.");
             return new JsonResponse($result, 400);
         }
-        $menus = $em->getRepository(Menu::class)->findByRestau(intval($id), intval($limit), intval($page));
+        $menus = $em->getRepository(Menu::class)->findByRestau(intval($id), intval($limit), intval($page), false, $category);
         
         $array = [];
         foreach ($menus as $k => $l){
             $array[$k]["id"] = $l->getId();
             $array[$k]["name"] = $l->getName();
             $array[$k]["description"] = $l->getDescription();
-            $array[$k]["price"] = $l->getPrice().'€';
+            $array[$k]["price"] = floatval($l->getPrice());
+            if($l->getImage()){
+                $array[$k]['image'] = $this->generateUrl('homepage', array(), UrlGeneratorInterface::ABSOLUTE_URL).'images/menu/'.$l->getImage();
+            }else{
+                $array[$k]['image'] = null;
+            }
+            $array[$k]["category"] = $l->getCategoryMenu()->getName();
         }
         $result['code'] = 200;
         $result['items'] = $array;
-        $result['total'] = $em->getRepository(Menu::class)->findByRestau(intval($id), intval($limit), intval($page), true);
+        $result['total'] = $em->getRepository(Menu::class)->findByRestau(intval($id), intval($limit), intval($page), true, $category);
         $result['current_page'] = $page;
         $result['per_page'] = $limit;
         

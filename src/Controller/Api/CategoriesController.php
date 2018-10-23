@@ -217,6 +217,8 @@ class CategoriesController extends Controller{
             $result['total'] = count($array);
             $result['current_page'] = $page;
             $result['per_page'] = $limit;
+        }else{
+            $result['items'] = [];
         }
         
         return new JsonResponse($result, 200);

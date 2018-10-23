@@ -167,7 +167,7 @@
                                                     {% for restau in restaurants %}
                                                         <div class="col-md-4">
                                                             <div class="thumbnail">
-                                                                <img src="{% if not restau.image %}{{ asset('images/menu/dish.jpg')}}{%else%}{{ asset('images/restaurant/')}}{{restau.image}}{%endif%}" alt="">
+                                                                <img src="{{ asset('images/restaurant/')}}{{restau.image}}" alt="">
                                                                 <div class="caption">
                                                                     <h4><a href="{{ path('restau', {'id': restau.id}) }}">{{restau.name}} {% if restau.address %}({{restau.address}} {{restau.city}}){%endif%}</a></h4>
                                                                     <p>{{ restau.description }}</p>

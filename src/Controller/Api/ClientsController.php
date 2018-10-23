@@ -27,6 +27,7 @@ use Symfony\Component\Cache\Adapter\FilesystemAdapter;
 use App\Entity\User;
 use App\Entity\Restaurant;
 use App\Entity\Menu;
+use App\Entity\BankCard;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 
 /**
@@ -165,6 +166,12 @@ class ClientsController extends Controller {
      * )
      * 
      *  @QueryParam(
+     *      name="phone_number",
+     *      description="Phone number of the client",
+     *      strict=false
+     * )
+     * 
+     *  @QueryParam(
      *      name="email",
      *      description="Email",
      *      strict=true
@@ -178,13 +185,14 @@ class ClientsController extends Controller {
      * 
      * @SWG\Tag(name="Clients")
      */
-    public function postClientAction(Request $request, UserPasswordEncoderInterface $encoder){
+    public function postClientAction(Request $request, UserPasswordEncoderInterface $encoder, \Swift_Mailer $mailer){
         $em = $this->getDoctrine()->getManager();
         $username = $request->query->get('username')?$request->query->get('username'):$request->request->get('username');
         $firstname = $request->query->get('firstname')?$request->query->get('firstname'):$request->request->get('firstname');
         $lastname = $request->query->get('lastname')?$request->query->get('lastname'):$request->request->get('lastname');
         $longitude = $request->query->get('longitude')?$request->query->get('longitude'):$request->request->get('longitude');
         $latitude = $request->query->get('latitude')?$request->query->get('latitude'):$request->request->get('latitude');
+        $phone = $request->query->get('phone_number')?$request->query->get('phone_number'):$request->request->get('phone_number');
         $password = $request->query->get('password')?$request->query->get('password'):$request->request->get('password');
         $email = $request->query->get('email')?$request->query->get('email'):$request->request->get('email');
         
@@ -236,6 +244,8 @@ class ClientsController extends Controller {
             $result = array('code' => 4000, 'description' => "firstname is required."); 
             return new JsonResponse($result, 400);
         }
+        
+        $code = substr(strtoupper(md5(random_bytes(10))), 0, 4);
             
         $del = new User();
         $del->setUsername($username);
@@ -243,11 +253,42 @@ class ClientsController extends Controller {
         $del->setLongitude($longitude);
         $del->setLatitude($latitude);
         $del->setLastname($lastname);
+        $del->setPhoneNumber($phone);
+        $del->setCode($code);
         $del->setEmail($email);
         $del->setPassword($encoder->encodePassword($del, $password));
         $del->setRoles(["ROLE_CLIENT"]);
         $em->persist($del);
         $em->flush();
+        
+        
+        /** Sending code by email **/
+        $message = (new \Swift_Message('Validation de compte'))
+            ->setFrom('send@example.com')
+            ->setTo($email)
+            ->setBody(
+                $this->renderView(
+                    // templates/emails/registration.html.twig
+                    'emails/registration.html.twig',
+                    array('name' => $firstname, 'code' => $code)
+                ),
+                'text/html'
+            )
+            /*
+             * If you also want to include a plaintext version of the message
+            ->addPart(
+                $this->renderView(
+                    'emails/registration.txt.twig',
+                    array('name' => $name)
+                ),
+                'text/plain'
+            )
+            */
+        ;
+
+        $mailer->send($message);
+
+        
         
         $result['code'] = 201;
         $result['client_id'] = $del->getId();
@@ -314,5 +355,251 @@ class ClientsController extends Controller {
             $result['per_page'] = $limit;
         }
         return new JsonResponse($result);
+    }
+    
+    /**
+     * @Post("/api/clients/{id}/bank-card")
+     * 
+     * *@SWG\Response(
+     *      response=201,
+     *      description="Add new bank card."
+     * )
+     * 
+     * @QueryParam(
+     *      name="name",
+     *      description="Name card owner",
+     *      strict=true
+     * )
+     * 
+     * @QueryParam(
+     *      name="card_number",
+     *      description="card number",
+     *      strict=false
+     * )
+     *
+     *  @QueryParam(
+     *      name="montth",
+     *      description="Expiration's month",
+     *      strict=false
+     * )
+     * 
+     *  @QueryParam(
+     *      name="year",
+     *      description="Expiration's year",
+     *      strict=false
+     * )
+     * 
+     * 
+     *  @QueryParam(
+     *      name="security",
+     *      description="security code card",
+     *      strict=true
+     * )
+     * 
+     * @SWG\Tag(name="Clients")
+     */
+    public function postClientBankCard(Request $request, $id){
+        $em = $this->getDoctrine()->getManager();
+        //$client = $request->query->get('client')?$request->query->get('client'):$request->request->get('client');
+        $name = $request->query->get('name')?$request->query->get('name'):$request->request->get('name');
+        $security = $request->query->get('security')?$request->query->get('security'):$request->request->get('security');
+        $month = $request->query->get('month')?$request->query->get('month'):$request->request->get('month');
+        $year = $request->query->get('year')?$request->query->get('year'):$request->request->get('year');
+        $card = $request->query->get('card_number')?$request->query->get('card_number'):$request->request->get('card_number');
+        
+        
+        // validate card  number
+        if($card){
+            if(!is_string($card)){
+                $result = array('code'=>4000, 'description' => 'Card number must be string');
+                return new JsonResponse($result, 400);
+            }
+        }else{
+            $result = array('code'=>4000, 'description' => 'Card number is required.');
+            return new JsonResponse($result, 400);
+        }
+        
+        if($name){
+            if(!is_string($name)){
+                $result = array('code'=>4000, 'description' => 'Name must be string');
+                return new JsonResponse($result, 400);
+            }
+        }else{
+            $result = array('code'=>4000, 'description' => 'name is required.');
+            return new JsonResponse($result, 400);
+        }
+        
+        if($year){
+            if(!is_string($year)){
+                $result = array('code'=>4000, 'description' => 'year must be string');
+                return new JsonResponse($result, 400);
+            }
+        }else{
+            $result = array('code'=>4000, 'description' => 'year is required.');
+            return new JsonResponse($result, 400);
+        }
+        
+        if($month){
+            if(!is_string($month)){
+                $result = array('code'=>4000, 'description' => 'month must be string');
+                return new JsonResponse($result, 400);
+            }
+        }else{
+            $result = array('code'=>4000, 'description' => 'month is required.');
+            return new JsonResponse($result, 400);
+        }
+        
+        
+        if($security){
+            if(!is_string($security)){
+                $result = array('code'=>4000, 'description' => 'security must be string');
+                return new JsonResponse($result, 400);
+            }
+        }else{
+            $result = array('code'=>4000, 'description' => 'security is required.');
+            return new JsonResponse($result, 400);
+        }
+        
+        $cl = $em->getRepository(User::class)->find($id);
+        if(!$cl){
+            $result = array('code'=>4000, 'description' => 'unexisting client.');
+            return new JsonResponse($result, 400);
+        }
+        
+        $bc = new BankCard();
+        $bc->setOwnerName($name);
+        $bc->setUser($cl);
+        $bc->setMonthExp($month);
+        $bc->setYearExp($year);
+        $bc->setSecurityCode($security);
+        $bc->setCardNumber($card);
+        
+        $em->persist($bc);
+        $em->flush();
+        
+        $result['code'] = 201;
+        $result['bank_card_id'] = $bc->getId();
+        
+        return new JsonResponse($result, 201);
+    }
+    
+    
+    /**
+     * @Get("/api/clients/{id}/bank-card")
+     * 
+     * *@SWG\Response(
+     *      response=200,
+     *      description="List bank card of a client."
+     * )
+     * 
+     * @QueryParam(
+     *      name="limit",
+     *      description="limit per page",
+     *      strict=false,
+     *      default=100
+     * )
+     * 
+     * @QueryParam(
+     *      name="page",
+     *      description="Page of set",
+     *      strict=false,
+     *      default=1
+     * )
+     * 
+     * @SWG\Tag(name="Clients")
+     */
+    public function getClientCards(Request $request, $id){
+        $em = $this->getDoctrine()->getManager();
+        $limit = $request->query->get('limit')?$request->query->get('limit'):$request->request->get('limit');
+        $page = $request->query->get('page')?$request->query->get('page'):$request->request->get('page');
+        
+        // Default values
+        $limit = ($limit == null) ? 100 : $limit;
+        $page = ($page == null) ? 1 : $page;
+        
+        $client = $em->getRepository(User::class)->find($id);
+        if(!$client){
+            $result = array('code' => 400, 'description' => "Unexisting client");
+            return new JsonResponse($result, 400);
+        }
+        
+        $array = [];
+        $banks = $client->getBankCards();
+        foreach ($banks as $k=>$l){
+            $array[$k]["id"] = $l->getId();
+            $array[$k]['owner_name'] = $l->getOwnerName();
+            $array[$k]['card_number'] = $l->getCardNumber();
+        }
+        $result['code'] = 200;
+        if(count($array) > 0){
+            $result['items'] = $array;
+            $result['total'] = count($array);
+            $result['current_page'] = $page;
+            $result['per_page'] = $limit;
+        }
+        return new JsonResponse($result);
+    }
+    
+    /**
+     * @Post("/api/clients/{id}/account-activation")
+     * 
+     * *@SWG\Response(
+     *      response=200,
+     *      description="activation account."
+     * )
+     * 
+     * @QueryParam(
+     *      name="code",
+     *      description="code for verification",
+     *      strict=false,
+     *      default=100
+     * )
+     
+     * 
+     * @SWG\Tag(name="Clients")
+     */
+    public function postCodeVerif(Request $request, $id){
+        $em = $this->getDoctrine()->getManager();
+        
+        $code = $request->query->get('code')?$request->query->get('code'):$request->request->get('code');
+        
+        if($code){
+            if(!is_string($code)){
+                $result = array('code'=> 4000, 'description'=> 'Code must be string');
+                return new JsonResponse($result, 400);
+            }
+        }else{
+            $result = array('code'=>4000, 'description'=> 'code is required');
+            return new JsonResponse($result, 400);
+        }
+        
+        $client = $em->getRepository(User::class)->find($id);
+        if(!$client){
+            $result = array('code'=>4000, 'description'=> 'Unexisting client.');
+            return new JsonResponse($result, 400);
+        }
+        
+        if($code != $client->getCode()){
+            $result = array('code'=>4000, 'description'=> 'Code incorrect.');
+            return new JsonResponse($result, 400);
+        }
+        
+        // update state
+        $client->setState(1);
+        $em->flush();
+        
+        $array['code'] = 200;
+        $array['data']['id'] = $client->getId();
+        $array['data']['username'] = $client->getUsername();
+        $array['data']['firstname'] = $client->getFirstname();
+        $array['data']['lastname'] = $client->getLastname();
+        $array['data']['email'] = $client->getEmail();
+        $array['data']['phone_number'] = $client->getPhoneNumber();
+        $array['data']['address'] = $client->getAddress();
+        $array['data']['longitude'] = $client->setLongitude();
+        $array['data']['latitude'] = $client->setLatitude();
+        
+        return new JsonResponse($array);
+        
     }
 }
