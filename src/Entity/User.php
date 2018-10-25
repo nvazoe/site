@@ -125,6 +125,11 @@ class User implements UserInterface, \Serializable
      */
     private $date_updated;
 
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\Order", mappedBy="messenger")
+     */
+    private $ordersDelivered;
+
     public function __construct()
     {
         $this->restaurants = new ArrayCollection();
@@ -136,6 +141,7 @@ class User implements UserInterface, \Serializable
         $this->menuNotes = new ArrayCollection();
         $this->date_created = new \DateTime();
         $this->date_updated = new \DateTime();
+        $this->ordersDelivered = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -563,6 +569,37 @@ class User implements UserInterface, \Serializable
     public function setDateUpdated(\DateTimeInterface $date_updated): self
     {
         $this->date_updated = $date_updated;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|Order[]
+     */
+    public function getOrdersDelivered(): Collection
+    {
+        return $this->ordersDelivered;
+    }
+
+    public function addOrdersDelivered(Order $ordersDelivered): self
+    {
+        if (!$this->ordersDelivered->contains($ordersDelivered)) {
+            $this->ordersDelivered[] = $ordersDelivered;
+            $ordersDelivered->setMessenger($this);
+        }
+
+        return $this;
+    }
+
+    public function removeOrdersDelivered(Order $ordersDelivered): self
+    {
+        if ($this->ordersDelivered->contains($ordersDelivered)) {
+            $this->ordersDelivered->removeElement($ordersDelivered);
+            // set the owning side to null (unless already changed)
+            if ($ordersDelivered->getMessenger() === $this) {
+                $ordersDelivered->setMessenger(null);
+            }
+        }
 
         return $this;
     }

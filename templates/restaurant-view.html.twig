@@ -42,7 +42,7 @@
             <div class="col-md-8">
                 {%for menu in restaurant.menus %}
                     <div class="col-sm-6">
-                        <div class="box" data-menu="{{ menu.id }}">
+                        <div class="box" data-menu="{{ menu.id }}"  data-toggle="modal" data-target="#info">
                             <div class="blck-descp">
                                 <div class="title text-uppercase">{{menu.name}}</div>
                                 <br>
@@ -55,8 +55,9 @@
                                 </div>
                             </div>
 
-                            <div class="blck-picture" data-toggle="modal" data-target="#info">
-                                <img class="img-responsive" src="{% if not menu.image %}{{ asset('images/menu/dish.jpg')}}{%else%}{{ asset('images/menu/')}}{{menu.image}}{%endif%}" alt="photo">
+                            <div class="blck-picture">
+                                <div style="background-image: url('{% if not menu.image %}{{ asset('images/menu/dish.jpg')}}{%else%}{{ asset('images/menu/')}}{{menu.image}}{%endif%}'); height:100%;background-size:cover;"></div>
+                                {#<img class="img-responsive" src="{% if not menu.image %}{{ asset('images/menu/dish.jpg')}}{%else%}{{ asset('images/menu/')}}{{menu.image}}{%endif%}" alt="photo">#}
                             </div>
                         </div>
                     </div>
@@ -95,23 +96,25 @@
                                 <p id="menu-description">Marque</p>
                             </header>
                             <main>
-                                <div class="blck-option">
-                                    <div class="option-title">
-                                        <h3>Accompagnements</h3>
-                                        <p>Choisissez 1</p>
-                                        <span class="badge">Obligatoire</span>
+                                <div class="block-options">
+                                    <div class="blck-option">
+                                        <div class="option-title">
+                                            <h3>Accompagnements</h3>
+                                            <p>Choisissez 1</p>
+                                            <span class="badge">Obligatoire</span>
+                                        </div>
+                                        <div>
+                                            <form class="form-horizontal">
+                                                <div class="form-group">
+                                                    <div class=""><div class="col-sm-1"><input type="radio" name="options"></div><label class="col-sm-8">Option 1</label><label class="col-sm-3"><span class="price">2</span> <span class="currency">€</span></label></div>
+                                                    <div class=""><div class="col-sm-1"><input type="radio" name="options"></div><label class="col-sm-8">Option 2</label><label class="col-sm-3"><span class="price">299</span> <span class="currency">€</span></label></div>
+                                                    <div class=""><div class="col-sm-1"><input type="radio" name="options"></div><label  class="col-sm-8">Option 3</label><label class="col-sm-3"><span class="price">20</span> <span class="currency">€</span></label></div>
+                                                </div>
+                                            </form>
+                                        </div>
                                     </div>
-                                    <div>
-                                        <form class="form-horizontal">
-                                            <div class="form-group">
-                                                <div class=""><div class="col-sm-1"><input type="radio" name="options"></div><label class="col-sm-11">Option 1</label></div>
-                                                <div class=""><div class="col-sm-1"><input type="radio" name="options"></div><label class="col-sm-11">Option 2</label></div>
-                                                <div class=""><div class="col-sm-1"><input type="radio" name="options"></div><label  class="col-sm-11">Option 3</label></div>
-                                            </div>
-                                        </form>
-                                    </div>
-                                    <div class="option-info">Pour être informé sur les allergènes présents dans les produits proposés par ce restaurant, cliquez ici.</div>
                                 </div>
+                                <div class="option-info">Pour être informé sur les allergènes présents dans les produits proposés par ce restaurant, cliquez ici.</div>
                             </main>
                             <footer class="footer-menu">
                                 <div class="row">

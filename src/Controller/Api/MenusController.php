@@ -136,13 +136,14 @@ class MenusController extends Controller {
             $options = $menu->getMenuMenuOptions();
             if(!is_null($options)){
                 foreach ($options as $k=>$v){
+                    $result['data']['options']["$k"]["id"] = $v->getMenuOption()->getId();
                     $result['data']['options']["$k"]["name"] = $v->getMenuOption()->getName();
-                    
+                    $result['data']['options']["$k"]["item_required"] = $v->getMenuOption()->getItem();
                     //Get products for options
                     $products = $v->getMenuOption()->getYes();
                     if(!is_null($products)){
                         foreach($products as $key=>$val){
-                            $result['data']['options']["$k"]["products"]["$key"]['id'] = $val->getProduct()->getName();
+                            $result['data']['options']["$k"]["products"]["$key"]['id'] = $val->getid();
                             $result['data']['options']["$k"]["products"]["$key"]['name'] = $val->getProduct()->getName();
                             $result['data']['options']["$k"]["products"]["$key"]['price'] = floatval($val->getAttribut());
                         }

@@ -108,6 +108,7 @@ class UsersController extends Controller {
                 'lastname' => $user_account->getlastname(),
                 'email' => $user_account->getemail(),
                 'role' => $user_account->getroles(),
+                'active' => $user_account->getstate(),
             )
         ));
     }

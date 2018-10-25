@@ -12,7 +12,7 @@ security:
         dev:
             pattern: ^/(_(profiler|wdt)|css|images|js)/
             security: false
-        admin:
+        main:
             anonymous: true
             provider: user_db
 
@@ -20,33 +20,25 @@ security:
 
             # http_basic: true
             # https://symfony.com/doc/current/security.html#a-configuring-how-your-users-will-authenticate
-            pattern: ^/admin
+
             form_login:
                 provider: user_db
                 login_path: adminlogin
-                check_path: adminlogin_check
+                check_path: adminlogin
                 default_target_path: /admin
-#        api:
-#            pattern: ^/api
-#            stateless: true
-#            simple_preauth:
-#                authenticator: App\Security\ApiKeyAuthenticator
-#            provider: user_db
-#        front:
-#            pattern: ^/
-#            form_login:
-#                provider: user_db
-#                login_path: login
-#                check_path: login_check
-#                default_target_path: /
+        api:
+            pattern: ^/api
+            stateless: true
+            simple_preauth:
+                authenticator: App\Security\ApiKeyAuthenticator
+            provider: user_db
 
     # Easy way to control access for large sections of your site
     # Note: Only the *first* access control that matches will be used
     access_control:
         # - { path: ^/admin, roles: ROLE_ADMIN }
         # - { path: ^/profile, roles: ROLE_USER }
-        - { path: ^/login$, roles: IS_AUTHENTICATED_ANONYMOUSLY }
         - { path: ^/admin/login$, roles: IS_AUTHENTICATED_ANONYMOUSLY }
         - { path: ^/admin, roles: ROLE_ADMIN }
-        
-        - { path: ^/api, roles: IS_AUTHENTICATED_ANONYMOUSLY }
+        - { path: ^/, roles: IS_AUTHENTICATED_ANONYMOUSLY }
+        - { path: ^/api, roles: ROLE_USER }

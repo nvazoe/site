@@ -14,6 +14,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use FOS\RestBundle\Controller\Annotations\Post;
 use FOS\RestBundle\Controller\Annotations\Get;
+use FOS\RestBundle\Controller\Annotations\Put;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Exception\HttpException;
@@ -33,7 +34,9 @@ use App\Entity\OrderDetailsMenuProduct;
 use App\Entity\OrderShipping;
 use App\Entity\OrderStatus;
 use App\Entity\Product;
+use App\Entity\MenuOption;
 use App\Entity\ShippingStatus;
+use App\Entity\MenuOptionProducts;
 
 /**
  * Description of OrdersController
@@ -191,7 +194,7 @@ class OrdersController extends Controller{
      */
     public function postOrderAction(Request $request){
         $em = $this->getDoctrine()->getManager();
-        
+        $total = 0.00;
         $order_infos = file_get_contents('php://input');
         $data = json_decode($order_infos, TRUE);
         
@@ -221,17 +224,16 @@ class OrdersController extends Controller{
         $order->setClient($em->getRepository(User::class)->find($client));
         $order->setRef(substr(strtoupper(md5(random_bytes(6))), 0, 6));
         $order->setRestaurant($em->getRepository(Restaurant::class)->find($restaurant));
-        $order->setAmount($amount);
         $order->setAddress($delivery_address);
         $order->setPhoneNumber($delivery_phone);
+        $order->setAmount($total);
         $order->setOrderStatus($em->getRepository(OrderStatus::class)->find(1));
         
         $em->persist($order);
-        $em->flush();
+        
         
         
         foreach($menus as $m){
-            
             $ordDt = new OrderDetails();
             $menu = $em->getRepository(Menu::class)->find($m['id']);
             $ordDt->setCommand($order);
@@ -239,23 +241,31 @@ class OrdersController extends Controller{
             $ordDt->setPrice($menu->getPrice());
             $ordDt->setMenuName($menu->getName());
             $ordDt->setQuantity($m['quantity']);
+            $total += $menu->getPrice() * (int)$m['quantity'];
             $em->persist($ordDt);
-            $em->flush();
             
-            if(count($m['products'])){
-                foreach($m['products'] as $p){
-                    $ordDtPrd = new OrderDetailsMenuProduct();
-                    $product = $em->getRepository(Product::class)->find($p['id']);
-                    $ordDtPrd->setOrderDetails($ordDt);
-                    $ordDtPrd->setMenu($menu);
-                    $ordDtPrd->setProduct($product);
-                    $ordDtPrd->setPrice($p['price']);
+            if(count($m['options'])){
+                foreach($m['options'] as $o){
+                    $menuOption = $em->getRepository(MenuOption::class)->find($o['option']);
+                    
+                    foreach($o['products'] as $op){
+                        $prd = $em->getRepository(MenuOptionProducts::class)->find($op['id']);
+                        
+                        $ordDtPrd = new OrderDetailsMenuProduct();
+                        $ordDtPrd->setOrderDetails($ordDt);
+                        $ordDtPrd->setMenu($menu);
+                        $ordDtPrd->setProduct($prd->getProduct());
+                        $ordDtPrd->setPrice($prd->getAttribut());
+                        $total += $ordDtPrd->getPrice() * (int)$m['quantity'];
+                    }
+                    
                     $em->persist($ordDtPrd);
-                    $em->flush();
                 }
-            }
-            
+            }  
         }
+        $order->setAmount($total);
+//        $em->persist($order);
+        $em->flush();
         
         $result['code'] = 201;
         $result['data']['order_id'] = $order->getId();
@@ -440,8 +450,8 @@ class OrdersController extends Controller{
         }
         
         if(array_key_exists('delivery_phone', $params)){
-            if(!is_string($params['delivery_address'])){
-                $result = array('code'=>4000, 'description' => 'delivery_phone must be string.');
+            if(!is_numeric($params['delivery_phone'])){
+                $result = array('code'=>4000, 'description' => 'delivery_phone must be numeric.');
                 echo json_encode($result, JSON_UNESCAPED_SLASHES, 400);
                 return false;
             }
@@ -452,18 +462,18 @@ class OrdersController extends Controller{
             return false;
         }
         
-        if(array_key_exists('amount', $params)){
-            if(!is_numeric($params['amount'])){
-                $result = array('code'=>4000, 'description' => 'amount must be string.');
-                echo json_encode($result, JSON_UNESCAPED_SLASHES, 400);
-                return false;
-            }
-            
-        }else{
-            $result = array('code'=>4000, 'description' => 'amount is required.');
-            echo json_encode($result, JSON_UNESCAPED_SLASHES, 400);
-            return false;
-        }
+//        if(array_key_exists('amount', $params)){
+//            if(!is_numeric($params['amount'])){
+//                $result = array('code'=>4000, 'description' => 'amount must be string.');
+//                echo json_encode($result, JSON_UNESCAPED_SLASHES, 400);
+//                return false;
+//            }
+//            
+//        }else{
+//            $result = array('code'=>4000, 'description' => 'amount is required.');
+//            echo json_encode($result, JSON_UNESCAPED_SLASHES, 400);
+//            return false;
+//        }
         
         if(array_key_exists('menus', $params)){
             if(!is_array($params['menus'])){
@@ -508,61 +518,61 @@ class OrdersController extends Controller{
                     return false;
                 }
                 
-                if(array_key_exists('price', $m)){
-                    if(!is_numeric($m['price'])){
-                        $result = array('code'=>4000, 'description' => 'price\'s menu must be numeric');
-                        echo json_encode($result, JSON_UNESCAPED_SLASHES, 400);
-                        return false;
-                    }
-                    
-                }else{
-                    $result = array('code'=>4000, 'description' => 'price\'s menu is required.');
-                    echo json_encode($result, JSON_UNESCAPED_SLASHES, 400);
-                    return false;
-                }
+//                if(array_key_exists('price', $m)){
+//                    if(!is_numeric($m['price'])){
+//                        $result = array('code'=>4000, 'description' => 'price\'s menu must be numeric');
+//                        echo json_encode($result, JSON_UNESCAPED_SLASHES, 400);
+//                        return false;
+//                    }
+//                    
+//                }else{
+//                    $result = array('code'=>4000, 'description' => 'price\'s menu is required.');
+//                    echo json_encode($result, JSON_UNESCAPED_SLASHES, 400);
+//                    return false;
+//                }
                 
-                if(array_key_exists('products', $m)){
-                    if(!is_array($m['products'])){
+                if(array_key_exists('options', $m)){
+                    if(!is_array($m['options'])){
                         $result = array('code'=>4000, 'description' => 'products must be array data.');
                         echo json_encode($result, JSON_UNESCAPED_SLASHES, 400);
                         return false;
                     }
                     
-                    foreach($m['products'] as $p){
-                        if(array_key_exists('id', $p)){
-                            if(!is_int($p['id'])){
-                                $result = array('code'=>4000, 'description' => 'missing id product in one menu array.');
-                                echo json_encode($result, JSON_UNESCAPED_SLASHES, 400);
-                                return false;
-                            }
-
-                            $product = $em->getRepository(Product::class)->find($p['id']);
-                            if(!$product){
-                                $result = array('code'=>4000, 'description' => 'one unexisting product id #'.$p['id']);
-                                echo json_encode($result, JSON_UNESCAPED_SLASHES, 400);
-                                return false;
-                            }
-
-                        }else{
-                            $result = array('code'=>4000, 'description' => 'one id product is required.');
-                            echo json_encode($result, JSON_UNESCAPED_SLASHES, 400);
-                            return false;
-                        }
-                        
-                        
-                        if(array_key_exists('price', $p)){
-                            if(!is_numeric($p['price'])){
-                                $result = array('code'=>4000, 'description' => 'price\'s product must be numeric');
-                                echo json_encode($result, JSON_UNESCAPED_SLASHES, 400);
-                                return false;
-                            }
-
-                        }else{
-                            $result = array('code'=>4000, 'description' => 'price\'s product is required.');
-                            echo json_encode($result, JSON_UNESCAPED_SLASHES, 400);
-                            return false;
-                        }
-                    }
+//                    foreach($m['products'] as $p){
+//                        if(array_key_exists('id', $p)){
+//                            if(!is_int($p['id'])){
+//                                $result = array('code'=>4000, 'description' => 'missing id product in one menu array.');
+//                                echo json_encode($result, JSON_UNESCAPED_SLASHES, 400);
+//                                return false;
+//                            }
+//
+//                            $product = $em->getRepository(Product::class)->find($p['id']);
+//                            if(!$product){
+//                                $result = array('code'=>4000, 'description' => 'one unexisting product id #'.$p['id']);
+//                                echo json_encode($result, JSON_UNESCAPED_SLASHES, 400);
+//                                return false;
+//                            }
+//
+//                        }else{
+//                            $result = array('code'=>4000, 'description' => 'one id product is required.');
+//                            echo json_encode($result, JSON_UNESCAPED_SLASHES, 400);
+//                            return false;
+//                        }
+//                        
+//                        
+////                        if(array_key_exists('price', $p)){
+////                            if(!is_numeric($p['price'])){
+////                                $result = array('code'=>4000, 'description' => 'price\'s product must be numeric');
+////                                echo json_encode($result, JSON_UNESCAPED_SLASHES, 400);
+////                                return false;
+////                            }
+////
+////                        }else{
+////                            $result = array('code'=>4000, 'description' => 'price\'s product is required.');
+////                            echo json_encode($result, JSON_UNESCAPED_SLASHES, 400);
+////                            return false;
+////                        }
+//                    }
                 }
             }
         } else {
@@ -576,4 +586,55 @@ class OrdersController extends Controller{
         return true;
     }
     
+    
+    
+    /**
+     * @Put("/api/orders/{id}/tracking")
+     * 
+     * *@SWG\Response(
+     *      response=200,
+     *      description="Update position of delivering order"
+     * )
+     * 
+     * @QueryParam(
+     *      name="latitude",
+     *      description="latitude geo position",
+     *      strict=true
+     * )
+     * 
+     * @QueryParam(
+     *      name="longitude",
+     *      description="longitude geo position",
+     *      strict=true
+     * )
+     * 
+     * @SWG\Tag(name="Orders")
+     */
+    public function putOrderShippingAction(Request $request, $id){
+        $em = $this->getDoctrine()->getManager();
+        
+        $latitude = $request->query->get('latitude')?$request->query->get('latitude'):$request->request->get('latitude');
+        $longitude = $request->query->get('longitude')?$request->query->get('longitude'):$request->request->get('longitude');
+        
+        $order = $em->getRepository(Order::class)->find($id);
+        if(!$order){
+            $result = array('code' => 4000, 'description' => 'Unexisting order.');
+            return new JsonResponse($result, 400);
+        }
+        
+        $order->setTrackingLat($latitude);
+        $order->setTrackingLng($latitude);
+        
+        $em->flush();
+        
+        $result = array(
+            'code'=> 200,
+            'data' => array(
+                'order_id' => $order->getId(),
+                'reference' => $order->getRef()
+            )
+        );
+        
+        return new JsonResponse($result);
+    }
 }

@@ -129,6 +129,7 @@ li.carousel-item.active {
 .blck-picture {
     display: inline-block;
     width: 40%;
+    height: 100%;
 }
 
 .logo:hover {

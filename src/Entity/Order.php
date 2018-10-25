@@ -79,6 +79,21 @@ class Order
      */
     private $phoneNumber;
 
+    /**
+     * @ORM\Column(type="string", length=255, nullable=true)
+     */
+    private $trackingLng;
+
+    /**
+     * @ORM\Column(type="string", length=255, nullable=true)
+     */
+    private $trackingLat;
+
+    /**
+     * @ORM\ManyToOne(targetEntity="App\Entity\User", inversedBy="ordersDelivered")
+     */
+    private $messenger;
+
     public function __construct()
     {
         $this->orderDetails = new ArrayCollection();
@@ -268,5 +283,41 @@ class Order
     
     public function __toString(){
         return $this->getRef();
+    }
+
+    public function getTrackingLng(): ?string
+    {
+        return $this->trackingLng;
+    }
+
+    public function setTrackingLng(?string $trackingLng): self
+    {
+        $this->trackingLng = $trackingLng;
+
+        return $this;
+    }
+
+    public function getTrackingLat(): ?string
+    {
+        return $this->trackingLat;
+    }
+
+    public function setTrackingLat(?string $trackingLat): self
+    {
+        $this->trackingLat = $trackingLat;
+
+        return $this;
+    }
+
+    public function getMessenger(): ?User
+    {
+        return $this->messenger;
+    }
+
+    public function setMessenger(?User $messenger): self
+    {
+        $this->messenger = $messenger;
+
+        return $this;
     }
 }

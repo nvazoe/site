@@ -14,6 +14,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use FOS\RestBundle\Controller\Annotations\Post;
 use FOS\RestBundle\Controller\Annotations\Get;
+use FOS\RestBundle\Controller\Annotations\Put;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Exception\HttpException;
@@ -256,6 +257,7 @@ class ClientsController extends Controller {
         $del->setPhoneNumber($phone);
         $del->setCode($code);
         $del->setEmail($email);
+        $del->setState(0);
         $del->setPassword($encoder->encodePassword($del, $password));
         $del->setRoles(["ROLE_CLIENT"]);
         $em->persist($del);
@@ -291,7 +293,10 @@ class ClientsController extends Controller {
         
         
         $result['code'] = 201;
-        $result['client_id'] = $del->getId();
+        $result['data']['client_id'] = $del->getId();
+        $result['data']['firstname'] = $del->getfirstname();
+        $result['data']['email'] = $del->getEmail();
+        $result['data']['phone_number'] = $del->getPhoneNumber();
         
         return new JsonResponse($result, $result['code']);
     }
@@ -601,5 +606,82 @@ class ClientsController extends Controller {
         
         return new JsonResponse($array);
         
+    }
+    
+    
+    /**
+     * @Put("/api/clients/{id}")
+     * 
+     * *@SWG\Response(
+     *      response=200,
+     *      description="Update client infos."
+     * )
+     * 
+     * @QueryParam(
+     *      name="username",
+     *      description="username of client",
+     *      strict=true
+     * )
+     * @QueryParam(
+     *      name="firstname",
+     *      description="Firstname of client",
+     *      strict=true
+     * )
+     * 
+     * @QueryParam(
+     *      name="lastname",
+     *      description="Lastname of the client",
+     *      strict=false
+     * )
+     *
+     *  @QueryParam(
+     *      name="latitude",
+     *      description="Position latitude of the client",
+     *      strict=false
+     * )
+     * 
+     *  @QueryParam(
+     *      name="longitude",
+     *      description="Position longitude of the client",
+     *      strict=false
+     * )
+     * 
+     *  @QueryParam(
+     *      name="phone_number",
+     *      description="Phone number of the client",
+     *      strict=false
+     * )
+     * 
+     * 
+     * @SWG\Tag(name="Clients")
+     */
+    public function putUpdateClientAction(Request $request, $id){
+        $em = $this->getDoctrine()->getManager();
+        
+        $username = $request->query->get('username')?$request->query->get('username'):$request->request->get('username');
+        $firstname = $request->query->get('firstname')?$request->query->get('firstname'):$request->request->get('firstname');
+        $lastname = $request->query->get('lastname')?$request->query->get('lastname'):$request->request->get('lastname');
+        
+        $phone = $request->query->get('phone_number')?$request->query->get('phone_number'):$request->request->get('phone_number');
+        
+        $client = $em->getRepository(User::class)->find($id);
+        if(!$client){
+            $result = array('code'=> 4000, 'description' => 'Unexisting client');
+            return new JsonResponse($result, 400);
+        }
+        
+        $client->setUsername($username);
+        $client->setFirstname($firstname);
+        $client->setLastname($lastname);
+        $client->setPhoneNumber($phone);
+        $em->flush();
+        
+        $result['code'] = 200;
+        $result['data']['client_id'] = $client->getId();
+        $result['data']['firstname'] = $client->getfirstname();
+        $result['data']['email'] = $client->getEmail();
+        $result['data']['phone_number'] = $client->getPhoneNumber();
+        
+        return new JsonResponse($result, 200);
     }
 }

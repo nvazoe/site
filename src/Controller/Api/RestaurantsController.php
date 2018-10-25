@@ -199,28 +199,38 @@ class RestaurantsController extends Controller {
             }
         }
         
-        if(!$em->getRepository(Restaurant::class)->find($id)) {
+        $restau = $em->getRepository(Restaurant::class)->find($id);
+        if(!$restau) {
             $result = array('code' => 4000, 'description' => "Unexisting restaurant id.");
             return new JsonResponse($result, 400);
         }
-        $menus = $em->getRepository(Menu::class)->findByRestau(intval($id), intval($limit), intval($page), false, $category);
         
+        $cat = $restau->getRestaurantSpecialities();
         $array = [];
-        foreach ($menus as $k => $l){
-            $array[$k]["id"] = $l->getId();
-            $array[$k]["name"] = $l->getName();
-            $array[$k]["description"] = $l->getDescription();
-            $array[$k]["price"] = floatval($l->getPrice());
-            if($l->getImage()){
-                $array[$k]['image'] = $this->generateUrl('homepage', array(), UrlGeneratorInterface::ABSOLUTE_URL).'images/menu/'.$l->getImage();
-            }else{
-                $array[$k]['image'] = null;
+        
+        foreach ($cat as $c => $d){
+            //die(var_dump($id));
+            $menus = $em->getRepository(Menu::class)->findByRestau(intval($id), intval($limit), intval($page), $d->getCategory()->getId(), false);
+            //die(var_dump($menus));
+            foreach ($menus as $k => $l){
+                $array[$d->getCategory()->getName()][$k]["id"] = $l->getId();
+                $array[$d->getCategory()->getName()][$k]["name"] = $l->getName();
+                $array[$d->getCategory()->getName()][$k]["description"] = $l->getDescription();
+                $array[$d->getCategory()->getName()][$k]["price"] = floatval($l->getPrice());
+                if($l->getImage()){
+                    $array[$d->getCategory()->getName()][$k]['image'] = $this->generateUrl('homepage', array(), UrlGeneratorInterface::ABSOLUTE_URL).'images/menu/'.$l->getImage();
+                }else{
+                    $array[$d->getCategory()->getName()][$k]['image'] = null;
+                }
+                $array[$d->getCategory()->getName()][$k]["category"] = $l->getCategoryMenu()->getName();
+                $array[$d->getCategory()->getName()][$k]["restaurant"] = $l->getRestaurant()->getName();
             }
-            $array[$k]["category"] = $l->getCategoryMenu()->getName();
         }
+        
+        
         $result['code'] = 200;
         $result['items'] = $array;
-        $result['total'] = $em->getRepository(Menu::class)->findByRestau(intval($id), intval($limit), intval($page), true, $category);
+        $result['total'] = $em->getRepository(Menu::class)->findByRestau(intval($id), intval($limit), intval($page), $category, true);
         $result['current_page'] = $page;
         $result['per_page'] = $limit;
         
