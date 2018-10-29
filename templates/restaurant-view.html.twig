@@ -37,7 +37,7 @@
 
 {% block body %}
 
-    <div class="container">
+    <div class="container" id="restau" data-restau="{{restaurant.name}}">
         <div class="row">
             <div class="col-md-8">
                 {%for menu in restaurant.menus %}
@@ -57,7 +57,6 @@
 
                             <div class="blck-picture">
                                 <div style="background-image: url('{% if not menu.image %}{{ asset('images/menu/dish.jpg')}}{%else%}{{ asset('images/menu/')}}{{menu.image}}{%endif%}'); height:100%;background-size:cover;"></div>
-                                {#<img class="img-responsive" src="{% if not menu.image %}{{ asset('images/menu/dish.jpg')}}{%else%}{{ asset('images/menu/')}}{{menu.image}}{%endif%}" alt="photo">#}
                             </div>
                         </div>
                     </div>
@@ -66,7 +65,7 @@
             </div>
             <div class="col-md-4">
                 <div class="box-payment">
-                    <button class="btn btn-success">Paiement</button>
+                    <a class="btn btn-success" href="{{path('checkout')}}">Paiement</a>
                 </div>
                 <div class="box-basket">
                     
@@ -86,14 +85,14 @@
             <div class="modal-content">
                 <div class="modal-header">
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                    <h4 class="modal-title" id="myModalLabel">Modal title</h4>
+                    {#<h4 class="modal-title" id="myModalLabel">Modal title</h4>#}
                 </div>
                 <div class="modal-body">
                     <div class="row">
                         <div class="col-md-6">
-                            <img src="">
+                            <div class="bck-img"></div>
                         </div>
-                        <section class="col-md-6">
+                        <section class="col-md-6 side-data">
                             <header>
                                 <h3 id="menu-name">NOM DU MENU</h3>
                                 <p id="menu-description">Marque</p>
@@ -101,7 +100,7 @@
                             <main>
                                 <div class="block-options">
                                     <div class="blck-option">
-                                        <div class="option-title">
+                                        <div class="option-title" data-option="">
                                             <h3>Accompagnements</h3>
                                             <p>Choisissez 1</p>
                                             <span class="badge">Obligatoire</span>
@@ -109,7 +108,7 @@
                                         <div>
                                             <form class="form-horizontal">
                                                 <div class="form-group">
-                                                    <div class=""><div class="col-sm-1"><input type="radio" name="options"></div><label class="col-sm-8">Option 1</label><label class="col-sm-3"><span class="price">2</span> <span class="currency">€</span></label></div>
+                                                    <div class="opt"><div class="col-sm-1"><input type="radio" name="options" value=""></div><label class="col-sm-8">Option 1</label><label class="col-sm-3"><span class="price">2</span> <span class="currency">€</span></label></div>
                                                     <div class=""><div class="col-sm-1"><input type="radio" name="options"></div><label class="col-sm-8">Option 2</label><label class="col-sm-3"><span class="price">299</span> <span class="currency">€</span></label></div>
                                                     <div class=""><div class="col-sm-1"><input type="radio" name="options"></div><label  class="col-sm-8">Option 3</label><label class="col-sm-3"><span class="price">20</span> <span class="currency">€</span></label></div>
                                                 </div>

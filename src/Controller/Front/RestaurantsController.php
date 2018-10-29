@@ -72,4 +72,14 @@ class RestaurantsController extends Controller {
         
         return array('category' => $category, 'categories' => $categoriesmenu);
     }
+    
+    
+    /**
+     * @method({"GET"})
+     * @Route("/checkout", name="checkout")
+     * @Template("/checkout.html.twig")
+     */
+    public function checkoutAction(Request $request){
+        
+    }
 }

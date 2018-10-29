@@ -94,6 +94,36 @@ class Order
      */
     private $messenger;
 
+    /**
+     * @ORM\Column(type="string", length=255, nullable=true)
+     */
+    private $deliveryLocal;
+
+    /**
+     * @ORM\Column(type="string", length=255, nullable=true)
+     */
+    private $deliveryNote;
+
+    /**
+     * @ORM\Column(type="string", length=255, nullable=true)
+     */
+    private $deliveryHour;
+
+    /**
+     * @ORM\Column(type="datetime", nullable=true)
+     */
+    private $deliveryDate;
+
+    /**
+     * @ORM\Column(type="string", length=20, nullable=true)
+     */
+    private $deliveryType;
+
+    /**
+     * @ORM\OneToOne(targetEntity="App\Entity\BankCard", inversedBy="command", cascade={"persist", "remove"})
+     */
+    private $payment;
+
     public function __construct()
     {
         $this->orderDetails = new ArrayCollection();
@@ -317,6 +347,78 @@ class Order
     public function setMessenger(?User $messenger): self
     {
         $this->messenger = $messenger;
+
+        return $this;
+    }
+
+    public function getDeliveryLocal(): ?string
+    {
+        return $this->deliveryLocal;
+    }
+
+    public function setDeliveryLocal(?string $deliveryLocal): self
+    {
+        $this->deliveryLocal = $deliveryLocal;
+
+        return $this;
+    }
+
+    public function getDeliveryNote(): ?string
+    {
+        return $this->deliveryNote;
+    }
+
+    public function setDeliveryNote(?string $deliveryNote): self
+    {
+        $this->deliveryNote = $deliveryNote;
+
+        return $this;
+    }
+
+    public function getDeliveryHour(): ?string
+    {
+        return $this->deliveryHour;
+    }
+
+    public function setDeliveryHour(?string $deliveryHour): self
+    {
+        $this->deliveryHour = $deliveryHour;
+
+        return $this;
+    }
+
+    public function getDeliveryDate(): ?\DateTimeInterface
+    {
+        return $this->deliveryDate;
+    }
+
+    public function setDeliveryDate(?\DateTimeInterface $deliveryDate): self
+    {
+        $this->deliveryDate = $deliveryDate;
+
+        return $this;
+    }
+
+    public function getDeliveryType(): ?string
+    {
+        return $this->deliveryType;
+    }
+
+    public function setDeliveryType(?string $deliveryType): self
+    {
+        $this->deliveryType = $deliveryType;
+
+        return $this;
+    }
+
+    public function getPayment(): ?BankCard
+    {
+        return $this->payment;
+    }
+
+    public function setPayment(?BankCard $payment): self
+    {
+        $this->payment = $payment;
 
         return $this;
     }

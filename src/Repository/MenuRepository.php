@@ -73,6 +73,7 @@ class MenuRepository extends ServiceEntityRepository
     
     public function getMenus($limit, $page, $count=false)
     {
+        $query = $this->createQueryBuilder('e');
         if($count){
             return $this->createQueryBuilder('e')->select('COUNT(e)')->getQuery()->getSingleScalarResult();
         }else{

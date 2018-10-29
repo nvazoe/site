@@ -3,6 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\CategoryMenu;
+use App\Entity\Menu;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Symfony\Bridge\Doctrine\RegistryInterface;
 
@@ -58,5 +59,21 @@ class CategoryMenuRepository extends ServiceEntityRepository
                ->setMaxResults( $limit );
             return $qb->getQuery()->getResult();            
         }
+    }
+    
+    public function getMenus($category, $limit, $page, $count = false){
+        $this->_entityName = Menu::class;
+        $query = $this->createQueryBuilder('m');
+        
+        if($category)
+            $query = $query->andWhere ('m.categoryMenu = :val')->setParameter ('val', $category);
+        
+        if($count)
+            return $query->select('COUNT(m)')->getQuery()->getSingleScalarResult();
+        
+        if($limit)
+            $query = $query->setFirstResult( ($page-1)*$limit )->setMaxResults( $limit );
+        
+        return $query->getQuery()->getResult();
     }
 }

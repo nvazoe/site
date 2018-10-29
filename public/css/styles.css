@@ -111,6 +111,10 @@ li.carousel-item.active {
     margin-top: 15px;
 }
 
+.box-payment a.btn-success{
+    width: 100%;
+}
+
 .logo span.vert {
     color: #5fb709;
     font-size: 2em;
@@ -281,8 +285,9 @@ footer.footer-menu{
 }
 
 .options li {
-    color: #777777;
+    color: #ccc;
     font-size: .9em;
+    margin-bottom: 0;
 }
 
 .options ul {
@@ -300,4 +305,8 @@ footer.footer-menu{
 
 .box-basket .item:hover{
     background-color: rgb(245, 245, 245);
+}
+
+#info .modal-header {
+    border-bottom: 0px;
 }

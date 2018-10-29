@@ -48,16 +48,22 @@ class OrderRepository extends ServiceEntityRepository
     }
     */
     
-    public function getOrders($limit, $page, $count=false)
+    public function getOrders($limit, $page, $status, $count=false)
     {
-        if($count){
+        $select = $this->createQueryBuilder('e');
+        
+        if($status)
+            $select = $select->andWhere ('e.orderStatus = :cat')->setParameter ('cat', $status);
+        
+        if($limit)
+            $select = $select->setFirstResult( ($page-1)*$limit )->setMaxResults( $limit );
+        
+        if($count)
             return $this->createQueryBuilder('e')->select('COUNT(e)')->getQuery()->getSingleScalarResult();
-        }else{
-            $qb=$this->createQueryBuilder('e')->select('e')    
-               ->setFirstResult( ($page-1)*$limit )
-               ->setMaxResults( $limit );
-            return $qb->getQuery()->getResult();            
-        }
+        
+               
+        return $select->getQuery()->getResult();            
+        
     }
     
 }

@@ -67,23 +67,33 @@ class OrdersController extends Controller{
      *      default=1
      * )
      * 
+     * @QueryParam(
+     *      name="status",
+     *      description="order status",
+     *      strict=false,
+     *      default=null
+     * )
+     * 
      * @SWG\Tag(name="Orders")
      */
     public function getOrdersListAction(Request $request){
         $em = $this->getDoctrine()->getManager();
         $limit = $request->query->get('limit')?$request->query->get('limit'):$request->request->get('limit');
         $page = $request->query->get('page')?$request->query->get('page'):$request->request->get('page');
+        $status = $request->query->get('status')?$request->query->get('status'):$request->request->get('status');
         
         // Default values
         $limit = ($limit == null) ? 100 : $limit;
         $page = ($page == null) ? 1 : $page;
         
-        $listorders = $em->getRepository(Order::class)->getOrders(intval($limit), intval($page), false);
+        $listorders = $em->getRepository(Order::class)->getOrders(intval($limit), intval($page), $status, false);
         $array = [];
         foreach ($listorders as $k => $l){
             $array[$k]["id"] = $l->getId();
             $array[$k]['amount'] = $l->getAmount();
             $array[$k]['reference'] = $l->getRef();
+            $array[$k]['date'] = $l->getDateCreated()->format('d-m-Y');
+            $array[$k]['hour'] = $l->getDateCreated()->format('H:i');
             $array[$k]["client"]["id"] = $l->getClient()->getId();
             $array[$k]["client"]["username"] = $l->getClient()->getUsername();
             $array[$k]['status']['id'] = $l->getOrderStatus()->getId();
@@ -94,9 +104,11 @@ class OrdersController extends Controller{
         $result['code'] = 200;
         if(count($array) > 0){
             $result['items'] = $array;
-            $result['total'] = $em->getRepository(Order::class)->getOrders($limit, $page, true);
+            $result['total'] = $em->getRepository(Order::class)->getOrders($limit, $page, $status, true);
             $result['current_page'] = $page;
             $result['per_page'] = $limit;
+        }else{
+            $result['items'] = [];
         }
         return new JsonResponse($result);
     }
@@ -122,6 +134,8 @@ class OrdersController extends Controller{
             $result['data']['id'] = $order->getId();
             $result['data']['ref'] = $order->getRef();
             $result['data']['amount'] = $order->getAmount();
+            $array['data']['date'] = $order->getDateCreated()->format('d-m-Y');
+            $array['data']['hour'] = $order->getDateCreated()->format('H:i');
             $result['data']['restaurant']['id'] = $order->getRestaurant()->getId();
             $result['data']['restaurant']['name'] = $order->getRestaurant()->getName();
             $result['data']['status']['id'] = $order->getOrderStatus()->getId();
@@ -192,7 +206,7 @@ class OrdersController extends Controller{
      * )
      * @SWG\Tag(name="Orders")
      */
-    public function postOrderAction(Request $request){
+    public function postOrderAction(Request $request, \Swift_Mailer $mailer){
         $em = $this->getDoctrine()->getManager();
         $total = 0.00;
         $order_infos = file_get_contents('php://input');
@@ -216,14 +230,16 @@ class OrdersController extends Controller{
         $delivery_phone = array_key_exists('delivery_phone', $data) ? $data['delivery_phone'] : null;
         $menus = array_key_exists('menus', $data) ? $data['menus'] : [];
         
-        
+        $restau = $em->getRepository(Restaurant::class)->find($restaurant);
+        $cl = $em->getRepository(User::class)->find($client);
+        $reference = substr(strtoupper(md5(random_bytes(6))), 0, 6);
         
         
         // End validation
         $order = new Order();
-        $order->setClient($em->getRepository(User::class)->find($client));
-        $order->setRef(substr(strtoupper(md5(random_bytes(6))), 0, 6));
-        $order->setRestaurant($em->getRepository(Restaurant::class)->find($restaurant));
+        $order->setClient($cl);
+        $order->setRef($reference);
+        $order->setRestaurant($restau);
         $order->setAddress($delivery_address);
         $order->setPhoneNumber($delivery_phone);
         $order->setAmount($total);
@@ -266,6 +282,63 @@ class OrdersController extends Controller{
         $order->setAmount($total);
 //        $em->persist($order);
         $em->flush();
+        
+        // Send mail to restaurant
+        $message = (new \Swift_Message('Nouvelle commande'))
+            ->setFrom('contact@ubereat.com')
+            ->setTo($restau->getOwner()->getEmail())
+            ->setBody(
+                $this->renderView(
+                    // templates/emails/registration.html.twig
+                    'emails/new-order-restaurant.html.twig',
+                    array('name' => $restau->getOwner()->getFirstname(), 'restau' => $restau->getName(), 'order' => $order)
+                ),
+                'text/html'
+            )
+            ->setCharset('utf-8')
+            /*
+             * If you also want to include a plaintext version of the message
+            ->addPart(
+                $this->renderView(
+                    'emails/registration.txt.twig',
+                    array('name' => $name)
+                ),
+                'text/plain'
+            )
+            */
+        ;
+
+        $mailer->send($message);
+        
+        
+        
+        // Send mail to client
+        $message1 = (new \Swift_Message('Nouvelle commande'))
+            ->setFrom('contact@ubereat.com')
+            ->setTo($cl->getEmail())
+            ->setBody(
+                $this->renderView(
+                    // templates/emails/registration.html.twig
+                    'emails/new-order-client.html.twig',
+                    array('name' => $cl->getFirstname(), 'order' => $order)
+                ),
+                'text/html'
+            )
+            ->setCharset('utf-8')
+            /*
+             * If you also want to include a plaintext version of the message
+            ->addPart(
+                $this->renderView(
+                    'emails/registration.txt.twig',
+                    array('name' => $name)
+                ),
+                'text/plain'
+            )
+            */
+        ;
+
+        $mailer->send($message1);
+        
         
         $result['code'] = 201;
         $result['data']['order_id'] = $order->getId();

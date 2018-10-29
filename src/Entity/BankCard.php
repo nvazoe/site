@@ -47,6 +47,11 @@ class BankCard
      */
     private $yearExp;
 
+    /**
+     * @ORM\OneToOne(targetEntity="App\Entity\Order", mappedBy="payment", cascade={"persist", "remove"})
+     */
+    private $command;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -122,6 +127,24 @@ class BankCard
     public function setYearExp(string $yearExp): self
     {
         $this->yearExp = $yearExp;
+
+        return $this;
+    }
+
+    public function getCommand(): ?Order
+    {
+        return $this->command;
+    }
+
+    public function setCommand(?Order $command): self
+    {
+        $this->command = $command;
+
+        // set (or unset) the owning side of the relation if necessary
+        $newPayment = $command === null ? null : $this;
+        if ($newPayment !== $command->getPayment()) {
+            $command->setPayment($newPayment);
+        }
 
         return $this;
     }

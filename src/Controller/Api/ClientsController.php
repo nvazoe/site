@@ -266,7 +266,7 @@ class ClientsController extends Controller {
         
         /** Sending code by email **/
         $message = (new \Swift_Message('Validation de compte'))
-            ->setFrom('send@example.com')
+            ->setFrom('contact@ubereat.com')
             ->setTo($email)
             ->setBody(
                 $this->renderView(
@@ -276,6 +276,7 @@ class ClientsController extends Controller {
                 ),
                 'text/html'
             )
+            ->setCharset('utf-8')
             /*
              * If you also want to include a plaintext version of the message
             ->addPart(
@@ -347,6 +348,8 @@ class ClientsController extends Controller {
             $array[$k]["id"] = $l->getId();
             $array[$k]['amount'] = $l->getAmount();
             $array[$k]['reference'] = $l->getRef();
+            $array[$k]['date'] = $l->getDateCreated()->format('d-m-Y');
+            $array[$k]['hour'] = $l->getDateCreated()->format('H:i');
             $array[$k]['status']['id'] = $l->getOrderStatus()->getId();
             $array[$k]['status']['name'] = $l->getOrderStatus()->getName();
             $array[$k]['restaurant']['id'] = $l->getRestaurant()->getId();
@@ -683,5 +686,53 @@ class ClientsController extends Controller {
         $result['data']['phone_number'] = $client->getPhoneNumber();
         
         return new JsonResponse($result, 200);
+    }
+    
+    
+    /**
+     * @Put("/api/clients/{id}/update-password")
+     * 
+     * *@SWG\Response(
+     *      response=200,
+     *      description="Update client password."
+     * )
+     * 
+     * @QueryParam(
+     *      name="password",
+     *      description="new password",
+     *      strict=true
+     * )
+     * 
+     * 
+     * @SWG\Tag(name="Clients")
+     */
+    public function updatePassAction(Request $request, UserPasswordEncoderInterface $encoder, $id){
+        $em = $this->getDoctrine()->getManager();
+        
+        $infos = file_get_contents('php://input');
+        $data = json_decode($infos, TRUE);
+        
+        if(array_key_exists('password', $data)){
+            if(!is_string($data['password'])){
+                $result = array('code'=> 4000, 'description' => 'password must be string.');
+                return new JsonResponse($result, 400);
+            }
+        }else{
+            $result = array('code'=> 4000, 'description' => 'password is required.');
+            return new JsonResponse($result, 400);
+        }
+        
+        $user = $em->getRepository(User::class)->find($id);
+        if(!$user){
+            $result = array('code'=> 4000, 'description' => 'Unexisting client.');
+            return new JsonResponse($result, 400);
+        }
+        
+        $pass_encoded = $encoder->encodePassword($user, $data['password']);
+        
+        $user->setPassword($pass_encoded);
+        $em->flush();
+        
+        return new JsonResponse(array('code' => 200));
     }
 }

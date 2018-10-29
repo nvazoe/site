@@ -136,7 +136,7 @@ class CategoriesController extends Controller{
         }
         
         $array = [];
-        $menus = $cat->getMenus();
+        $menus = $em->getRepository(CategoryMenu::class)->getMenus($id, $limit, $page, false);
         foreach ($menus as $k => $l){
             $array[$k]["id"] = $l->getId();
             $array[$k]["name"] = $l->getName();
@@ -153,7 +153,7 @@ class CategoriesController extends Controller{
             
         $result['code'] = 200;
         $result['items'] = $array;
-        $result['total'] = count($menus);
+        $result['total'] = $em->getRepository(CategoryMenu::class)->getMenus($id, $limit, $page, true);;
         $result['current_page'] = $page;
         $result['per_page'] = $limit;
         
