@@ -2,6 +2,18 @@
 
 {% extends 'admin/easy_admin/main.html.twig' %}
 
+{% block head_stylesheets %}
+    {{ parent() }}
+    <style>
+      /* Always set the map height explicitly to define the size of the div
+       * element that contains the map. */
+      #map {
+        height: 500px;
+      }
+      
+    </style>
+{% endblock %}
+
 {% block main %}
     <div class="content animate-panel">
 
@@ -13,14 +25,14 @@
                         <div class="col-md-6">
                             <h4>Invoice <small>{{ order.ref }}</small></h4>
                         </div>
-                        <div class="col-md-6">
+                        {#<div class="col-md-6">
                             <div class="text-right">
                                 <button class="btn btn-default btn-sm"><i class="fa fa-pencil"></i> Edit </button>
                                 <button class="btn btn-default btn-sm"><i class="fa fa-check "></i> Save </button>
                                 <button class="btn btn-primary btn-sm"><i class="fa fa-dollar"></i> Make A Payment</button>
                             </div>
 
-                        </div>
+                        </div>#}
                     </div>
                 </div>
                 <div class="panel-body p-xl">
@@ -34,6 +46,17 @@
                                 Salinas, CA 93905<br>
                                 <abbr title="Phone">P:</abbr> (831) 758-7200
                             </address>
+                            <form class="form-horizontal" action="{{path('assign')}}" method="post">
+                                <input type="hidden" name="order" value="{{order.id}}" />
+                                <div class="form-group">
+                                    <select name="deliver" class="form-control" onchange="this.form.submit();" {% if order.messenger %}disabled="disabled"{% endif %}>
+                                        <option>Liste des livreurs</option>
+                                        {% for d in delivers %}
+                                            <option value="{{d.id}}" {{ order.messenger ? order.messenger.id == d.id ? 'selected' : '' : '' }}>{{d.firstname}}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </form>
                         </div>
                         <div class="col-sm-6 text-right">
                             <span>To:</span>
@@ -45,7 +68,7 @@
                             </address>
                             <p>
                                 <span><strong>Invoice Date:</strong> {{ order.dateCreated|date('D, d M Y') }}</span><br/>
-                                <span><strong>Due Date:</strong> May 24, 2016</span>
+                                {#<span><strong>Due Date:</strong> May 24, 2016</span>#}
                             </p>
                         </div>
                     </div>
@@ -65,8 +88,8 @@
                                 <tr>
                                     <td>
                                         <div><strong>{{ord.menu.name}}</strong></div>
-                                        <small>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod
-                                            tempor incididunt ut labore.
+                                        <small>
+                                            {{ord.menu.description}}
                                         </small>
                                     </td>
                                     <td>{{ord.quantity}}</td>
@@ -74,55 +97,6 @@
                                     <td>{{ord.price * ord.quantity}}</td>
                                 </tr>
                             {%endfor%}
-                            {#<tr>
-                                <td>
-                                    <div><strong>Lorem Ipsum is that it has a more-or-less normal</strong></div>
-                                    <small>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod
-                                        tempor incididunt ut labore.
-                                    </small>
-                                </td>
-                                <td>1</td>
-                                <td>$26.00</td>
-                                <td>$5.98</td>
-                                <td>$31,98</td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    <div><strong>Lorem Ipsum is that it has</strong></div>
-                                    <small>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod
-                                        tempor incididunt ut labore et dolore magna aliqua.
-                                        Eiusmod tempor incididunt ut labore et dolore magna aliqua.
-                                    </small>
-                                </td>
-                                <td>2</td>
-                                <td>$80.00</td>
-                                <td>$36.80</td>
-                                <td>$196.80</td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    <div><strong>Has a more-or-less normal</strong></div>
-                                    <small>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod
-                                        tempor incididunt ut labore et dolore magna aliqua.
-                                    </small>
-                                </td>
-                                <td>3</td>
-                                <td>$420.00</td>
-                                <td>$193.20</td>
-                                <td>$1033.20</td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    <div><strong>That it has a more-or-less</strong></div>
-                                    <small>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod
-                                        tempor incididunt ut labore et dolore magna aliqua.
-                                    </small>
-                                </td>
-                                <td>4</td>
-                                <td>$320.00</td>
-                                <td>$233.10</td>
-                                <td>$193.10</td>
-                            </tr>#}
 
                             </tbody>
                         </table>
@@ -133,15 +107,15 @@
                                 <tbody>
                                 <tr>
                                     <td><strong>Sub Total :</strong></td>
-                                    <td>$1026.00</td>
+                                    <td>{{ total }} <span>€</span></td>
                                 </tr>
-                                <tr>
+                                {#<tr>
                                     <td><strong>TAX :</strong></td>
                                     <td>$235.98</td>
-                                </tr>
+                                </tr>#}
                                 <tr>
                                     <td><strong>TOTAL :</strong></td>
-                                    <td>$1261.98</td>
+                                    <td>{{ total }} <span>€</span></td>
                                 </tr>
                                 </tbody>
                             </table>
@@ -163,6 +137,105 @@
         </div>
     </div>
 
-
+<div id="map"></div>
 </div>
+
 {% endblock %}
+
+{% block body_javascript %}
+    {{ parent() }}
+    <script>
+      var map;
+      var france = {lat: 48.864716, lng: 2.349014};
+      var iconBase = '/images/icons/';
+      var icons = {
+        livreur: {
+            icon: iconBase + 'abattoirs-tradi.png'
+        },
+        restaurant:{
+            icon: iconBase + 'restaurant_icone.png'
+        }
+    };
+    
+      function initMap() {
+        map = new google.maps.Map(document.getElementById('map'), {
+          center: france,
+          zoom: 8
+        });
+        var dels = [];
+        {% if delivers %}
+            {% for del in delivers %}
+                var o = {
+                    'name':"{{ del.username }}",
+                    'lat': "{{ del.latitude }}",
+                    'lng': "{{ del.longitude }}",
+                    'phone': "{{ del.PhoneNumber }}",
+                    'address': "{{ del.Address }}"
+                };
+                dels.push(o);
+            {% endfor %}
+        {% endif %}
+            
+        var resto = {
+            'name' : "{{ order.restaurant.name }}",
+            'lat' : "{{ order.restaurant.Latidude }}",
+            'lng': "{{ order.restaurant.Longitude }}",
+            'city': "{{ order.restaurant.city }}",
+            'adr': "{{ order.restaurant.address }}"
+        };
+        
+        // Marker du restaurant
+        var mResto = new google.maps.Marker({
+            position: {lat: parseFloat(resto.lat), lng: parseFloat(resto.lng)},
+            map: map,
+            title: resto.name,
+            icon: icons.restaurant.icon,
+            draggable: false
+        });
+        google.maps.event.addListener(mResto, 'click', (function (mResto) {
+                return function () {
+                    var html = '<div class="content-pin">' +resto.name;
+                    html += '<ul class="list-unstyled">';
+                    html += '<li><strong>Ville</strong> : '+resto.city+'</li>';
+                    html += '<li><strong>Adresse</strong> : '+resto.adr+'</li>';
+                    html += '</ul></div>';
+                    map.panTo(mResto.getPosition());
+                    infowindow.setContent(html);
+                    infowindow.open(map, mResto, html);
+
+                        };
+            })(mResto));
+        
+        // The marker, des liveurs
+        var icon = icons.livreur.icon;
+        var infowindow = new google.maps.InfoWindow();
+        for(var i=0, c=dels.length; i<c; i++){
+            var marker = new google.maps.Marker({
+                position: {lat: parseFloat(dels[i].lat), lng: parseFloat(dels[i].lng)},
+                map: map,
+                title: dels[i].name,
+                draggable: false,
+                content: dels[i].name,
+                icon: icon
+            });
+            
+            google.maps.event.addListener(marker, 'click', (function (marker, i) {
+                return function () {
+                    var html = '<div class="content-pin">' +dels[i].name;
+                    html += '<ul class="list-unstyled">';
+                    html += '<li><strong>Phone</strong> : '+dels[i].phone+'</li>';
+                    html += '<li><strong>Adresse</strong> : '+dels[i].address+'</li>';
+                    html += '</ul></div>';
+                    map.panTo(marker.getPosition());
+                    infowindow.setContent(html);
+                    infowindow.open(map, marker, html);
+
+                        };
+            })(marker, i));
+        }
+        
+      }
+    </script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyD9qWr1Xq89haWKgy_cAmyEqMJ_ZonMWJA&callback=initMap"
+    async defer></script>
+{% endblock body_javascript %}

@@ -146,6 +146,7 @@ class MenusController extends Controller {
                             $result['data']['options']["$k"]["products"]["$key"]['id'] = $val->getid();
                             $result['data']['options']["$k"]["products"]["$key"]['name'] = $val->getProduct()->getName();
                             $result['data']['options']["$k"]["products"]["$key"]['price'] = floatval($val->getAttribut());
+                            $result['data']['options']["$k"]["products"]["$key"]['image'] = $this->generateUrl('homepage', array(), UrlGeneratorInterface::ABSOLUTE_URL).'images/product/'.$val->getProduct()->getImage();
                         }
                     }
                 }

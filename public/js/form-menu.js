@@ -22,6 +22,14 @@ $('body').on('click', '.substract', function () {
 
 $('.duplicate-1').on('click', function(){
     var blk = $('.clonable-1').clone(true).css({'display': 'block'}).removeClass('clonable-1');
+    var name = $(this).closest('.input-block').find('#search-prd').val(); console.log(name);
+    var price = $(this).closest('.input-block').find('#scr-price').val(); console.log(price);
+    var prd = $(this).closest('.input-block').find('#scr-price').attr('data-prd-id');
+    
+    
+    $(blk).find('.prd-name').val(name);
+    $(blk).find('.prd-price').val(price);
+    $(blk).find('.prd-id').attr('value', prd);
     $(this).closest('.global-1').append(blk);
     update_index_sub($(this).closest('.global-1'));
 });
@@ -54,11 +62,11 @@ function update_index(selector){
 function update_index_sub(selector){
     try{
         var block = $(selector).closest('.block').data('block');
-        console.log(selector);
-        var sel = selector.find('.input-block');  console.log(sel);
+        var sel = selector.find('.input-block');
         $(sel).each(function(ind, val){
             $(this).find('[data-option-product="product"]').attr('name', 'options['+block+'][productoption]['+ind+'][product]');
             $(this).find('[data-option-product="price"]').attr('name', 'options['+block+'][productoption]['+ind+'][price]');
+            $(this).find('[data-option-product="id"]').attr('name', 'options['+block+'][productoption]['+ind+'][id]');
         });
     }catch(error){
         console.log(error);
@@ -97,12 +105,17 @@ $('#search-prd').autocomplete({
             },
             success: function(data){
                 response(data);
+            },
+            fail: function(error){
+                console.log(error);
             }
         });
     },
     minlength: 2,
     select: function(event, ui){
         console.log(ui);
-        $('div').attr('data-produit', ui.item.value).css({display:'none'}).addClass('prd-menu').appendTo('body');
+        $('#scr-price').val(ui.item.price);
+        $('#scr-price').attr('data-prd-id', ui.item.id);
+        //$('div').attr('data-produit', ui.item.value).css({display:'none'}).addClass('prd-menu').appendTo('body');
     }
 });

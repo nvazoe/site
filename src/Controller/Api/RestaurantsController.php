@@ -59,18 +59,34 @@ class RestaurantsController extends Controller {
      *      default=1
      * )
      * 
+     * @QueryParam(
+     *      name="longitude",
+     *      description="longitude position of restaurant",
+     *      strict=false
+     * )
+     * 
+     * 
+     * @QueryParam(
+     *      name="latitude",
+     *      description="latitude position of restaurant",
+     *      strict=false
+     * )
+     * 
      * @SWG\Tag(name="Restaurants")
      */
     public function getRestauListAction(Request $request){
         $em = $this->getDoctrine()->getManager();
         $limit = $request->query->get('limit')?$request->query->get('limit'):$request->request->get('limit');
         $page = $request->query->get('page')?$request->query->get('page'):$request->request->get('page');
+        $longitude = $request->query->get('longitude')?$request->query->get('longitude'):$request->request->get('longitude');
+        $latitude = $request->query->get('latitude')?$request->query->get('latitude'):$request->request->get('latitude');
+        $status = $request->query->get('status')?$request->query->get('status'):$request->request->get('status');
         
         // Default values
         $limit = ($limit == null) ? 100 : $limit;
         $page = ($page == null) ? 1 : $page;
         
-        $listrestau = $em->getRepository(Restaurant::class)->getRestaurants(intval($limit), intval($page), false);
+        $listrestau = $em->getRepository(Restaurant::class)->getRestaurants($longitude, $latitude, $status, intval($limit), intval($page), false);
         $array = [];
         foreach ($listrestau as $k => $l){
             $array[$k]["id"] = $l->getId();
@@ -78,6 +94,8 @@ class RestaurantsController extends Controller {
             $array[$k]['longitude'] = $l->getLongitude();
             $array[$k]['latitude'] = $l->getLatidude();
             $array[$k]['status'] = $l->getStatus();
+            $array[$k]['city'] = $l->getCity();
+            $array[$k]['address'] = $l->getAddress();
             if($l->getImage()){
                 $array[$k]['image'] = $this->generateUrl('homepage', array(), UrlGeneratorInterface::ABSOLUTE_URL).'images/restaurant/'.$l->getImage();
             }else{
@@ -100,7 +118,7 @@ class RestaurantsController extends Controller {
         $result['code'] = 200;
         if(count($array) > 0){
             $result['items'] = $array;
-            $result['total'] = $em->getRepository(Restaurant::class)->getRestaurants($limit, $page, true);
+            $result['total'] = $em->getRepository(Restaurant::class)->getRestaurants($longitude, $latitude, $status, $limit, $page, true);
             $result['current_page'] = $page;
             $result['per_page'] = $limit;
         }
@@ -130,6 +148,8 @@ class RestaurantsController extends Controller {
             $result['data']['longitude'] = $restau->getLongitude();
             $result['data']['latitude'] = $restau->getLatidude();
             $result['data']['status'] = $restau->getStatus();
+            $result['data']['city'] = $restau->getCity();
+            $result['data']['address'] = $restau->getAddress();
             $result['data']['image'] = $this->generateUrl('homepage', array(), UrlGeneratorInterface::ABSOLUTE_URL).'images/restaurant/'.$restau->getImage();
             $notes = $restau->getRestaurantNotes();
             if(count($notes)){
@@ -503,8 +523,12 @@ class RestaurantsController extends Controller {
             $array[$k]["id"] = $l->getId();
             $array[$k]['amount'] = $l->getAmount();
             $array[$k]['reference'] = $l->getRef();
+            $array[$k]['date'] = $l->getDateCreated()->format('d-m-Y');
+            $array[$k]['hour'] = $l->getDateCreated()->format('H:i');
             $array[$k]["client"]["id"] = $l->getClient()->getId();
             $array[$k]["client"]["username"] = $l->getClient()->getUsername();
+            $array[$k]["client"]["position"]["latitude"] = $l->getClient()->getLatitude();
+            $array[$k]["client"]["position"]["longitude"] = $l->getClient()->getLongitude();
             $array[$k]['status']['id'] = $l->getOrderStatus()->getId();
             $array[$k]['status']['name'] = $l->getOrderStatus()->getName();
             $array[$k]['restaurant']['id'] = $l->getRestaurant()->getId();

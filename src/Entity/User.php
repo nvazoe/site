@@ -130,6 +130,11 @@ class User implements UserInterface, \Serializable
      */
     private $ordersDelivered;
 
+    /**
+     * @ORM\Column(type="string", length=255, nullable=true)
+     */
+    private $cp;
+
     public function __construct()
     {
         $this->restaurants = new ArrayCollection();
@@ -600,6 +605,18 @@ class User implements UserInterface, \Serializable
                 $ordersDelivered->setMessenger(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getCp(): ?string
+    {
+        return $this->cp;
+    }
+
+    public function setCp(?string $cp): self
+    {
+        $this->cp = $cp;
 
         return $this;
     }

@@ -3,6 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\User;
+use App\Entity\Order;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Symfony\Bridge\Doctrine\RegistryInterface;
 
@@ -79,4 +80,24 @@ class UserRepository extends ServiceEntityRepository
 //        $qb = $this->findAllUserByRole($role);
 //        return $qb->getQuery()->getSingleScalarResult();
 //    }
+    
+    public function getOrders($client, $messenger, $status, $limit, $page, $count = false){
+        $this->_entityName = Order::class;
+        
+        $query = $this->createQueryBuilder('o');
+        
+        
+        if($client)
+            $query = $query->andWhere ('o.client = :client')->setParameter ('client', $client);
+        if($messenger)
+            $query = $query->andWhere ('o.messenger = :msg')->setParameter ('msg', $messenger);
+        if($status)
+            $query = $query->andWhere ('o.orderStatus = :status')->setParameter ('status', $status);
+        if($count)
+            return $query->select('COUNT(o)')->getQuery()->getSingleScalarResult();
+        if($limit)
+            $query = $query->setFirstResult( ($page-1)*$limit )->setMaxResults( $limit );
+        
+        return $query->getQuery()->getResult();
+    }
 }

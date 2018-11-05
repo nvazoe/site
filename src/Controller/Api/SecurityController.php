@@ -67,7 +67,12 @@ class SecurityController extends Controller {
             return new JsonResponse($result, 400);
         }
         
-        $code = substr(strtoupper(md5(random_bytes(6))), 0, 4);
+        $code = "";
+        for ($i = 0; $i<4; $i++) 
+        {
+            $code .= mt_rand(0,9);
+        }
+        
         $user->setCode($code);
         $em->flush();
         
@@ -101,7 +106,8 @@ class SecurityController extends Controller {
         $result = array(
             'code' => 200,
             'data' => array(
-                'user_id' => $user->getId()
+                'user_id' => $user->getId(),
+                'verif_code' => $code
             ));
         
         return new JsonResponse($result);
@@ -151,7 +157,7 @@ class SecurityController extends Controller {
                 $result = array('code' => 4000, 'description' => "id must be integer.");
                 return new JsonResponse($result, 400);
             }
-            $user = $em->getRepository(User::class)->find($id);
+            $user = $em->getRepository(User::class)->find($data['id']);
             if(!$user){
                 $result = array('code' => 4000, 'description' => "Unexisting user.");
                 return new JsonResponse($result, 400);

@@ -246,7 +246,11 @@ class ClientsController extends Controller {
             return new JsonResponse($result, 400);
         }
         
-        $code = substr(strtoupper(md5(random_bytes(10))), 0, 4);
+        $code = "";
+        for ($i = 0; $i<4; $i++) 
+        {
+            $code .= mt_rand(0,9);
+        }
             
         $del = new User();
         $del->setUsername($username);
@@ -298,6 +302,7 @@ class ClientsController extends Controller {
         $result['data']['firstname'] = $del->getfirstname();
         $result['data']['email'] = $del->getEmail();
         $result['data']['phone_number'] = $del->getPhoneNumber();
+        $result['data']['verif_code'] = $code;
         
         return new JsonResponse($result, $result['code']);
     }
@@ -325,12 +330,19 @@ class ClientsController extends Controller {
      *      default=1
      * )
      * 
+     * @QueryParam(
+     *      name="status",
+     *      description="order status ID",
+     *      strict=false
+     * )
+     * 
      * @SWG\Tag(name="Clients")
      */
     public function getClientOrders(Request $request, $id){
         $em = $this->getDoctrine()->getManager();
         $limit = $request->query->get('limit')?$request->query->get('limit'):$request->request->get('limit');
         $page = $request->query->get('page')?$request->query->get('page'):$request->request->get('page');
+        $status = $request->query->get('status')?$request->query->get('status'):$request->request->get('status');
         
         // Default values
         $limit = ($limit == null) ? 100 : $limit;
@@ -343,7 +355,7 @@ class ClientsController extends Controller {
         }
         
         $array = [];
-        $orders = $client->getOrders();
+        $orders = $em->getRepository(User::class)->getOrders($id, null, $status, $limit, $page, false);
         foreach ($orders as $k=>$l){
             $array[$k]["id"] = $l->getId();
             $array[$k]['amount'] = $l->getAmount();
@@ -358,9 +370,11 @@ class ClientsController extends Controller {
         $result['code'] = 200;
         if(count($array) > 0){
             $result['items'] = $array;
-            $result['total'] = count($array);
+            $result['total'] = $em->getRepository(User::class)->getOrders($id, null, $status, $limit, $page, true);
             $result['current_page'] = $page;
             $result['per_page'] = $limit;
+        }else{
+            $result['items'] = [];
         }
         return new JsonResponse($result);
     }
@@ -571,6 +585,7 @@ class ClientsController extends Controller {
         
         $code = $request->query->get('code')?$request->query->get('code'):$request->request->get('code');
         
+        //die(var_dump($code));
         if($code){
             if(!is_string($code)){
                 $result = array('code'=> 4000, 'description'=> 'Code must be string');
@@ -604,8 +619,8 @@ class ClientsController extends Controller {
         $array['data']['email'] = $client->getEmail();
         $array['data']['phone_number'] = $client->getPhoneNumber();
         $array['data']['address'] = $client->getAddress();
-        $array['data']['longitude'] = $client->setLongitude();
-        $array['data']['latitude'] = $client->setLatitude();
+        $array['data']['longitude'] = $client->getLongitude();
+        $array['data']['latitude'] = $client->getLatitude();
         
         return new JsonResponse($array);
         

@@ -14,6 +14,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use FOS\RestBundle\Controller\Annotations\Post;
 use FOS\RestBundle\Controller\Annotations\Get;
+use FOS\RestBundle\Controller\Annotations\Put;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Exception\HttpException;
@@ -27,6 +28,8 @@ use Symfony\Component\Cache\Adapter\FilesystemAdapter;
 use App\Entity\User;
 use App\Entity\DeliveryDisponibility;
 use App\Entity\Menu;
+use App\Entity\Order;
+use App\Entity\OrderStatus;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 
 /**
@@ -68,14 +71,22 @@ class DeliversController extends Controller{
         $limit = ($limit == null) ? 100 : $limit;
         $page = ($page == null) ? 1 : $page;
         
-        $menus = $em->getRepository(User::class)->findAllUserByRole('ROLE_DELIVER', false);
+        $users = $em->getRepository(User::class)->findAllUserByRole('ROLE_DELIVER', false);
         $array = [];
-        foreach ($menus as $k => $l){
+        
+        foreach ($users as $k => $l){
             $array[$k]["id"] = $l->getId();
             $array[$k]["firstname"] = $l->getFirstname();
             $array[$k]["lastname"] = $l->getLastname();
             $array[$k]["username"] = $l->getUsername();
             $array[$k]["email"] = $l->getEmail();
+            
+            $dispo = $l->getDeliveryDisponibilities();
+            foreach($dispo as $m => $n){
+                $array[$k]["disponibilities"][$m]['day'] = $n->getDay();
+                $array[$k]["disponibilities"][$m]['startHour'] = $n->getStartHour();
+                $array[$k]["disponibilities"][$m]['endHour'] = $n->getEndHour();
+            }
         }
         $result['code'] = 200;
         if(count($array) > 0){
@@ -83,6 +94,8 @@ class DeliversController extends Controller{
             $result['total'] = count($array);
             $result['current_page'] = $page;
             $result['per_page'] = $limit;
+        }else{
+            $result['items'] = [];
         }
            
         
@@ -302,5 +315,215 @@ class DeliversController extends Controller{
         $result['to'] = $del->getEndHour();
         
         return new JsonResponse($result, $result['code']);
+    }
+    
+    
+    /**
+     * @Get("/api/delivers/{id}/orders")
+     * 
+     * *@SWG\Response(
+     *      response=200,
+     *      description="Get delivers list"
+     * )
+     * 
+     * @QueryParam(
+     *      name="limit",
+     *      description="limit per page",
+     *      strict=false,
+     *      default=100
+     * )
+     * 
+     * @QueryParam(
+     *      name="page",
+     *      description="Page of set",
+     *      strict=false,
+     *      default=1
+     * )
+     * 
+     * @QueryParam(
+     *      name="status",
+     *      description="order status ID",
+     *      strict=false
+     * )
+     * 
+     * @SWG\Tag(name="Delivers")
+     */
+    public function getOrdersDeliveredAction(Request $request, $id){
+        $em = $this->getDoctrine()->getManager();
+        
+        $limit = $request->query->get('limit')?$request->query->get('limit'):$request->request->get('limit');
+        $page = $request->query->get('page')?$request->query->get('page'):$request->request->get('page');
+        $status = $request->query->get('status')?$request->query->get('status'):$request->request->get('status');
+        
+        // Default values
+        $limit = ($limit == null) ? 100 : $limit;
+        $page = ($page == null) ? 1 : $page;
+        
+        $deliver = $em->getRepository(User::class)->find($id);
+        if(!$deliver){
+            $result = array('code' => 400, 'description' => "Unexisting client");
+            return new JsonResponse($result, 400);
+        }
+        
+        $array = [];
+        $orders = $em->getRepository(User::class)->getOrders(null, $id, $status, $limit, $page, false);
+        foreach ($orders as $k=>$l){
+            $array[$k]["id"] = $l->getId();
+            $array[$k]['amount'] = $l->getAmount();
+            $array[$k]['reference'] = $l->getRef();
+            $array[$k]['date'] = $l->getDateCreated()->format('d-m-Y');
+            $array[$k]['hour'] = $l->getDateCreated()->format('H:i');
+            $array[$k]['delivery_address'] = $l->getAddress();
+            $array[$k]['delivery_city'] = $l->getCity();
+            $array[$k]['delivery_phone'] = $l->getPhoneNumber();
+            $array[$k]['delivery_local'] = $l->getDeliveryLocal();
+            $array[$k]['delivery_note'] = $l->getDeliveryNote();
+            $array[$k]['delivery_hour'] = $l->getDeliveryHour();
+            $array[$k]['delivery_date'] = $l->getDeliveryDate();
+            $array[$k]['status']['id'] = $l->getOrderStatus()->getId();
+            $array[$k]['status']['name'] = $l->getOrderStatus()->getName();
+            $array[$k]['restaurant']['id'] = $l->getRestaurant()->getId();
+            $array[$k]['restaurant']['name'] = $l->getRestaurant()->getName();
+            
+        }
+        $result['code'] = 200;
+        if(count($array) > 0){
+            $result['items'] = $array;
+            $result['total'] = $em->getRepository(Order::class)->getOrders(null, $id, $status, $limit, $page, true);
+            $result['current_page'] = $page;
+            $result['per_page'] = $limit;
+        }else{
+            $result['items'] = [];
+        }
+        return new JsonResponse($result);
+    }
+    
+    
+    /**
+     * @Put("/api/delivers/{deliver}/orders/{order}/approved")
+     * 
+     * *@SWG\Response(
+     *      response=200,
+     *      description="Approved an order"
+     * )
+     * 
+     * 
+     * @SWG\Tag(name="Delivers")
+     */
+    public function approvedDeliveringAction(Request $request, $deliver, $order){
+        $em = $this->getDoctrine()->getManager();
+        
+        $del = $em->getRepository(User::class)->find($deliver);
+        if(!$del){
+            $result = array('code' => 400, 'description' => "Unexisting deliver");
+            return new JsonResponse($result, 400);
+        }elseif(!in_array("ROLE_DELIVER", $del->getRoles())){
+            $result = array('code' => 400, 'description' => "Not a deliver account.");
+            return new JsonResponse($result, 400);
+        }
+        
+        $ord = $em->getRepository(Order::class)->find($order);
+        if(!$ord){
+            $result = array('code' => 400, 'description' => "Unexisting order");
+            return new JsonResponse($result, 400);
+        }elseif($ord->getOrderStatus()->getId() != 1){
+            $result = array('code' => 400, 'description' => "Deliver already assigned.");
+            return new JsonResponse($result, 400);
+        }
+        
+        $ord->setMessenger($del);
+        $ord->setOrderStatus($em->getRepository(OrderStatus::class)->find(4));
+        $em->flush();
+        
+        return new JsonResponse(array('code'=>200));
+    }
+    
+    /**
+     * @Get("/api/delivers/{id}")
+     * 
+     * *@SWG\Response(
+     *      response=200,
+     *      description="Get Deliver informations"
+     * )
+     *
+     * 
+     * @SWG\Tag(name="Delivers")
+     */
+    public function getDeliverAction(Request $request, $id){
+        $em = $this->getDoctrine()->getManager();
+        $deliver = $em->getRepository(User::class)->find(intval($id));
+        
+        if(!is_null($deliver)){
+            if(!in_array('ROLE_DELIVER', $deliver->getRoles())){
+                $result = array('code'=>400, 'description'=>"Unexisting deliver account");
+            }else{
+                $result['code'] = 200;
+                $result['data']['id'] = $deliver->getId();
+                $result['data']['username'] = $deliver->getUsername();
+                $result['data']['firstname'] = $deliver->getFirstname();
+                $result['data']['lastname'] = $deliver->getLastname();
+                $result['data']['email'] = $deliver->getEmail();
+                $result['data']['position']['latitude'] = $deliver->getLatitude();
+                $result['data']['position']['longitude'] = $deliver->getLongitude();
+            }
+        }else{
+            $result['code'] = 400;
+            $result['description'] = "Ce client n'existe pas.";
+        }
+        
+        
+        return new JsonResponse($result, $result['code']);
+    }
+    
+    
+    /**
+     * @Put("/api/delivers/{id}/position")
+     * 
+     * *@SWG\Response(
+     *      response=200,
+     *      description="Update position of deliver man"
+     * )
+     * 
+     * @QueryParam(
+     *      name="latitude",
+     *      description="latitude geo position",
+     *      strict=true
+     * )
+     * 
+     * @QueryParam(
+     *      name="longitude",
+     *      description="longitude geo position",
+     *      strict=true
+     * )
+     * 
+     * @SWG\Tag(name="Delivers")
+     */
+    public function putPositionAction(Request $request, $id){
+        $em = $this->getDoctrine()->getManager();
+        
+        $latitude = $request->query->get('latitude')?$request->query->get('latitude'):$request->request->get('latitude');
+        $longitude = $request->query->get('longitude')?$request->query->get('longitude'):$request->request->get('longitude');
+        
+        $del = $em->getRepository(User::class)->find($id);
+        if(!$del){
+            $result = array('code' => 4000, 'description' => 'Unexisting deliver account.');
+            return new JsonResponse($result, 400);
+        }
+        
+        $del->setLatitude($latitude);
+        $del->setLongitude($longitude);
+        
+        $em->flush();
+        
+        $result = array(
+            'code'=> 200,
+            'data' => array(
+                'deliver_id' => $del->getId(),
+                'lat' => $del->getLatitude(),
+                'lng' => $del->getLongitude()
+            )
+        );
+        
+        return new JsonResponse($result);
     }
 }

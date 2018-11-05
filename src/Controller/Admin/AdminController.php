@@ -32,6 +32,7 @@ use App\Entity\MenuOption;
 use App\Entity\MenuMenuOption;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use App\Entity\Order;
+use App\Entity\OrderStatus;
 
 class AdminController extends BaseAdminController {
     
@@ -47,12 +48,12 @@ class AdminController extends BaseAdminController {
     public function prePersistUserEntity($entity) {
         //  set password
 //        die(var_dump($this->container->get("security.password_encoder")->encodePassword($entity, $entity->getPassword())));
-        $entity->setRoles(['ROLE_ADMIN']);
+        $entity->setRoles([$entity->getRoles()]);
         $entity->setPassword($this->container->get("security.password_encoder")->encodePassword($entity, $entity->getPassword()));
     }
     
     public function preUpdateUserEntity($entity) {
-        $entity->setRoles(['ROLE_ADMIN']);
+        //$entity->setRoles(['ROLE_ADMIN']);
         if (!is_null($entity->getPassword())) {
             //  update password 
 //            die(var_dump($this->container->get("security.password_encoder")->encodePassword($entity, $entity->getPassword())));
@@ -222,6 +223,7 @@ class AdminController extends BaseAdminController {
             $array["$k"]["id"] = $p->getId();
             $array["$k"]["value"] = $p->getName();
             $array["$k"]["label"] = $p->getName();
+            $array["$k"]["price"] = $p->getPrice();
             //$array[] = $p->getName();
         }
         //die(var_dump($response));
@@ -276,7 +278,41 @@ class AdminController extends BaseAdminController {
         $em = $this->getDoctrine()->getManager();
         
         $order = $em->getRepository(Order::class)->find($id);
+        $delivers = $em->getRepository(User::class)->findAllUserByRole('ROLE_DELIVER', false);
         
-        return array('order' => $order);
+        $total = 0.00;
+        $details = $order->getOrderDetails();
+        foreach($details as $dt){
+            $total += intval($dt->getQuantity()) * floatval($dt->getPrice());
+        }
+        
+        return array('order' => $order, 'delivers' => $delivers, 'total' => $total);
+    }
+    
+    
+    /**
+     * @Method({"GET", "POST"})
+     * @Route("/order/assign-deliver", name="assign")
+     * @Template("/admin/invoice.html.twig")
+     */
+    public function assignDeliverAction(Request $request){
+        $em = $this->getDoctrine()->getManager();
+        $delivers = $em->getRepository(User::class)->findAllUserByRole('ROLE_DELIVER', false);
+        if($request->getMethod('post')){
+            $deliver = $request->get('deliver');
+            $order = $request->get('order');
+            
+            
+            $orderObj = $em->getRepository(Order::class)->find($order);
+            $status = $em->getRepository(OrderStatus::class)->find(4);
+            $msg = $em->getRepository(User::class)->find($deliver);
+            $orderObj->setMessenger($msg);
+            $orderObj->setOrderStatus($status);
+            $em->flush();
+            
+            $this->addFlash('success', "Livreur assigné.");
+            
+            return $this->redirectToRoute('invoice', array('id'=>$order));
+        }
     }
 }

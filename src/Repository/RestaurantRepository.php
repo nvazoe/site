@@ -24,15 +24,25 @@ class RestaurantRepository extends ServiceEntityRepository {
 //     */
 
 
-    public function getRestaurants($limit, $page, $count = false) {
-        if ($count) {
-            return $this->createQueryBuilder('e')->select('COUNT(e)')->getQuery()->getSingleScalarResult();
-        } else {
-            $qb = $this->createQueryBuilder('e')->select('e')
-                ->setFirstResult(($page - 1) * $limit)
-                ->setMaxResults($limit);
-            return $qb->getQuery()->getResult();
-        }
+    public function getRestaurants($longitude, $latitude, $status, $limit, $page, $count = false) {
+        
+        $longitude = $latitude = null;
+        
+        $query = $this->createQueryBuilder('r');
+        
+        if($longitude)
+            $query = $query->andWhere ('r.longitude = :val1')->setParameter ('val1', $longitude);
+        if($latitude)
+            $query = $query->andWhere ('r.latidude = :val2')->setParameter ('val2', $latitude);
+        if($status)
+            $query = $query->andWhere ('r.status = :val3')->setParameter ('val3', $status);
+        if($count)
+            return $query->select('COUNT(r)')->getQuery()->getSingleScalarResult();
+        if($limit)
+            $query = $query->setFirstResult(($page - 1) * $limit)->setMaxResults($limit);
+        
+        
+        return $query->getQuery()->getResult();
     }
 
     /*

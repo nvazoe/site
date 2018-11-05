@@ -37,6 +37,7 @@ use App\Entity\Product;
 use App\Entity\MenuOption;
 use App\Entity\ShippingStatus;
 use App\Entity\MenuOptionProducts;
+use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 /**
  * Description of OrdersController
@@ -96,10 +97,13 @@ class OrdersController extends Controller{
             $array[$k]['hour'] = $l->getDateCreated()->format('H:i');
             $array[$k]["client"]["id"] = $l->getClient()->getId();
             $array[$k]["client"]["username"] = $l->getClient()->getUsername();
+            $array[$k]["client"]["position"]["latitude"] = $l->getClient()->getLatitude();
+            $array[$k]["client"]["position"]["longitude"] = $l->getClient()->getLongitude();
             $array[$k]['status']['id'] = $l->getOrderStatus()->getId();
             $array[$k]['status']['name'] = $l->getOrderStatus()->getName();
             $array[$k]['restaurant']['id'] = $l->getRestaurant()->getId();
             $array[$k]['restaurant']['name'] = $l->getRestaurant()->getName();
+            $array[$k]['restaurant']['image'] = $l->getRestaurant()->getImage() ? $this->generateUrl('homepage', array(), UrlGeneratorInterface::ABSOLUTE_URL).'images/restaurant/'.$l->getRestaurant()->getImage() : null;
         }
         $result['code'] = 200;
         if(count($array) > 0){
@@ -134,10 +138,21 @@ class OrdersController extends Controller{
             $result['data']['id'] = $order->getId();
             $result['data']['ref'] = $order->getRef();
             $result['data']['amount'] = $order->getAmount();
-            $array['data']['date'] = $order->getDateCreated()->format('d-m-Y');
-            $array['data']['hour'] = $order->getDateCreated()->format('H:i');
+            $result['data']['date'] = $order->getDateCreated()->format('d-m-Y');
+            $result['data']['hour'] = $order->getDateCreated()->format('H:i');
+            $result['data']['delivery_address'] = $order->getAddress();
+            $result['data']['delivery_city'] = $order->getCity();
+            $result['data']['delivery_phone'] = $order->getPhoneNumber();
+            $result['data']['delivery_local'] = $order->getDeliveryLocal();
+            $result['data']['delivery_note'] = $order->getDeliveryNote();
+            $result['data']['delivery_hour'] = $order->getDeliveryHour();
+            $result['data']['delivery_date'] = $order->getDeliveryDate();
             $result['data']['restaurant']['id'] = $order->getRestaurant()->getId();
             $result['data']['restaurant']['name'] = $order->getRestaurant()->getName();
+            $result['data']['restaurant']['city'] = $order->getRestaurant()->getCity();
+            $result['data']['restaurant']['address'] = $order->getRestaurant()->getAddress();
+            $result['data']['restaurant']['position']['latitude'] = $order->getRestaurant()->getLatidude();
+            $result['data']['restaurant']['position']['longitude'] = $order->getRestaurant()->getLongitude();
             $result['data']['status']['id'] = $order->getOrderStatus()->getId();
             $result['data']['status']['name'] = $order->getOrderStatus()->getname();
             $result['data']['client']['id'] = $order->getClient()->getId();
@@ -145,6 +160,15 @@ class OrdersController extends Controller{
             $result['data']['client']['firstname'] = $order->getClient()->getFirstname();
             $result['data']['client']['lastname'] = $order->getClient()->getLastname();
             $result['data']['client']['address'] = $order->getClient()->getAddress();
+            $result['data']['client']['phone'] = $order->getClient()->getPhoneNumber();
+            $result['data']['client']['position']['latitude'] = $order->getClient()->getLatitude();
+            $result['data']['client']['position']['longitude'] = $order->getClient()->getLongitude();
+            if($order->getMessenger()){
+                $result['data']['deliver']['id'] = $order->getMessenger() ? $order->getMessenger()->getid() : null;
+                $result['data']['deliver']['latitude'] = $order->getMessenger() ? $order->getMessenger()->getLatitude() : null;
+                $result['data']['deliver']['longitude'] = $order->getMessenger() ? $order->getMessenger()->getLongitude() : null;
+                $result['data']['deliver']['phone'] = $order->getMessenger() ? $order->getMessenger()->getPhoneNumber() : null;
+            }
             
             // Get details
             $menus = $order->getOrderDetails();
@@ -152,12 +176,15 @@ class OrdersController extends Controller{
                 $result['data']['menus']["$key"]['id'] = $val->getMenu()->getId();
                 $result['data']['menus']["$key"]['name'] = $val->getMenuName();
                 $result['data']['menus']["$key"]['price'] = floatval($val->getPrice());
+                $result['data']['menus']["$key"]['quantity'] = $val->getQuantity();
+                $result['data']['menus']["$key"]['image'] = $this->generateUrl('homepage', array(), UrlGeneratorInterface::ABSOLUTE_URL).'images/menu/'.$val->getMenu()->getImage();
                 // Get products of menu
                 $products = $val->getOrderDetailsMenuProducts();
                 foreach ($products as $k=>$v){
                     $result['data']['menus']["$key"]['products']["$k"]['id'] = $v->getProduct()->getId();
                     $result['data']['menus']["$key"]['products']["$k"]['name'] = $v->getProduct()->getName();
                     $result['data']['menus']["$key"]['products']["$k"]['price'] = floatval($v->getPrice());
+                    $result['data']['menus']["$key"]['products']["$k"]['image'] = $this->generateUrl('homepage', array(), UrlGeneratorInterface::ABSOLUTE_URL).'images/product/'.$v->getProduct()->getImage();
                 }
             }
         }else{
@@ -696,7 +723,7 @@ class OrdersController extends Controller{
         }
         
         $order->setTrackingLat($latitude);
-        $order->setTrackingLng($latitude);
+        $order->setTrackingLng($longitude);
         
         $em->flush();
         

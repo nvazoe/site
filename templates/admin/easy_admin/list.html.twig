@@ -171,6 +171,9 @@
                                             item_id: _item_id
                                         }, with_context = false) }}
                                                     {% endblock item_actions %}
+                                                    {% if _entity_config.name == 'Order' %}
+                                                        <a href="{{path('invoice', {'id': _item_id})}}">Voir</a>
+                                                    {% endif %}
                                                 </td>
                                                 
                                             {% endif %}

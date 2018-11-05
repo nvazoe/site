@@ -55,11 +55,13 @@ class OrderRepository extends ServiceEntityRepository
         if($status)
             $select = $select->andWhere ('e.orderStatus = :cat')->setParameter ('cat', $status);
         
+        if($count)
+            return $select->select('COUNT(e)')->getQuery()->getSingleScalarResult();
+        
         if($limit)
             $select = $select->setFirstResult( ($page-1)*$limit )->setMaxResults( $limit );
         
-        if($count)
-            return $this->createQueryBuilder('e')->select('COUNT(e)')->getQuery()->getSingleScalarResult();
+        
         
                
         return $select->getQuery()->getResult();            

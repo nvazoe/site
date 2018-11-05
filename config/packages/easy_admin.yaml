@@ -3,6 +3,43 @@ easy_admin:
         User:
             class: App\Entity\User
             label: "Utilisateurs"
+            form:
+                fields:
+                    -
+                        property: username
+                        label: Nom d'utilisateur
+                    -
+                        property: firstname
+                        label: Prénom
+                    -
+                        property: lastname
+                        label: Nom
+                    -
+                        property: email
+                        label: Email
+                    -
+                        property: phone_number
+                        label: Téléphone
+                    -
+                        property: address
+                        label: Adresse
+                    -
+                        property: password
+                        label: Mot de passe
+                        type: password
+                    -
+                        property: latitude
+                        label: Latitude
+                    -
+                        property: longitude
+                        label: Longitude
+                    -
+                        property: roles
+                        label: Role
+                        type: choice
+                        type_options:
+                            expanded: true
+                            choices: { 'Client': 'ROLE_CLIENT', 'Administrateur': 'ROLE_ADMIN', 'Livreur': 'ROLE_DELIVER' }
         CategoryMenu:
             class: App\Entity\CategoryMenu
             label: "Catégorie de menu"
@@ -83,12 +120,16 @@ easy_admin:
         Restaurant:
             class: App\Entity\Restaurant
             label: "Restaurants"
+            list:
+                actions: ['-delete']
         RestaurantSpeciality:
             class: App\Entity\RestaurantSpeciality
             label: "Spécialité des restaurants"
         Order:
             class: App\Entity\Order
             label: "Commandes"
+            list:
+                actions: [-delete]
         OrderStatus:
             class: App\Entity\OrderStatus
             label: "Statut de commande"

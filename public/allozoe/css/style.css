@@ -8,7 +8,7 @@ and open the template in the editor.
     Author     : user
 */
 
-figure > img {
+/*figure > img {
     position: relative;
 }
 
@@ -33,4 +33,30 @@ p.header-text-1 {
     font-weight: 800;
 }
 
-.type-menu-bar {/* padding: 10px 0px 10px 0px; */border-bottom: 1px solid #ccc;background-color: #fff;}
+.type-menu-bar { padding: 10px 0px 10px 0px; border-bottom: 1px solid #ccc;background-color: #fff;}*/
+
+/* HEADER */
+.blck-logo{
+    display: inline-block;
+    float: left;
+}
+
+
+.blck-menu ul li {
+    list-style-type: none;
+    float: left;
+    margin-left: 10px;
+}
+
+/* FOOTER */
+.footer-1 {
+    display: inline-block;
+    float: left;
+    padding: 10px;
+    width: 50%;
+}
+
+.footer-2 {
+    display: inline-block;
+    padding: 10px;
+}
