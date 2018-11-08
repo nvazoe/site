@@ -58,11 +58,13 @@ class MenuRepository extends ServiceEntityRepository
         if($restau)
             $select = $select->andWhere('m.restaurant = :val')->setParameter('val', $restau);
         
+        if($count)
+            return $select->select('COUNT(m)')->getQuery()->getSingleScalarResult();
+        
         if($limit)
             $select = $select->setFirstResult( ($page-1)*$limit )->setMaxResults($limit);
         
-        if($count)
-            return $select->select('COUNT(m)')->getQuery()->getSingleScalarResult();
+        
         
 //        $select = $select->groupBy('m.categoryMenu');
         

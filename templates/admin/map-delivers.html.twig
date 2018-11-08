@@ -1,0 +1,94 @@
+{# empty Twig template #}
+{% extends 'admin/easy_admin/main.html.twig' %}
+
+{% block head_stylesheets %}
+    {{ parent() }}
+    <style>
+      /* Always set the map height explicitly to define the size of the div
+       * element that contains the map. */
+      #map {
+        height: 500px;
+      }
+      
+    </style>
+    <link rel="stylesheet" href="{{ asset('styles/style.css') }}">
+{% endblock %}
+
+{% block main %}
+    <div class="content animate-panel">
+        <div id="map"></div>
+    </div>
+{% endblock %}
+
+{% block body_javascript %}
+    {{ parent() }}
+    <script>
+      var map;
+      var france = {lat: 48.864716, lng: 2.349014};
+      var iconBase = '/images/icons/';
+      var icons = {
+        livreur: {
+            icon: iconBase + 'abattoirs-tradi.png'
+        },
+        restaurant:{
+            icon: iconBase + 'restaurant_icone.png'
+        }
+    };
+    
+      function initMap() {
+        map = new google.maps.Map(document.getElementById('map'), {
+          center: france,
+          zoom: 8
+        });
+        var dels = [];
+        {% if delivers %}
+            {% for del in delivers %}
+                var o = {
+                    'name':"{{ del.name }}",
+                    'lat': "{{ del.lat }}",
+                    'lng': "{{ del.lng }}",
+                    'phone': "{{ del.phone }}",
+                    'address': "{{ del.address }}"
+                };
+                dels.push(o);
+            {% endfor %}
+        {% endif %}
+            
+        
+        
+        
+        // The marker, des liveurs
+        var icon = icons.livreur.icon;
+        var infowindow = new google.maps.InfoWindow();
+        for(var i=0, c=dels.length; i<c; i++){
+            var marker = new google.maps.Marker({
+                position: {lat: parseFloat(dels[i].lat), lng: parseFloat(dels[i].lng)},
+                map: map,
+                title: dels[i].name,
+                draggable: false,
+                content: dels[i].name,
+                icon: icon
+            });
+            
+            google.maps.event.addListener(marker, 'click', (function (marker, i) {
+                return function () {
+                    var html = '<div class="content-pin">' +dels[i].name;
+                    html += '<ul class="list-unstyled">';
+                    html += '<li><strong>Phone</strong> : '+dels[i].phone+'</li>';
+                    html += '<li><strong>Adresse</strong> : '+dels[i].address+'</li>';
+                    html += '</ul></div>';
+                    map.panTo(marker.getPosition());
+                    infowindow.setContent(html);
+                    infowindow.open(map, marker, html);
+
+                        };
+            })(marker, i));
+        }
+        
+      }
+    </script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyD9qWr1Xq89haWKgy_cAmyEqMJ_ZonMWJA&callback=initMap"
+    async defer></script>
+    
+    {# icheck #}
+{% endblock body_javascript %}

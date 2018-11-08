@@ -84,12 +84,18 @@ class Restaurant
      */
     private $restaurantSpecialities;
 
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\DeliveryProposition", mappedBy="restaurant")
+     */
+    private $deliveryPropositions;
+
     public function __construct()
     {
         $this->menus = new ArrayCollection();
         $this->restaurantNotes = new ArrayCollection();
         $this->orders = new ArrayCollection();
         $this->restaurantSpecialities = new ArrayCollection();
+        $this->deliveryPropositions = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -328,6 +334,37 @@ class Restaurant
             // set the owning side to null (unless already changed)
             if ($restaurantSpeciality->getRestaurant() === $this) {
                 $restaurantSpeciality->setRestaurant(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|DeliveryProposition[]
+     */
+    public function getDeliveryPropositions(): Collection
+    {
+        return $this->deliveryPropositions;
+    }
+
+    public function addDeliveryProposition(DeliveryProposition $deliveryProposition): self
+    {
+        if (!$this->deliveryPropositions->contains($deliveryProposition)) {
+            $this->deliveryPropositions[] = $deliveryProposition;
+            $deliveryProposition->setRestaurant($this);
+        }
+
+        return $this;
+    }
+
+    public function removeDeliveryProposition(DeliveryProposition $deliveryProposition): self
+    {
+        if ($this->deliveryPropositions->contains($deliveryProposition)) {
+            $this->deliveryPropositions->removeElement($deliveryProposition);
+            // set the owning side to null (unless already changed)
+            if ($deliveryProposition->getRestaurant() === $this) {
+                $deliveryProposition->setRestaurant(null);
             }
         }
 

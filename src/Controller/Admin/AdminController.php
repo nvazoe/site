@@ -33,6 +33,7 @@ use App\Entity\MenuMenuOption;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use App\Entity\Order;
 use App\Entity\OrderStatus;
+use App\Entity\DeliveryProposition;
 
 class AdminController extends BaseAdminController {
     
@@ -46,17 +47,35 @@ class AdminController extends BaseAdminController {
     }
     
     public function prePersistUserEntity($entity) {
-        //  set password
-//        die(var_dump($this->container->get("security.password_encoder")->encodePassword($entity, $entity->getPassword())));
         $entity->setRoles([$entity->getRoles()]);
         $entity->setPassword($this->container->get("security.password_encoder")->encodePassword($entity, $entity->getPassword()));
     }
     
     public function preUpdateUserEntity($entity) {
-        //$entity->setRoles(['ROLE_ADMIN']);
         if (!is_null($entity->getPassword())) {
             //  update password 
-//            die(var_dump($this->container->get("security.password_encoder")->encodePassword($entity, $entity->getPassword())));
+            $entity->setPassword($this->container->get("security.password_encoder")->encodePassword($entity, $entity->getPassword()));
+        } else {
+            $original = $this->em->getUnitOfWork()->getOriginalEntityData($entity);
+            $password = $original['password'];
+            $entity->setPassword($password);
+        }
+    }
+    
+    public function preUpdateDeliverEntity($entity) {
+        if (!is_null($entity->getPassword())) {
+            //  update password 
+            $entity->setPassword($this->container->get("security.password_encoder")->encodePassword($entity, $entity->getPassword()));
+        } else {
+            $original = $this->em->getUnitOfWork()->getOriginalEntityData($entity);
+            $password = $original['password'];
+            $entity->setPassword($password);
+        }
+    }
+    
+    public function preUpdateAdminEntity($entity) {
+        if (!is_null($entity->getPassword())) {
+            //  update password 
             $entity->setPassword($this->container->get("security.password_encoder")->encodePassword($entity, $entity->getPassword()));
         } else {
             $original = $this->em->getUnitOfWork()->getOriginalEntityData($entity);
@@ -67,6 +86,19 @@ class AdminController extends BaseAdminController {
     
     public function prePersistClientEntity($entity) {
         //  set password
+        $entity->setRoles(["ROLE_CLIENT"]);
+        $entity->setPassword($this->container->get("security.password_encoder")->encodePassword($entity, $entity->getPassword()));
+    }
+    
+    public function prePersistAdminEntity($entity) {
+        //  set password
+        $entity->setRoles(["ROLE_ADMIN"]);
+        $entity->setPassword($this->container->get("security.password_encoder")->encodePassword($entity, $entity->getPassword()));
+    }
+    
+    public function prePersistDeliverEntity($entity) {
+        //  set password
+        $entity->setRoles(["ROLE_DELIVER"]);
         $entity->setPassword($this->container->get("security.password_encoder")->encodePassword($entity, $entity->getPassword()));
     }
     
@@ -299,20 +331,50 @@ class AdminController extends BaseAdminController {
         $em = $this->getDoctrine()->getManager();
         $delivers = $em->getRepository(User::class)->findAllUserByRole('ROLE_DELIVER', false);
         if($request->getMethod('post')){
-            $deliver = $request->get('deliver');
+            $delivers = $request->get('delivers');
             $order = $request->get('order');
             
             
             $orderObj = $em->getRepository(Order::class)->find($order);
-            $status = $em->getRepository(OrderStatus::class)->find(4);
-            $msg = $em->getRepository(User::class)->find($deliver);
-            $orderObj->setMessenger($msg);
+            
+            foreach ($delivers as $dl){
+                $delProposition = new DeliveryProposition();
+                $delProposition->setRestaurant($orderObj->getRestaurant());
+                $delProposition->setValueResto(1);
+                $delProposition->setDeliver($em->getRepository(User::class)->find($dl));
+                $delProposition->setValueDeliver(0);
+                $delProposition->setCommand($orderObj);
+                
+                $em->persist($delProposition);
+            }
+            
+            $status = $em->getRepository(OrderStatus::class)->find(2);
             $orderObj->setOrderStatus($status);
+            
             $em->flush();
             
-            $this->addFlash('success', "Livreur assigné.");
+            $this->addFlash('success', "Propositions de livraison envoyées.");
             
             return $this->redirectToRoute('invoice', array('id'=>$order));
         }
+    }
+    
+    /**
+     * @Method({"GET", "POST"})
+     * @Route("/order/map-delivers", name="map_delivers")
+     * @Template("/admin/map-delivers.html.twig")
+     */
+    public function deliversInMapAction(Request $request){
+        $em = $this->getDoctrine()->getManager();
+        
+        $dels = $em->getRepository(User::class)->findAllUserByRole('ROLE_DELIVER', false);
+        foreach ($dels as $k=>$l){
+            $delivers[$k]['name'] = $l->getFirstname().' '.$l->getLastname();
+            $delivers[$k]['phone'] = $l->getPhoneNumber();
+            $delivers[$k]['address'] = $l->getAddress();
+            $delivers[$k]['lat'] = $l->getLatitude();
+            $delivers[$k]['lng'] = $l->getLongitude();
+        }
+        return array('delivers' => $delivers);
     }
 }

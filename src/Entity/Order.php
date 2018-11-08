@@ -124,12 +124,18 @@ class Order
      */
     private $payment;
 
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\DeliveryProposition", mappedBy="command")
+     */
+    private $deliveryPropositions;
+
     public function __construct()
     {
         $this->orderDetails = new ArrayCollection();
         $this->orderShippings = new ArrayCollection();
         $this->shippingStatuses = new ArrayCollection();
         $this->date_created = new \DateTime();
+        $this->deliveryPropositions = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -419,6 +425,37 @@ class Order
     public function setPayment(?BankCard $payment): self
     {
         $this->payment = $payment;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|DeliveryProposition[]
+     */
+    public function getDeliveryPropositions(): Collection
+    {
+        return $this->deliveryPropositions;
+    }
+
+    public function addDeliveryProposition(DeliveryProposition $deliveryProposition): self
+    {
+        if (!$this->deliveryPropositions->contains($deliveryProposition)) {
+            $this->deliveryPropositions[] = $deliveryProposition;
+            $deliveryProposition->setCommand($this);
+        }
+
+        return $this;
+    }
+
+    public function removeDeliveryProposition(DeliveryProposition $deliveryProposition): self
+    {
+        if ($this->deliveryPropositions->contains($deliveryProposition)) {
+            $this->deliveryPropositions->removeElement($deliveryProposition);
+            // set the owning side to null (unless already changed)
+            if ($deliveryProposition->getCommand() === $this) {
+                $deliveryProposition->setCommand(null);
+            }
+        }
 
         return $this;
     }

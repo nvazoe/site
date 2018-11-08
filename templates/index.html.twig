@@ -1,41 +1,9 @@
 {# empty Twig template #}
-{% extends 'base.html.twig' %}
+{% extends 'base-2.html.twig' %}
 
-
-
+{% block page_title %}Accueil{% endblock %}
 
 {% block body %}
-    <div class="ue-dg ue-df ue-cc ue-a3 ue-ah ue-gd ue-a6">
-        <div class="ue-a3 ue-a6 ue-bz ue-ab ue-h9 ue-bh ue-gk ue-n ue-d9 ue-ha ue-d ue-e5 ue-hb ue-hc">
-            <div class="ue-n ue-b4 ue-hg ue-bh ue-hh ue-hi ue-hj ue-ha ue-d ue-e5"></div>
-
-        </div>
-        <form class="ue-bn ue-bo ue-cc ue-ge ue-gf ue-bs ue-a6 ue-ab ue-bh ue-gg ue-n ue-a3 ue-gh ue-gi">
-            <div class="ue-h1 ue-h2 ue-bc">
-                <svg viewBox="0 0 32 32" width="30" height="30" version="1.1" xmlns="http://www.w3.org/2000/svg"><desc>A magnifying glass icon used to indicate search input</desc><defs></defs>
-                    <g>
-                        <path fill="inherit" d="M21.5,13.2c0-4.6-3.7-8.2-8.2-8.2C8.7,5,5,8.7,5,13.2c0,4.6,3.7,8.2,8.2,8.2c2,0,3.9-0.8,5.4-2l7.5,7.5
-                              l0.9-0.9l-7.5-7.5C20.7,17.2,21.5,15.3,21.5,13.2z M13.2,20.2c-3.8,0-7-3.1-7-7c0-3.8,3.1-7,7-7s7,3.1,7,7
-                              C20.2,17.1,17.1,20.2,13.2,20.2z">
-
-                        </path>
-                    </g>
-                </svg>
-            </div>
-            <input class="ue-bn ue-bo ue-cc ue-bq ue-br ue-bs ue-a3 ue-dz ue-c2 ue-fw ue-gj ue-gk ue-n ue-gg" placeholder="Rechercher un restaurant ou un type de cuisine" value="">
-        </form>
-        <div class="ue-bn ue-bo ue-t ue-ge ue-gf ue-bs ue-a6 ue-ab ue-ae ue-dv ue-l ue-hp ue-hq ue-hr ue-ap ue-bh ue-gg ue-e5 ue-aa ue-gk ue-cn ue-hk">
-            <svg viewBox="0 0 64 64" width="16px" height="16px" class=" ue-e8">
-                <path fill-rule="evenodd" clip-rule="evenodd" d="M34.828 32l18.385 18.385-2.828 2.828L32 34.83 13.615 53.213l-2.828-2.828L29.172 32 10.787 13.616l2.828-2.829L32 29.172l18.385-18.385 2.828 2.829L34.828 32z"></path>
-            </svg>
-        </div>
-    </div><!-- react-empty: 761 -->
-    <div class="ue-a6 ue-ht ue-bz">
-        <div class="ue-a6 ue-f8 ue-bm">
-            <h1 class="ue-bn ue-bo ue-cc ue-h3 ue-h4 ue-h5 ue-hu ue-hv">Toulouse&nbsp;—&nbsp;Livraison de repas</h1>
-        </div>
-    </div>
-
     <div class="container">
         <div class="row">
             {% for restau in restaurants %}

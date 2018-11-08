@@ -135,6 +135,11 @@ class User implements UserInterface, \Serializable
      */
     private $cp;
 
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\DeliveryProposition", mappedBy="deliver")
+     */
+    private $deliveryPropositions;
+
     public function __construct()
     {
         $this->restaurants = new ArrayCollection();
@@ -147,6 +152,7 @@ class User implements UserInterface, \Serializable
         $this->date_created = new \DateTime();
         $this->date_updated = new \DateTime();
         $this->ordersDelivered = new ArrayCollection();
+        $this->deliveryPropositions = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -219,7 +225,7 @@ class User implements UserInterface, \Serializable
         return $this->password;
     }
 
-    public function setPassword(string $password): self
+    public function setPassword(string $password = null): self
     {
         $this->password = $password;
 
@@ -617,6 +623,37 @@ class User implements UserInterface, \Serializable
     public function setCp(?string $cp): self
     {
         $this->cp = $cp;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|DeliveryProposition[]
+     */
+    public function getDeliveryPropositions(): Collection
+    {
+        return $this->deliveryPropositions;
+    }
+
+    public function addDeliveryProposition(DeliveryProposition $deliveryProposition): self
+    {
+        if (!$this->deliveryPropositions->contains($deliveryProposition)) {
+            $this->deliveryPropositions[] = $deliveryProposition;
+            $deliveryProposition->setDeliver($this);
+        }
+
+        return $this;
+    }
+
+    public function removeDeliveryProposition(DeliveryProposition $deliveryProposition): self
+    {
+        if ($this->deliveryPropositions->contains($deliveryProposition)) {
+            $this->deliveryPropositions->removeElement($deliveryProposition);
+            // set the owning side to null (unless already changed)
+            if ($deliveryProposition->getDeliver() === $this) {
+                $deliveryProposition->setDeliver(null);
+            }
+        }
 
         return $this;
     }

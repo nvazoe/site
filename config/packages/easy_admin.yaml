@@ -1,8 +1,86 @@
 easy_admin:
+    site_name: Allo Zoe Admin
     entities:
         User:
             class: App\Entity\User
             label: "Utilisateurs"
+            form:
+                fields:
+                    -
+                        property: username
+                        label: Nom d'utilisateur
+                    -
+                        property: firstname
+                        label: Prénom
+                    -
+                        property: lastname
+                        label: Nom
+                    -
+                        property: email
+                        label: Email
+                    -
+                        property: phone_number
+                        label: Téléphone
+                    -
+                        property: address
+                        label: Adresse
+                    -
+                        property: password
+                        label: Mot de passe
+                        type: password
+                        
+                    -
+                        property: latitude
+                        label: Latitude
+                    -
+                        property: longitude
+                        label: Longitude
+                    -
+                        property: roles
+                        label: Role
+                        type: choice
+                        type_options:
+                            expanded: true
+                            choices: { 'Client': 'ROLE_CLIENT', 'Administrateur': 'ROLE_ADMIN', 'Livreur': 'ROLE_DELIVER' }
+            list:
+                fields:
+                    -
+                        property: id
+                        label: ID
+                    -
+                        property: username
+                        label: Pseudonyme
+                    -
+                        property: firstname
+                        label: Prénom
+                    -
+                        property: lastname
+                        label: Nom
+                    -
+                        property: email
+                        label: Email
+                        type: email
+                    -
+                        property: phoneNumber
+                        label: Téléphone
+                    -
+                        property: roles
+                        label: Roles
+            edit:
+                fields:
+                    - '-roles'
+                    -
+                        property: password
+                        type: password
+                        label: Mot de passe
+                        type_options:
+                            required: false
+                    
+                        
+        Client:
+            class: App\Entity\User
+            list:
+                dql_filter: "entity.roles LIKE '%%ROLE_CLIENT%%'"
             form:
                 fields:
                     -
@@ -33,13 +111,99 @@ easy_admin:
                     -
                         property: longitude
                         label: Longitude
+            edit:
+                fields:
                     -
-                        property: roles
-                        label: Role
-                        type: choice
+                        property: password
+                        label: Mot de passe
+                        type: password
                         type_options:
-                            expanded: true
-                            choices: { 'Client': 'ROLE_CLIENT', 'Administrateur': 'ROLE_ADMIN', 'Livreur': 'ROLE_DELIVER' }
+                            required: false
+        Deliver:
+            class: App\Entity\User
+            list:
+                dql_filter: "entity.roles LIKE '%%ROLE_DELIVER%%'"
+            form:
+                fields:
+                    -
+                        property: username
+                        label: Nom d'utilisateur
+                    -
+                        property: firstname
+                        label: Prénom
+                    -
+                        property: lastname
+                        label: Nom
+                    -
+                        property: email
+                        label: Email
+                    -
+                        property: phone_number
+                        label: Téléphone
+                    -
+                        property: address
+                        label: Adresse
+                    -
+                        property: password
+                        label: Mot de passe
+                        type: password
+                    -
+                        property: latitude
+                        label: Latitude
+                    -
+                        property: longitude
+                        label: Longitude
+            edit:
+                fields:
+                    -
+                        property: password
+                        label: Mot de passe
+                        type: password
+                        type_options:
+                            required: false
+                
+        Admin:
+            class: App\Entity\User
+            list:
+                dql_filter: "entity.roles LIKE '%%ROLE_ADMIN%%'"
+            form:
+                fields:
+                    -
+                        property: username
+                        label: Nom d'utilisateur
+                    -
+                        property: firstname
+                        label: Prénom
+                    -
+                        property: lastname
+                        label: Nom
+                    -
+                        property: email
+                        label: Email
+                    -
+                        property: phone_number
+                        label: Téléphone
+                    -
+                        property: address
+                        label: Adresse
+                    -
+                        property: password
+                        label: Mot de passe
+                        type: password
+                    -
+                        property: latitude
+                        label: Latitude
+                    -
+                        property: longitude
+                        label: Longitude
+            edit:
+                fields:
+                    -
+                        property: password
+                        label: Mot de passe
+                        type: password
+                        type_options:
+                            required: false
         CategoryMenu:
             class: App\Entity\CategoryMenu
             label: "Catégorie de menu"
@@ -55,6 +219,8 @@ easy_admin:
                         property: imageFile
                         type: vich_image
                         label: Image
+            list:
+                title: Catégories / Spécialités
         TypeMenu:
             class: App\Entity\TypeMenu
             label: "Type de menu"
@@ -99,6 +265,7 @@ easy_admin:
                         property: imageFile
                         type: vich_image
             list:
+                title: Produits
                 fields:
                     -
                         property: id
@@ -129,10 +296,43 @@ easy_admin:
             class: App\Entity\Order
             label: "Commandes"
             list:
-                actions: [-delete]
+                actions: [-delete, -new]
+        ShippingOrder:
+            class: App\Entity\Order
+            label: En cours de livraison
+            list:
+                actions: [-delete, -new]
+                dql_filter: "entity.orderStatus = 6"
+                title: Commandes en cours de livraison
+        ShippedOrder:
+            class: App\Entity\Order
+            label: Terminée
+            list:
+                actions: [-delete, -new]
+                dql_filter: "entity.orderStatus = 4"
+                title: Commandes livrées
+        NewOrder:
+            class: App\Entity\Order
+            label: Nouvelles commandes
+            list:
+                actions: [-delete, -new]
+                dql_filter: "entity.orderStatus = 1"
+                title: Nouvelles commandes
+        ApprovedOrder:
+            class: App\Entity\Order
+            label: Commandes validées
+            list:
+                actions: [-delete, -new]
+                dql_filter: "entity.orderStatus = 2"
+                title: En attente de livreur
         OrderStatus:
             class: App\Entity\OrderStatus
             label: "Statut de commande"
+            form:
+                fields:
+                    -
+                        property: name
+                        label: Nom
             
     design:
         form_theme: '%env(APP_TEMPLATE_ADMIN)%%env(DS)%easy_admin%env(DS)%form%env(DS)%bootstrap_3_horizontal_layout.html.twig'
@@ -140,4 +340,73 @@ easy_admin:
             layout: '%env(APP_TEMPLATE_ADMIN)%%env(DS)%easy_admin%env(DS)%main.html.twig'
             #menu: '%env(APP_TEMPLATE_ADMIN)%%env(DS)%easy_admin%env(DS)%menu.html.twig'
             list: '%env(APP_TEMPLATE_ADMIN)%%env(DS)%easy_admin%env(DS)%list.html.twig'
+        menu:
+            -
+                entity: User
+                label: Utilisateurs
+                icon: users
+                children:
+                    -
+                        entity: User
+                        label: Tous
+                    -
+                        entity: Client
+                        label: Clients
+                    -
+                        entity: Deliver
+                        label: Livreurs
+                    -
+                        entity: Admin
+                        label: Restaurateurs
+            -
+                entity: Restaurant
+                label: Restaurants
+                icon: thumb-tack
+            -
+                entity: Menu
+                label: Menus
+                icon: cutlery
+            -
+                entity: Product
+                label: Produits
+                icon: shopping-bag
+            -
+                entity: CategoryMenu
+                label: Catégories / Spécialités
+                icon: folder-open
+            -
+                label: Commandes
+                icon: first-order
+                children:
+                    -
+                        entity: Order
+                        label: Toutes
+                    -
+                        entity: NewOrder
+                        label: Nouvelles commandes
+                    -
+                        entity: ApprovedOrder
+                        label: Commandes validées
+            -
+                label: Livraison
+                icon: truck
+                children:
+                    -
+                        entity: ShippingOrder
+                        label: En cours
+                    -
+                        entity: ShippedOrder
+                        label: Terminées
+            -
+                entity: OrderStatus
+                label: Status de Commande
+                icon: smile-o
+            -
+                label: Cartes
+                icon: map
+                children:
+                    -
+                        route: map_delivers
+                        label: Livreurs
+                    
 

@@ -12,6 +12,7 @@
       }
       
     </style>
+    <link rel="stylesheet" href="{{ asset('styles/style.css') }}">
 {% endblock %}
 
 {% block main %}
@@ -48,14 +49,32 @@
                             </address>
                             <form class="form-horizontal" action="{{path('assign')}}" method="post">
                                 <input type="hidden" name="order" value="{{order.id}}" />
-                                <div class="form-group">
-                                    <select name="deliver" class="form-control" onchange="this.form.submit();" {% if order.messenger %}disabled="disabled"{% endif %}>
-                                        <option>Liste des livreurs</option>
-                                        {% for d in delivers %}
-                                            <option value="{{d.id}}" {{ order.messenger ? order.messenger.id == d.id ? 'selected' : '' : '' }}>{{d.firstname}}</option>
-                                        {% endfor %}
-                                    </select>
-                                </div>
+                                {% if order.messenger %}
+                                    <div class="form-group">
+                                        <select name="deliver" class="form-control" onchange="this.form.submit();" disabled="disabled">
+                                            <option>Livreur de la commande</option>
+                                            {% for d in delivers %}
+                                                <option value="{{d.id}}" {{ order.messenger ? order.messenger.id == d.id ? 'selected' : '' : '' }}>{{d.firstname}}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                        
+                                        {% else %}
+                                            
+                                            {% for d in delivers %}
+                                                <div class="checkbox">
+                                                    <label><input type="checkbox" class="i-checks" name="delivers[]" value="{{d.id}}" 
+                                                        {%for prop in order.DeliveryPropositions %}
+                                                            {{ prop.deliver.id == d.id ? 'checked disabled' : ''}}
+                                                        {% endfor %}> {{d.firstname}} </label>
+                                                </div>
+                                            {% endfor %}
+
+                                            <div class="col-sm-8" style="margin-top:5px;">
+                                                <button class="btn btn-primary" type="submit">Alerter les livreurs</button>
+                                            </div>
+                                            
+                                {% endif %}
                             </form>
                         </div>
                         <div class="col-sm-6 text-right">
@@ -238,4 +257,7 @@
     </script>
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyD9qWr1Xq89haWKgy_cAmyEqMJ_ZonMWJA&callback=initMap"
     async defer></script>
+    
+    {# icheck #}
+    <script scr="{{ asset('iCheck/icheck.min.js') }}"></script>
 {% endblock body_javascript %}
