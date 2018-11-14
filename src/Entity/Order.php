@@ -129,6 +129,16 @@ class Order
      */
     private $deliveryPropositions;
 
+    /**
+     * @ORM\ManyToOne(targetEntity="App\Entity\PaymentMode", inversedBy="command")
+     */
+    private $paymentMode;
+
+    /**
+     * @ORM\ManyToOne(targetEntity="App\Entity\Ticket", inversedBy="commands")
+     */
+    private $ticket;
+
     public function __construct()
     {
         $this->orderDetails = new ArrayCollection();
@@ -456,6 +466,30 @@ class Order
                 $deliveryProposition->setCommand(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getPaymentMode(): ?PaymentMode
+    {
+        return $this->paymentMode;
+    }
+
+    public function setPaymentMode(?PaymentMode $paymentMode): self
+    {
+        $this->paymentMode = $paymentMode;
+
+        return $this;
+    }
+
+    public function getTicket(): ?Ticket
+    {
+        return $this->ticket;
+    }
+
+    public function setTicket(?Ticket $ticket): self
+    {
+        $this->ticket = $ticket;
 
         return $this;
     }

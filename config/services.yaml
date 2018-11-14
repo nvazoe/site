@@ -7,6 +7,7 @@ parameters:
     locale: 'fr'
 
 services:
+    EasyCorp\Bundle\EasyAdminBundle\Configuration\ConfigManager: "@easyadmin.config.manager"
     # default configuration for services in *this* file
     _defaults:
         autowire: true      # Automatically injects dependencies in your services.
@@ -31,3 +32,8 @@ services:
         arguments: [ '@doctrine.orm.entity_manager' ]
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones
+    app.subscriber:
+        class: App\AppBundle\EventListener\AppSubscriber
+        arguments: ["@security.authorization_checker", "@request_stack", "@easyadmin.config.manager"]
+        tags:
+            - { name: kernel.event_subscriber }

@@ -139,6 +139,11 @@ class User implements UserInterface, \Serializable
      * @ORM\OneToMany(targetEntity="App\Entity\DeliveryProposition", mappedBy="deliver")
      */
     private $deliveryPropositions;
+    
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\Ticket", mappedBy="client")
+     */
+    private $tickets;
 
     public function __construct()
     {
@@ -153,6 +158,7 @@ class User implements UserInterface, \Serializable
         $this->date_updated = new \DateTime();
         $this->ordersDelivered = new ArrayCollection();
         $this->deliveryPropositions = new ArrayCollection();
+        $this->$tickets = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -299,7 +305,7 @@ class User implements UserInterface, \Serializable
     }
     
     public function __toString(){
-        return $this->getusername();
+        return $this->getLastname().' '.$this->getFirstname();
     }
 
     /**
@@ -656,5 +662,13 @@ class User implements UserInterface, \Serializable
         }
 
         return $this;
+    }
+    
+    /**
+     * @return Collection|Ticket[]
+     */
+    public function getTickets(): Collection
+    {
+        return $this->tickets;
     }
 }

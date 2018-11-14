@@ -42,3 +42,8 @@ security:
         - { path: ^/admin, roles: ROLE_ADMIN }
         - { path: ^/, roles: IS_AUTHENTICATED_ANONYMOUSLY }
         - { path: ^/api, roles: ROLE_USER }
+        
+    role_hierarchy:
+        ROLE_USER:        ROLE_USER # user front-end
+        ROLE_ADMIN:       ROLE_ADMIN # admin (minimum level to access back-office)
+        ROLE_SUPER_ADMIN: [ROLE_USER, ROLE_ADMIN] # super-admin

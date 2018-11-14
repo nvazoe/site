@@ -29,6 +29,7 @@ use App\Entity\User;
 use App\Entity\Restaurant;
 use App\Entity\Menu;
 use App\Entity\BankCard;
+use App\Entity\Ticket;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 
 /**
@@ -562,6 +563,77 @@ class ClientsController extends Controller {
         return new JsonResponse($result);
     }
     
+    /**
+     * @Get("/api/clients/{id}/tickets")
+     * 
+     * *@SWG\Response(
+     *      response=200,
+     *      description="List restaurant's tickets of a client."
+     * )
+     * 
+     * @QueryParam(
+     *      name="limit",
+     *      description="limit per page",
+     *      strict=false,
+     *      default=100
+     * )
+     * 
+     * @QueryParam(
+     *      name="page",
+     *      description="Page of set",
+     *      strict=false,
+     *      default=1
+     * )
+     * 
+     * @QueryParam(
+     *      name="restaurant",
+     *      description="Restaurant ID's",
+     *      strict=false
+     * )
+     * 
+     * 
+     * @QueryParam(
+     *      name="active",
+     *      description="Boolean value for valid ticket",
+     *      strict=false
+     * )
+     * 
+     * @SWG\Tag(name="Clients")
+     */
+    public function getClientTickets(Request $request, $id){
+        $em = $this->getDoctrine()->getManager();
+        $limit = $request->query->get('limit')?$request->query->get('limit'):$request->request->get('limit');
+        $page = $request->query->get('page')?$request->query->get('page'):$request->request->get('page');
+        $restaurant = $request->query->get('restaurant')?$request->query->get('restaurant'):$request->request->get('restaurant');
+        $active = $request->query->get('active')?$request->query->get('active'):$request->request->get('active');
+        
+        // Default values
+        $limit = ($limit == null) ? 100 : $limit;
+        $page = ($page == null) ? 1 : $page;
+        
+        $client = $em->getRepository(User::class)->find($id);
+        if(!$client){
+            $result = array('code' => 400, 'description' => "Unexisting client");
+            return new JsonResponse($result, 400);
+        }
+        
+        $array = [];
+        $tickets = $em->getRepository(Ticket::class)->getTickets($id, $restaurant, $active);
+        foreach ($tickets as $k=>$l){
+            $array[$k]["id"] = $l->getId();
+            $array[$k]['code'] = $l->getCode();
+            $array[$k]['restaurant']['id'] = $l->getRestaurant()->getId();
+            $array[$k]['restaurant']['name'] = $l->getRestaurant()->getName();
+        }
+        $result['code'] = 200;
+            $result['items'] = $array;
+            $result['total'] = count($array);
+            $result['current_page'] = $page;
+            $result['per_page'] = $limit;
+        return new JsonResponse($result);
+    }
+
+
     /**
      * @Post("/api/clients/{id}/account-activation")
      * 

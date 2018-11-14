@@ -100,6 +100,15 @@ class UsersController extends Controller {
             return new JsonResponse($result, 403);
         }
         
+        $banks = $user_account->getBankCards();
+        $cards = [];
+        if($banks){
+            foreach ($banks as $k=>$v){
+                $cards[$k]['card_id'] = $v->getId();
+                $cards[$k]['card_number'] = $v->getCardNumber();
+            }
+        }
+        
         return new JsonResponse(array(
             'code' => 200,
             'data' => array(
@@ -109,6 +118,7 @@ class UsersController extends Controller {
                 'email' => $user_account->getemail(),
                 'role' => $user_account->getroles(),
                 'active' => $user_account->getstate(),
+                'cards' => $cards
             )
         ));
     }

@@ -3,6 +3,34 @@
 
 {% block page_title %}Accueil{% endblock %}
 
+{% block stylesheets %}
+    <link rel="stylesheet" href="{{ asset('css/slider.css') }}">
+    <style>
+        .fg-slider {
+            height: 500px;
+        }
+    </style>
+{% endblock %}
+
+{% block carousel %}
+    <!-- SLIDER -->
+            <div class="fg-slider" id="slider-1">
+                <div class="fg-content text-center">
+                    <p>Hi There... I'm Sarah Smith</p>
+                    <a href="#about-me" class="btn hover">
+                        <i class="fa fa-angle-right" aria-hidden="true"></i> More about me...</a>
+                </div>
+                <img src="{{ asset('images/slide-1.jpg') }}" alt="">
+
+                <div class="fg-content text-center">
+                    <p>Hi There... I'm Sarah Smith</p>
+                    <a href="#about-me" class="btn hover">
+                        <i class="fa fa-angle-right" aria-hidden="true"></i> More about me...</a>
+                </div>
+                <img src="{{ asset('images/slide-2.jpg') }}" alt="">
+            </div>
+{% endblock %}
+
 {% block body %}
     <div class="container">
         <div class="row">
@@ -20,4 +48,16 @@
             {% endfor %}
         </div>
     </div>
-{% endblock %}  
+{% endblock %}
+
+{% block javascripts %}
+    <script src="{{ asset('js/slider.js') }}"></script>
+    <script>
+        new FgSlider('slider-1', {
+            autoplay: true, // autoplay on / off
+            effect: 'slide', // fade, scale, slide, slide-top
+            duration: 5000, // duration till the next slide
+            bullets: true, // show / hide bullets
+        });
+    </script>
+{% endblock %}

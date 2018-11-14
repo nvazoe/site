@@ -1,9 +1,18 @@
 easy_admin:
     site_name: Allo Zoe Admin
+    formats:
+        datetime:   'd/m/Y à H\hi e'
+        date:       'd/m/Y'
+        time:       'H\hi e'
     entities:
         User:
             class: App\Entity\User
             label: "Utilisateurs"
+            permissions:
+                list:  ['ROLE_SUPER_ADMIN', 'ROLE_EDITOR']
+                create:  ['ROLE_SUPER_ADMIN']
+                edit:  ['ROLE_SUPER_ADMIN', 'ROLE_EDITOR']
+                delete:  ['ROLE_SUPER_ADMIN']
             form:
                 fields:
                     -
@@ -333,18 +342,29 @@ easy_admin:
                     -
                         property: name
                         label: Nom
+        PaymentMode:
+            class: App\Entity\PaymentMode
+            label: Mode de paiement
+            form:
+                fields:
+                    -
+                        property: name
+                        label: Nom
+        Ticket:
+            class: App\Entity\Ticket
+            label: Tickets
             
     design:
         form_theme: '%env(APP_TEMPLATE_ADMIN)%%env(DS)%easy_admin%env(DS)%form%env(DS)%bootstrap_3_horizontal_layout.html.twig'
         templates:
             layout: '%env(APP_TEMPLATE_ADMIN)%%env(DS)%easy_admin%env(DS)%main.html.twig'
-            #menu: '%env(APP_TEMPLATE_ADMIN)%%env(DS)%easy_admin%env(DS)%menu.html.twig'
+            menu: '%env(APP_TEMPLATE_ADMIN)%%env(DS)%easy_admin%env(DS)%menu.html.twig'
             list: '%env(APP_TEMPLATE_ADMIN)%%env(DS)%easy_admin%env(DS)%list.html.twig'
         menu:
             -
-                entity: User
                 label: Utilisateurs
                 icon: users
+                role: ROLE_ADMIN
                 children:
                     -
                         entity: User
@@ -401,6 +421,14 @@ easy_admin:
                 entity: OrderStatus
                 label: Status de Commande
                 icon: smile-o
+            -
+                entity: PaymentMode
+                label: Mode de paiement
+                icon: money
+            -
+                entity: Ticket
+                label: Tickets restau
+                icon: drivers-license
             -
                 label: Cartes
                 icon: map

@@ -32,6 +32,7 @@ use App\Entity\Order;
 use App\Entity\OrderStatus;
 use App\Entity\DeliveryProposition;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
+use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 /**
  * Description of DeliversController
@@ -427,7 +428,7 @@ class DeliversController extends Controller{
             return new JsonResponse($result, 400);
         }
         
-        $orderRow = $em->getRepository(DeliveryProposition::class)->getOrder($deliver, $order);
+        $orderRow = $em->getRepository(DeliveryProposition::class)->getOrderRow($deliver, $order);
         if($orderRow){
             $orderRow->setValueDeliver(1);
             $ord->setMessenger($del);
@@ -515,7 +516,7 @@ class DeliversController extends Controller{
             return new JsonResponse($result, 400);
         }
         
-        $orderRow = $em->getRepository(DeliveryProposition::class)->getOrder($deliver, $order);
+        $orderRow = $em->getRepository(DeliveryProposition::class)->getOrderRow($deliver, $order);
         if($orderRow){
             $orderRow->setValueDeliver(2);
             
@@ -671,6 +672,19 @@ class DeliversController extends Controller{
             $array[$k]['delivery_note'] = $l->getCommand()->getDeliveryNote();
             $array[$k]['delivery_hour'] = $l->getCommand()->getDeliveryHour();
             $array[$k]['delivery_date'] = $l->getCommand()->getDeliveryDate();
+            $array[$k]['status']['id'] = $l->getCommand()->getOrderStatus()->getId();
+            $array[$k]['status']['name'] = $l->getCommand()->getOrderStatus()->getName();
+            $array[$k]['client']['id'] = $l->getCommand()->getClient()->getId();
+            $array[$k]['client']['username'] = $l->getCommand()->getClient()->getUsername();
+            $array[$k]['client']['firstname'] = $l->getCommand()->getClient()->getFirstname();
+            $array[$k]['client']['lastname'] = $l->getCommand()->getClient()->getLastname();
+            $array[$k]['client']['phone'] = $l->getCommand()->getClient()->getPhoneNumber();
+            $array[$k]['restaurant']['id'] = $l->getCommand()->getRestaurant()->getId();
+            $array[$k]['restaurant']['name'] = $l->getCommand()->getRestaurant()->getName();
+            $array[$k]['restaurant']['address'] = $l->getCommand()->getRestaurant()->getAddress();
+            $array[$k]['restaurant']['city'] = $l->getCommand()->getRestaurant()->getCity();
+            $array[$k]['restaurant']['image'] = $this->generateUrl('homepage', array(), UrlGeneratorInterface::ABSOLUTE_URL).'images/restaurant/'.$l->getCommand()->getRestaurant()->getImage();
+            
         }
         
         $result['code'] = 200;

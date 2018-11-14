@@ -37,6 +37,9 @@ use App\Entity\Product;
 use App\Entity\MenuOption;
 use App\Entity\ShippingStatus;
 use App\Entity\MenuOptionProducts;
+use App\Entity\BankCard;
+use App\Entity\PaymentMode;
+use App\Entity\Ticket;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 /**
@@ -44,8 +47,8 @@ use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
  *
  * @author user
  */
-class OrdersController extends Controller{
-    
+class OrdersController extends Controller {
+
     /**
      * @Get("/api/orders")
      * 
@@ -77,19 +80,19 @@ class OrdersController extends Controller{
      * 
      * @SWG\Tag(name="Orders")
      */
-    public function getOrdersListAction(Request $request){
+    public function getOrdersListAction(Request $request) {
         $em = $this->getDoctrine()->getManager();
-        $limit = $request->query->get('limit')?$request->query->get('limit'):$request->request->get('limit');
-        $page = $request->query->get('page')?$request->query->get('page'):$request->request->get('page');
-        $status = $request->query->get('status')?$request->query->get('status'):$request->request->get('status');
-        
+        $limit = $request->query->get('limit') ? $request->query->get('limit') : $request->request->get('limit');
+        $page = $request->query->get('page') ? $request->query->get('page') : $request->request->get('page');
+        $status = $request->query->get('status') ? $request->query->get('status') : $request->request->get('status');
+
         // Default values
         $limit = ($limit == null) ? 100 : $limit;
         $page = ($page == null) ? 1 : $page;
-        
+
         $listorders = $em->getRepository(Order::class)->getOrders(intval($limit), intval($page), $status, false);
         $array = [];
-        foreach ($listorders as $k => $l){
+        foreach ($listorders as $k => $l) {
             $array[$k]["id"] = $l->getId();
             $array[$k]['amount'] = $l->getAmount();
             $array[$k]['reference'] = $l->getRef();
@@ -103,21 +106,20 @@ class OrdersController extends Controller{
             $array[$k]['status']['name'] = $l->getOrderStatus()->getName();
             $array[$k]['restaurant']['id'] = $l->getRestaurant()->getId();
             $array[$k]['restaurant']['name'] = $l->getRestaurant()->getName();
-            $array[$k]['restaurant']['image'] = $l->getRestaurant()->getImage() ? $this->generateUrl('homepage', array(), UrlGeneratorInterface::ABSOLUTE_URL).'images/restaurant/'.$l->getRestaurant()->getImage() : null;
+            $array[$k]['restaurant']['image'] = $l->getRestaurant()->getImage() ? $this->generateUrl('homepage', array(), UrlGeneratorInterface::ABSOLUTE_URL) . 'images/restaurant/' . $l->getRestaurant()->getImage() : null;
         }
         $result['code'] = 200;
-        if(count($array) > 0){
+        if (count($array) > 0) {
             $result['items'] = $array;
             $result['total'] = $em->getRepository(Order::class)->getOrders($limit, $page, $status, true);
             $result['current_page'] = $page;
             $result['per_page'] = $limit;
-        }else{
+        } else {
             $result['items'] = [];
         }
         return new JsonResponse($result);
     }
-    
-    
+
     /**
      * @Get("/api/orders/{id}")
      * 
@@ -129,11 +131,11 @@ class OrdersController extends Controller{
      * 
      * @SWG\Tag(name="Orders")
      */
-    public function getOrderAction(Request $request, $id){
+    public function getOrderAction(Request $request, $id) {
         $em = $this->getDoctrine()->getManager();
         $order = $em->getRepository(Order::class)->find(intval($id));
-        
-        if(!is_null($order)){
+
+        if (!is_null($order)) {
             $result['code'] = 200;
             $result['data']['id'] = $order->getId();
             $result['data']['ref'] = $order->getRef();
@@ -163,39 +165,39 @@ class OrdersController extends Controller{
             $result['data']['client']['phone'] = $order->getClient()->getPhoneNumber();
             $result['data']['client']['position']['latitude'] = $order->getClient()->getLatitude();
             $result['data']['client']['position']['longitude'] = $order->getClient()->getLongitude();
-            if($order->getMessenger()){
+            if ($order->getMessenger()) {
                 $result['data']['deliver']['id'] = $order->getMessenger() ? $order->getMessenger()->getid() : null;
                 $result['data']['deliver']['latitude'] = $order->getMessenger() ? $order->getMessenger()->getLatitude() : null;
                 $result['data']['deliver']['longitude'] = $order->getMessenger() ? $order->getMessenger()->getLongitude() : null;
                 $result['data']['deliver']['phone'] = $order->getMessenger() ? $order->getMessenger()->getPhoneNumber() : null;
             }
-            
+
             // Get details
             $menus = $order->getOrderDetails();
-            foreach ($menus as $key=>$val){
+            foreach ($menus as $key => $val) {
                 $result['data']['menus']["$key"]['id'] = $val->getMenu()->getId();
                 $result['data']['menus']["$key"]['name'] = $val->getMenuName();
                 $result['data']['menus']["$key"]['price'] = floatval($val->getPrice());
                 $result['data']['menus']["$key"]['quantity'] = $val->getQuantity();
-                $result['data']['menus']["$key"]['image'] = $this->generateUrl('homepage', array(), UrlGeneratorInterface::ABSOLUTE_URL).'images/menu/'.$val->getMenu()->getImage();
+                $result['data']['menus']["$key"]['image'] = $this->generateUrl('homepage', array(), UrlGeneratorInterface::ABSOLUTE_URL) . 'images/menu/' . $val->getMenu()->getImage();
                 // Get products of menu
                 $products = $val->getOrderDetailsMenuProducts();
-                foreach ($products as $k=>$v){
+                foreach ($products as $k => $v) {
                     $result['data']['menus']["$key"]['products']["$k"]['id'] = $v->getProduct()->getId();
                     $result['data']['menus']["$key"]['products']["$k"]['name'] = $v->getProduct()->getName();
                     $result['data']['menus']["$key"]['products']["$k"]['price'] = floatval($v->getPrice());
-                    $result['data']['menus']["$key"]['products']["$k"]['image'] = $this->generateUrl('homepage', array(), UrlGeneratorInterface::ABSOLUTE_URL).'images/product/'.$v->getProduct()->getImage();
+                    $result['data']['menus']["$key"]['products']["$k"]['image'] = $this->generateUrl('homepage', array(), UrlGeneratorInterface::ABSOLUTE_URL) . 'images/product/' . $v->getProduct()->getImage();
                 }
             }
-        }else{
+        } else {
             $result['code'] = 400;
             $result['description'] = "Cette commande n'existe pas.";
         }
-        
-        
+
+
         return new JsonResponse($result, $result['code']);
     }
-    
+
     /**
      * @Post("/api/orders")
      * 
@@ -233,35 +235,39 @@ class OrdersController extends Controller{
      * )
      * @SWG\Tag(name="Orders")
      */
-    public function postOrderAction(Request $request, \Swift_Mailer $mailer){
+    public function postOrderAction(Request $request, \Swift_Mailer $mailer) {
         $em = $this->getDoctrine()->getManager();
         $total = 0.00;
         $order_infos = file_get_contents('php://input');
         $data = json_decode($order_infos, TRUE);
-        
+
         if (!is_array($data)) {
             $result = array("code" => 4000, "description" => "invalide request body");
-            return new JsonResponse($result,400);
+            return new JsonResponse($result, 400);
         }
-        
+
         $validate = $this->validate_post_order($data);
-        if(!$validate){
+        if (!$validate) {
             http_response_code(400);
             die();
         }
-        
+
         $client = array_key_exists('client', $data) ? $data['client'] : null;
         $restaurant = array_key_exists('restaurant', $data) ? $data['restaurant'] : null;
+        $payment = array_key_exists('payment_mode', $data) ? $data['payment_mode'] : null;
         $amount = array_key_exists('amount', $data) ? $data['amount'] : null;
         $delivery_address = array_key_exists('delivery_address', $data) ? $data['delivery_address'] : null;
         $delivery_phone = array_key_exists('delivery_phone', $data) ? $data['delivery_phone'] : null;
         $menus = array_key_exists('menus', $data) ? $data['menus'] : [];
-        
+        $card = array_key_exists('creditcard', $data) ? $data['creditcard'] : [];
+        $ticket = array_key_exists('ticket', $data) ? $data['ticket'] : [];
+
         $restau = $em->getRepository(Restaurant::class)->find($restaurant);
         $cl = $em->getRepository(User::class)->find($client);
+        $pymde = $em->getRepository(PaymentMode::class)->find($payment);
         $reference = substr(strtoupper(md5(random_bytes(6))), 0, 6);
-        
-        
+
+
         // End validation
         $order = new Order();
         $order->setClient($cl);
@@ -270,13 +276,45 @@ class OrdersController extends Controller{
         $order->setAddress($delivery_address);
         $order->setPhoneNumber($delivery_phone);
         $order->setAmount($total);
+        $order->setPaymentMode($pymde);
         $order->setOrderStatus($em->getRepository(OrderStatus::class)->find(1));
+
+
+        if ($card['id'] > 0) {
+            $b = $card['id'];
+            $bc = $em->getRepository(BankCard::class)->find($b);
+            $order->setPayment($bc);
+        } elseif ($card['id'] == 0) {
+            $name = $card['name'];
+            $card_nber = $card['card_number'];
+            $security = $card['security'];
+            $month = $card['month'];
+            $year = $card['year'];
+
+            $bc = new BankCard();
+            $bc->setOwnerName($name);
+            $bc->setUser($cl);
+            $bc->setMonthExp($month);
+            $bc->setYearExp($year);
+            $bc->setSecurityCode($security);
+            $bc->setCardNumber($card_nber);
+
+            $em->persist($bc);
+
+            $order->setPayment($bc);
+        }
         
+        if(array_key_exists('id', $ticket)){
+            $tk = $em->getRepository(Ticket::class)->find($ticket['id']);
+            if($tk)
+                $order->setTicket($tk);
+        }
+
         $em->persist($order);
-        
-        
-        
-        foreach($menus as $m){
+
+
+
+        foreach ($menus as $m) {
             $ordDt = new OrderDetails();
             $menu = $em->getRepository(Menu::class)->find($m['id']);
             $ordDt->setCommand($order);
@@ -284,32 +322,32 @@ class OrdersController extends Controller{
             $ordDt->setPrice($menu->getPrice());
             $ordDt->setMenuName($menu->getName());
             $ordDt->setQuantity($m['quantity']);
-            $total += $menu->getPrice() * (int)$m['quantity'];
+            $total += $menu->getPrice() * (int) $m['quantity'];
             $em->persist($ordDt);
-            
-            if(count($m['options'])){
-                foreach($m['options'] as $o){
+
+            if (count($m['options'])) {
+                foreach ($m['options'] as $o) {
                     $menuOption = $em->getRepository(MenuOption::class)->find($o['option']);
-                    
-                    foreach($o['products'] as $op){
+
+                    foreach ($o['products'] as $op) {
                         $prd = $em->getRepository(MenuOptionProducts::class)->find($op['id']);
-                        
+
                         $ordDtPrd = new OrderDetailsMenuProduct();
                         $ordDtPrd->setOrderDetails($ordDt);
                         $ordDtPrd->setMenu($menu);
                         $ordDtPrd->setProduct($prd->getProduct());
                         $ordDtPrd->setPrice($prd->getAttribut());
-                        $total += $ordDtPrd->getPrice() * (int)$m['quantity'];
+                        $total += $ordDtPrd->getPrice() * (int) $m['quantity'];
                     }
-                    
+
                     $em->persist($ordDtPrd);
                 }
-            }  
+            }
         }
         $order->setAmount($total);
 //        $em->persist($order);
         $em->flush();
-        
+
         // Send mail to restaurant
         $message = (new \Swift_Message('Nouvelle commande'))
             ->setFrom('contact@ubereat.com')
@@ -317,28 +355,26 @@ class OrdersController extends Controller{
             ->setBody(
                 $this->renderView(
                     // templates/emails/registration.html.twig
-                    'emails/new-order-restaurant.html.twig',
-                    array('name' => $restau->getOwner()->getFirstname(), 'restau' => $restau->getName(), 'order' => $order)
-                ),
-                'text/html'
+                    'emails/new-order-restaurant.html.twig', array('name' => $restau->getOwner()->getFirstname(), 'restau' => $restau->getName(), 'order' => $order)
+                ), 'text/html'
             )
             ->setCharset('utf-8')
-            /*
-             * If you also want to include a plaintext version of the message
-            ->addPart(
-                $this->renderView(
-                    'emails/registration.txt.twig',
-                    array('name' => $name)
-                ),
-                'text/plain'
-            )
-            */
+        /*
+         * If you also want to include a plaintext version of the message
+          ->addPart(
+          $this->renderView(
+          'emails/registration.txt.twig',
+          array('name' => $name)
+          ),
+          'text/plain'
+          )
+         */
         ;
 
         $mailer->send($message);
-        
-        
-        
+
+
+
         // Send mail to client
         $message1 = (new \Swift_Message('Nouvelle commande'))
             ->setFrom('contact@ubereat.com')
@@ -346,40 +382,45 @@ class OrdersController extends Controller{
             ->setBody(
                 $this->renderView(
                     // templates/emails/registration.html.twig
-                    'emails/new-order-client.html.twig',
-                    array('name' => $cl->getFirstname(), 'order' => $order)
-                ),
-                'text/html'
+                    'emails/new-order-client.html.twig', array('name' => $cl->getFirstname(), 'order' => $order)
+                ), 'text/html'
             )
             ->setCharset('utf-8')
-            /*
-             * If you also want to include a plaintext version of the message
-            ->addPart(
-                $this->renderView(
-                    'emails/registration.txt.twig',
-                    array('name' => $name)
-                ),
-                'text/plain'
-            )
-            */
+        /*
+         * If you also want to include a plaintext version of the message
+          ->addPart(
+          $this->renderView(
+          'emails/registration.txt.twig',
+          array('name' => $name)
+          ),
+          'text/plain'
+          )
+         */
         ;
 
         $mailer->send($message1);
-        
-        
+
+
         $result['code'] = 201;
         $result['data']['order_id'] = $order->getId();
         $result['data']['reference'] = $order->getRef();
         $result['data']['amount'] = $order->getAmount();
         $result['data']['status'] = $order->getOrderStatus()->getname();
+        if(isset($bc)){
+            $result['data']['card_id'] = $bc->getID();
+        }else{
+            $result['data']['card_id'] = null;
+        }
         
+        if(isset($tk)){
+            $result['data']['ticket_id'] = $tk->getID();
+        }else{
+            $result['data']['ticket_id'] = null;
+        }
+
         return new JsonResponse($result, $result['code']);
     }
-    
-    
-    
-    
-    
+
     /**
      * @Post("/api/orders/{id}/shipping")
      * 
@@ -408,160 +449,176 @@ class OrdersController extends Controller{
      * ) 
      * @SWG\Tag(name="Orders")
      */
-    public function postOrderShippingAction(Request $request, $id){
+    public function postOrderShippingAction(Request $request, $id) {
         $em = $this->getDoctrine()->getManager();
-        
-        $status = $request->query->get('status')?$request->query->get('status'):$request->request->get('status');
-        $price = $request->query->get('price')?$request->query->get('price'):$request->request->get('price');
-        $deliver = $request->query->get('deliver')?$request->query->get('deliver'):$request->request->get('deliver');
-        
-        if(!is_null($deliver)){
-            if(!is_numeric($deliver)){
+
+        $status = $request->query->get('status') ? $request->query->get('status') : $request->request->get('status');
+        $price = $request->query->get('price') ? $request->query->get('price') : $request->request->get('price');
+        $deliver = $request->query->get('deliver') ? $request->query->get('deliver') : $request->request->get('deliver');
+
+        if (!is_null($deliver)) {
+            if (!is_numeric($deliver)) {
                 $result = array('code' => 4000, 'description' => "deliver must be numeric.");
                 return new JsonResponse($result, 400);
             }
-        }else{
+        } else {
             $result = array('code' => 4000, 'description' => "deliver is required.");
             return new JsonResponse($result, 400);
         }
-        
-        if(!is_null($price)){
-            if(!is_numeric($price)){
+
+        if (!is_null($price)) {
+            if (!is_numeric($price)) {
                 $result = array('code' => 4000, 'description' => "price must be numeric.");
                 return new JsonResponse($result, 400);
             }
-        }else{
+        } else {
             $result = array('code' => 4000, 'description' => "price is required.");
             return new JsonResponse($result, 400);
         }
-        
-        
-        if(!is_null($status)){
-            if(!is_numeric($status)){
+
+
+        if (!is_null($status)) {
+            if (!is_numeric($status)) {
                 $result = array('code' => 4000, 'description' => "status must be numeric.");
                 return new JsonResponse($result, 400);
             }
-        }else{
+        } else {
             $result = array('code' => 4000, 'description' => "status is required.");
             return new JsonResponse($result, 400);
         }
-        
+
         $user = $em->getRepository(User::class)->find($deliver);
-        if(!is_null($user)){
-            if(!in_array('ROLE_DELIVER', $user->getRoles())){
+        if (!is_null($user)) {
+            if (!in_array('ROLE_DELIVER', $user->getRoles())) {
                 $result = array('code' => 4002, 'description' => "Deliver ID is not a delivery account.");
                 return new JsonResponse($result, 400);
             }
-        }else{
+        } else {
             $result = array('code' => 4003, 'description' => "Unexisting delivery account");
             return new JsonResponse($result, 400);
         }
-        
+
         $o = $em->getRepository(Order::class)->find($id);
-        if(is_null($o)){
+        if (is_null($o)) {
             $result = array('code' => 4005, 'description' => "Unexisting order.");
             return new JsonResponse($result, 400);
         }
-        
+
         $st = $em->getRepository(ShippingStatus::class)->find($status);
-        if(is_null($st)){
+        if (is_null($st)) {
             $result = array('code' => 4010, 'description' => "Unexisting order status.");
             return new JsonResponse($result, 400);
         }
-        
+
         $order = new OrderShipping();
         $order->setCommand($o);
         $order->setDeliveryUser($user);
         $order->setShippingCost($price);
         $order->setStatus($st);
-        
+
         $em->persist($order);
         $em->flush();
-        
+
         $result['code'] = 201;
         $result['order_shipping_id'] = $order->getId();
-        
+
         return new JsonResponse($result, $result['code']);
     }
-    
-    
-    public function validate_post_order($params){
+
+    public function validate_post_order($params) {
         $em = $this->getDoctrine()->getManager();
-        
-        if(!is_array($params)){
-            $result = array('code'=>4000, 'description' => 'invalid input');
+
+        if (!is_array($params)) {
+            $result = array('code' => 4000, 'description' => 'invalid input');
             echo json_encode($result, JSON_UNESCAPED_SLASHES, 400);
             return false;
         }
-        
-        if(array_key_exists('client', $params)){
-            if(!is_int($params['client'])){
-                $result = array('code'=>4000, 'description' => 'client must be integer.');
+
+        if (array_key_exists('client', $params)) {
+            if (!is_int($params['client'])) {
+                $result = array('code' => 4000, 'description' => 'client must be integer.');
                 echo json_encode($result, JSON_UNESCAPED_SLASHES, 400);
                 return false;
             }
             $client = $em->getRepository(User::class)->find($params['client']);
-            if(!$client){
-                $result = array('code'=>4000, 'description' => 'Unexisting client.');
+            if (!$client) {
+                $result = array('code' => 4000, 'description' => 'Unexisting client.');
                 echo json_encode($result, JSON_UNESCAPED_SLASHES, 400);
                 return false;
-            }elseif(!in_array("ROLE_CLIENT", $client->getRoles())){
-                $result = array('code'=>4000, 'description' => 'it is not a client account.');
+            } elseif (!in_array("ROLE_CLIENT", $client->getRoles())) {
+                $result = array('code' => 4000, 'description' => 'it is not a client account.');
                 echo json_encode($result, JSON_UNESCAPED_SLASHES, 400);
                 return false;
             }
-        }else{
-            $result = array('code'=>4000, 'description' => 'client is required.');
+        } else {
+            $result = array('code' => 4000, 'description' => 'client is required.');
             echo json_encode($result, JSON_UNESCAPED_SLASHES, 400);
             return false;
         }
-        
-        
-        if(array_key_exists('restaurant', $params)){
-            if(!is_int($params['restaurant'])){
-                $result = array('code'=>4000, 'description' => 'restaurant must be integer.');
+
+
+        if (array_key_exists('restaurant', $params)) {
+            if (!is_int($params['restaurant'])) {
+                $result = array('code' => 4000, 'description' => 'restaurant must be integer.');
                 echo json_encode($result, JSON_UNESCAPED_SLASHES, 400);
                 return false;
             }
             $restaurant = $em->getRepository(Restaurant::class)->find($params['restaurant']);
-            if(!$restaurant){
-                $result = array('code'=>4000, 'description' => 'Unexisting restaurant.');
+            if (!$restaurant) {
+                $result = array('code' => 4000, 'description' => 'Unexisting restaurant.');
                 echo json_encode($result, JSON_UNESCAPED_SLASHES, 400);
                 return false;
             }
-        }else{
-            $result = array('code'=>4000, 'description' => 'restaurant is required.');
+        } else {
+            $result = array('code' => 4000, 'description' => 'restaurant is required.');
             echo json_encode($result, JSON_UNESCAPED_SLASHES, 400);
             return false;
         }
         
-        
-        if(array_key_exists('delivery_address', $params)){
-            if(!is_string($params['delivery_address'])){
-                $result = array('code'=>4000, 'description' => 'delivery_address must be string.');
-                echo json_encode($result, JSON_UNESCAPED_SLASHES, 400);
-                return false;
-            }
-            
-        }else{
-            $result = array('code'=>4000, 'description' => 'delivery_address is required.');
-            echo json_encode($result, JSON_UNESCAPED_SLASHES, 400);
-            return false;
-        }
-        
-        if(array_key_exists('delivery_phone', $params)){
-            if(!is_numeric($params['delivery_phone'])){
-                $result = array('code'=>4000, 'description' => 'delivery_phone must be numeric.');
+        if (array_key_exists('payment_mode', $params)) {
+            if (!is_int($params['payment_mode'])) {
+                $result = array('code' => 4000, 'description' => 'payment_mode must be integer.');
                 echo json_encode($result, JSON_UNESCAPED_SLASHES, 400);
                 return false;
             }
             
-        }else{
-            $result = array('code'=>4000, 'description' => 'delivery_phone is required.');
+            $pm = $em->getRepository(PaymentMode::class)->find($params['payment_mode']);
+            if (!$pm) {
+                $result = array('code' => 4000, 'description' => 'Undefined payment mode.');
+                echo json_encode($result, JSON_UNESCAPED_SLASHES, 400);
+                return false;
+            }
+        } else {
+            $result = array('code' => 4000, 'description' => 'payment_mode is required.');
             echo json_encode($result, JSON_UNESCAPED_SLASHES, 400);
             return false;
         }
-        
+
+
+        if (array_key_exists('delivery_address', $params)) {
+            if (!is_string($params['delivery_address'])) {
+                $result = array('code' => 4000, 'description' => 'delivery_address must be string.');
+                echo json_encode($result, JSON_UNESCAPED_SLASHES, 400);
+                return false;
+            }
+        } else {
+            $result = array('code' => 4000, 'description' => 'delivery_address is required.');
+            echo json_encode($result, JSON_UNESCAPED_SLASHES, 400);
+            return false;
+        }
+
+        if (array_key_exists('delivery_phone', $params)) {
+            if (!is_numeric($params['delivery_phone'])) {
+                $result = array('code' => 4000, 'description' => 'delivery_phone must be numeric.');
+                echo json_encode($result, JSON_UNESCAPED_SLASHES, 400);
+                return false;
+            }
+        } else {
+            $result = array('code' => 4000, 'description' => 'delivery_phone is required.');
+            echo json_encode($result, JSON_UNESCAPED_SLASHES, 400);
+            return false;
+        }
+
 //        if(array_key_exists('amount', $params)){
 //            if(!is_numeric($params['amount'])){
 //                $result = array('code'=>4000, 'description' => 'amount must be string.');
@@ -574,50 +631,48 @@ class OrdersController extends Controller{
 //            echo json_encode($result, JSON_UNESCAPED_SLASHES, 400);
 //            return false;
 //        }
-        
-        if(array_key_exists('menus', $params)){
-            if(!is_array($params['menus'])){
-                $result = array('code'=>4000, 'description' => 'menus must be array data.');
+
+        if (array_key_exists('menus', $params)) {
+            if (!is_array($params['menus'])) {
+                $result = array('code' => 4000, 'description' => 'menus must be array data.');
                 echo json_encode($result, JSON_UNESCAPED_SLASHES, 400);
                 return false;
             }
-            
-            
-            foreach ($params['menus'] as $m){
-                if(array_key_exists('id', $m)){
-                    if(!is_int($m['id'])){
-                        $result = array('code'=>4000, 'description' => 'missing id menu');
+
+
+            foreach ($params['menus'] as $m) {
+                if (array_key_exists('id', $m)) {
+                    if (!is_int($m['id'])) {
+                        $result = array('code' => 4000, 'description' => 'missing id menu');
                         echo json_encode($result, JSON_UNESCAPED_SLASHES, 400);
                         return false;
                     }
-                    
+
                     $menu = $em->getRepository(Menu::class)->find($m['id']);
-                    if(!$menu){
-                        $result = array('code'=>4000, 'description' => 'one unexisting menu id #'.$m['id']);
+                    if (!$menu) {
+                        $result = array('code' => 4000, 'description' => 'one unexisting menu id #' . $m['id']);
                         echo json_encode($result, JSON_UNESCAPED_SLASHES, 400);
                         return false;
                     }
-                    
-                }else{
-                    $result = array('code'=>4000, 'description' => 'one id menu is required.');
+                } else {
+                    $result = array('code' => 4000, 'description' => 'one id menu is required.');
                     echo json_encode($result, JSON_UNESCAPED_SLASHES, 400);
                     return false;
                 }
-                
-                
-                if(array_key_exists('quantity', $m)){
-                    if(!is_int($m['quantity'])){
-                        $result = array('code'=>4000, 'description' => 'missing quantity menu');
+
+
+                if (array_key_exists('quantity', $m)) {
+                    if (!is_int($m['quantity'])) {
+                        $result = array('code' => 4000, 'description' => 'missing quantity menu');
                         echo json_encode($result, JSON_UNESCAPED_SLASHES, 400);
                         return false;
                     }
-                    
-                }else{
-                    $result = array('code'=>4000, 'description' => 'one quantity menu is required.');
+                } else {
+                    $result = array('code' => 4000, 'description' => 'one quantity menu is required.');
                     echo json_encode($result, JSON_UNESCAPED_SLASHES, 400);
                     return false;
                 }
-                
+
 //                if(array_key_exists('price', $m)){
 //                    if(!is_numeric($m['price'])){
 //                        $result = array('code'=>4000, 'description' => 'price\'s menu must be numeric');
@@ -630,14 +685,14 @@ class OrdersController extends Controller{
 //                    echo json_encode($result, JSON_UNESCAPED_SLASHES, 400);
 //                    return false;
 //                }
-                
-                if(array_key_exists('options', $m)){
-                    if(!is_array($m['options'])){
-                        $result = array('code'=>4000, 'description' => 'products must be array data.');
+
+                if (array_key_exists('options', $m)) {
+                    if (!is_array($m['options'])) {
+                        $result = array('code' => 4000, 'description' => 'products must be array data.');
                         echo json_encode($result, JSON_UNESCAPED_SLASHES, 400);
                         return false;
                     }
-                    
+
 //                    foreach($m['products'] as $p){
 //                        if(array_key_exists('id', $p)){
 //                            if(!is_int($p['id'])){
@@ -676,18 +731,117 @@ class OrdersController extends Controller{
                 }
             }
         } else {
-            $result = array('code'=>4000, 'description' => 'array \'menus\' is required.');
+            $result = array('code' => 4000, 'description' => 'array \'menus\' is required.');
             echo json_encode($result, JSON_UNESCAPED_SLASHES, 400);
             return false;
         }
-        
-        
-        
+
+        if (array_key_exists('creditcard', $params)) {
+            if (!is_array($params['creditcard'])) {
+                $result = array('code' => 4000, 'description' => 'array \'creditcard\' must be an array.');
+                echo json_encode($result, JSON_UNESCAPED_SLASHES, 400);
+                return false;
+            }
+
+            if (array_key_exists('id', $params['creditcard'])) {
+                if (!is_int($params['creditcard']['id'])) {
+                    $result = array('code' => 4000, 'description' => 'ID\'s card must be integer.');
+                    echo json_encode($result, JSON_UNESCAPED_SLASHES, 400);
+                    return false;
+                }
+
+                if ($params['creditcard']['id'] > 0) {
+                    $bk = $em->getRepository(BankCard::class)->find($params['creditcard']['id']);
+                    if (!$bk) {
+                        $result = array('code' => 4000, 'description' => 'Unexisting card.');
+                        echo json_encode($result, JSON_UNESCAPED_SLASHES, 400);
+                        return false;
+                    } elseif ($params['client'] != $bk->getUser()->getId()) {
+                        $result = array('code' => 4000, 'description' => 'Not the owner of card.');
+                        echo json_encode($result, JSON_UNESCAPED_SLASHES, 400);
+                        return false;
+                    }
+                }
+
+
+                if ($params['creditcard']['id'] == 0) {
+
+                    if (array_key_exists('card_number', $params['creditcard'])) {
+                        if (!is_string($params['creditcard']['card_number'])) {
+                            $result = array('code' => 4000, 'description' => 'Card number must be string');
+                            echo json_encode($result, JSON_UNESCAPED_SLASHES, 400);
+                            return false;
+                        }
+                    } else {
+
+                        $result = array('code' => 4000, 'description' => 'Card number is required.');
+                        echo json_encode($result, JSON_UNESCAPED_SLASHES, 400);
+                        return false;
+                    }
+
+                    if (array_key_exists('name', $params['creditcard'])) {
+                        if (!is_string($params['creditcard']['name'])) {
+                            $result = array('code' => 4000, 'description' => 'Name must be string');
+                            echo json_encode($result, JSON_UNESCAPED_SLASHES, 400);
+                            return false;
+                        }
+                    } else {
+                        $result = array('code' => 4000, 'description' => 'name is required.');
+                        echo json_encode($result, JSON_UNESCAPED_SLASHES, 400);
+                        return false;
+                    }
+
+                    if (array_key_exists('year', $params['creditcard'])) {
+                        if (!is_string($params['creditcard']['year'])) {
+                            $result = array('code' => 4000, 'description' => 'year must be string');
+                            echo json_encode($result, JSON_UNESCAPED_SLASHES, 400);
+                            return false;
+                        }
+                    } else {
+                        $result = array('code' => 4000, 'description' => 'year is required.');
+                        echo json_encode($result, JSON_UNESCAPED_SLASHES, 400);
+                        return false;
+                    }
+
+                    if (array_key_exists('month', $params['creditcard'])) {
+                        if (!is_string($params['creditcard']['month'])) {
+                            $result = array('code' => 4000, 'description' => 'month must be string');
+                            echo json_encode($result, JSON_UNESCAPED_SLASHES, 400);
+                            return false;
+                        }
+                    } else {
+                        $result = array('code' => 4000, 'description' => 'month is required.');
+                        echo json_encode($result, JSON_UNESCAPED_SLASHES, 400);
+                        return false;
+                    }
+
+
+                    if (array_key_exists('security', $params['creditcard'])) {
+                        if (!is_string($params['creditcard']['security'])) {
+                            $result = array('code' => 4000, 'description' => 'security must be string');
+                            echo json_encode($result, JSON_UNESCAPED_SLASHES, 400);
+                            return false;
+                        }
+                    } else {
+                        $result = array('code' => 4000, 'description' => 'security is required.');
+                        echo json_encode($result, JSON_UNESCAPED_SLASHES, 400);
+                        return false;
+                    }
+                }
+            } else {
+                $result = array('code' => 4000, 'description' => 'ID\'s card is required.');
+                echo json_encode($result, JSON_UNESCAPED_SLASHES, 400);
+                return false;
+            }
+        } else {
+            $result = array('code' => 4000, 'description' => 'array \'creditcard\' parameter is required.');
+            echo json_encode($result, JSON_UNESCAPED_SLASHES, 400);
+            return false;
+        }
+
         return true;
     }
-    
-    
-    
+
     /**
      * @Put("/api/orders/{id}/tracking")
      * 
@@ -710,31 +864,32 @@ class OrdersController extends Controller{
      * 
      * @SWG\Tag(name="Orders")
      */
-    public function putOrderShippingAction(Request $request, $id){
+    public function putOrderShippingAction(Request $request, $id) {
         $em = $this->getDoctrine()->getManager();
-        
-        $latitude = $request->query->get('latitude')?$request->query->get('latitude'):$request->request->get('latitude');
-        $longitude = $request->query->get('longitude')?$request->query->get('longitude'):$request->request->get('longitude');
-        
+
+        $latitude = $request->query->get('latitude') ? $request->query->get('latitude') : $request->request->get('latitude');
+        $longitude = $request->query->get('longitude') ? $request->query->get('longitude') : $request->request->get('longitude');
+
         $order = $em->getRepository(Order::class)->find($id);
-        if(!$order){
+        if (!$order) {
             $result = array('code' => 4000, 'description' => 'Unexisting order.');
             return new JsonResponse($result, 400);
         }
-        
+
         $order->setTrackingLat($latitude);
         $order->setTrackingLng($longitude);
-        
+
         $em->flush();
-        
+
         $result = array(
-            'code'=> 200,
+            'code' => 200,
             'data' => array(
                 'order_id' => $order->getId(),
                 'reference' => $order->getRef()
             )
         );
-        
+
         return new JsonResponse($result);
     }
+
 }
