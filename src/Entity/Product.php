@@ -52,6 +52,11 @@ class Product
      */
     private $imageFile;
 
+    /**
+     * @ORM\ManyToOne(targetEntity="App\Entity\Restaurant", inversedBy="products")
+     */
+    private $restaurant;
+
     
 
     public function __construct()
@@ -184,6 +189,18 @@ class Product
     public function getImageFile()
     {
         return $this->imageFile;
+    }
+
+    public function getRestaurant(): ?Restaurant
+    {
+        return $this->restaurant;
+    }
+
+    public function setRestaurant(?Restaurant $restaurant): self
+    {
+        $this->restaurant = $restaurant;
+
+        return $this;
     }
 
     

@@ -48,6 +48,7 @@ class AdminController extends BaseAdminController {
     }
     
     public function prePersistUserEntity($entity) {
+        $entity->setConnectStatus(0);
         $entity->setRoles([$entity->getRoles()]);
         $entity->setPassword($this->container->get("security.password_encoder")->encodePassword($entity, $entity->getPassword()));
     }
@@ -88,18 +89,21 @@ class AdminController extends BaseAdminController {
     public function prePersistClientEntity($entity) {
         //  set password
         $entity->setRoles(["ROLE_CLIENT"]);
+        $entity->setConnectStatus(0);
         $entity->setPassword($this->container->get("security.password_encoder")->encodePassword($entity, $entity->getPassword()));
     }
     
     public function prePersistAdminEntity($entity) {
         //  set password
         $entity->setRoles(["ROLE_ADMIN"]);
+        $entity->setConnectStatus(0);
         $entity->setPassword($this->container->get("security.password_encoder")->encodePassword($entity, $entity->getPassword()));
     }
     
     public function prePersistDeliverEntity($entity) {
         //  set password
         $entity->setRoles(["ROLE_DELIVER"]);
+        $entity->setConnectStatus(0);
         $entity->setPassword($this->container->get("security.password_encoder")->encodePassword($entity, $entity->getPassword()));
     }
     
@@ -415,6 +419,139 @@ class AdminController extends BaseAdminController {
         }
         
         return array('delivers' => $dels);
+    }
+    
+    
+    public function createRestaurantListQueryBuilder($entityClass, $sortDirection, $sortField = null, $dqlFilter = null)
+    {
+        //$idowner = isset($_GET['id'])?$_GET['id']:false;
+        $idowner = $this->getUser()->getId();
+        if($idowner){
+            $dqlFilter = 'entity.owner = '.$idowner;
+        }
+
+        return parent::createListQueryBuilder($entityClass, $sortDirection, $sortField, $dqlFilter);
+    }
+    
+    public function createMenuListQueryBuilder($entityClass, $sortDirection, $sortField = null, $dqlFilter = null)
+    {
+        
+        $restaurants = $this->getUser()->getRestaurants();
+        $qb = parent::createListQueryBuilder($dqlFilter, $sortDirection, $sortField);
+        foreach ($restaurants as $k=>$v){
+            $qb->orWhere('entity.restaurant = '.$v->getId());
+        }
+        
+
+        return $qb;
+    }
+    
+    
+    public function createOrderListQueryBuilder($entityClass, $sortDirection, $sortField = null, $dqlFilter = null)
+    {
+        
+        $restaurants = $this->getUser()->getRestaurants();
+        $qb = parent::createListQueryBuilder($dqlFilter, $sortDirection, $sortField);
+        foreach ($restaurants as $k=>$v){
+            $qb->orWhere('entity.restaurant = '.$v->getId());
+        }
+        
+
+        return $qb;
+    }
+    
+    public function createNewOrderListQueryBuilder($entityClass, $sortDirection, $sortField = null, $dqlFilter = null)
+    {
+        
+        $restaurants = $this->getUser()->getRestaurants();
+        $qb = parent::createListQueryBuilder($dqlFilter, $sortDirection, $sortField);
+        foreach ($restaurants as $k=>$v){
+            $qb->orWhere('entity.restaurant = '.$v->getId());
+        }
+        
+
+        return $qb;
+    }
+    
+    public function createApprovedOrderListQueryBuilder($entityClass, $sortDirection, $sortField = null, $dqlFilter = null)
+    {
+        
+        $restaurants = $this->getUser()->getRestaurants();
+        $qb = parent::createListQueryBuilder($dqlFilter, $sortDirection, $sortField);
+        foreach ($restaurants as $k=>$v){
+            $qb->orWhere('entity.restaurant = '.$v->getId());
+        }
+        
+
+        return $qb;
+    }
+    
+    public function createShippingOrderListQueryBuilder($entityClass, $sortDirection, $sortField = null, $dqlFilter = null)
+    {
+        
+        $restaurants = $this->getUser()->getRestaurants();
+        $qb = parent::createListQueryBuilder($dqlFilter, $sortDirection, $sortField);
+        foreach ($restaurants as $k=>$v){
+            $qb->orWhere('entity.restaurant = '.$v->getId());
+        }
+        
+
+        return $qb;
+    }
+    
+    
+    public function createShippedOrderListQueryBuilder($entityClass, $sortDirection, $sortField = null, $dqlFilter = null)
+    {
+        
+        $restaurants = $this->getUser()->getRestaurants();
+        $qb = parent::createListQueryBuilder($dqlFilter, $sortDirection, $sortField);
+        foreach ($restaurants as $k=>$v){
+            $qb->orWhere('entity.restaurant = '.$v->getId());
+        }
+        
+
+        return $qb;
+    }
+    
+    public function createTicketListQueryBuilder($entityClass, $sortDirection, $sortField = null, $dqlFilter = null)
+    {
+        
+        $restaurants = $this->getUser()->getRestaurants();
+        $qb = parent::createListQueryBuilder($dqlFilter, $sortDirection, $sortField);
+        foreach ($restaurants as $k=>$v){
+            $qb->orWhere('entity.restaurant = '.$v->getId());
+        }
+        
+
+        return $qb;
+    }
+    
+    
+    public function createProductListQueryBuilder($entityClass, $sortDirection, $sortField = null, $dqlFilter = null)
+    {
+        
+        $restaurants = $this->getUser()->getRestaurants();
+        $qb = parent::createListQueryBuilder($dqlFilter, $sortDirection, $sortField);
+        foreach ($restaurants as $k=>$v){
+            $qb->orWhere('entity.restaurant = '.$v->getId());
+        }
+        
+
+        return $qb;
+    }
+    
+    
+    public function createAgendaSearchQueryBuilder($entityClass, $searchQuery, array $searchableFields, $sortField = null, $sortDirection = null, $dqlFilter = null)
+    {
+        $yearfilter = trim($this->request->query->get('yearfilter'));
+        $monthfilter = trim($this->request->query->get('monthfilter'));
+//        $monthfilter = '2019-01-';
+        $qb = parent::createSearchQueryBuilder($entityClass, $searchQuery, $searchableFields, $sortField, $sortDirection, $dqlFilter);
+        if($monthfilter != '' || $yearfilter != '') {
+            $filter = ($yearfilter ? $yearfilter.$monthfilter : "%$monthfilter");
+            $qb->andWhere("entity.date like '$filter%'");
+        }
+        return  $qb;
     }
     
     

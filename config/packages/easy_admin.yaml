@@ -5,14 +5,63 @@ easy_admin:
         date:       'd/m/Y'
         time:       'H\hi e'
     entities:
+        Restaurant:
+            class: App\Entity\Restaurant
+            label: "Restaurants"
+            list:
+                actions: ['-delete']
+                fields:
+                    -
+                        property: id
+                        label: ID
+                    -
+                        property: name
+                        label: Nom
+                    -
+                        property: address
+                        type: Adresse
+                    -
+                        property: city
+                        label: Ville
+                    -
+                        property: status
+                        label: Statut
+                        type: toggle
+            form:
+                fields:
+                    -
+                        property: name
+                        label: Nom
+                    -
+                        property: description
+                        label: Description
+                    -
+                        property: imageFile
+                        type: vich_image
+                    -
+                        property: address
+                        label: Adresse
+                    -
+                        property: city
+                        label: Ville
+                    -
+                        property: owner
+                        label: Administrateur
+                    -
+                        property: restaurantSpecialities
+                        label: Menus spécialités
+                    -
+                        property: status
+                        label: Status
         User:
             class: App\Entity\User
             label: "Utilisateurs"
-            permissions:
-                list:  ['ROLE_SUPER_ADMIN', 'ROLE_EDITOR']
-                create:  ['ROLE_SUPER_ADMIN']
-                edit:  ['ROLE_SUPER_ADMIN', 'ROLE_EDITOR']
-                delete:  ['ROLE_SUPER_ADMIN']
+            #role: ROLE_SUPER_ADMIN
+#            permissions:
+#                list:  ['ROLE_SUPER_ADMIN', 'ROLE_EDITOR']
+#                create:  ['ROLE_SUPER_ADMIN']
+#                edit:  ['ROLE_SUPER_ADMIN', 'ROLE_EDITOR']
+#                delete:  ['ROLE_SUPER_ADMIN']
             form:
                 fields:
                     -
@@ -50,7 +99,7 @@ easy_admin:
                         type: choice
                         type_options:
                             expanded: true
-                            choices: { 'Client': 'ROLE_CLIENT', 'Administrateur': 'ROLE_ADMIN', 'Livreur': 'ROLE_DELIVER' }
+                            choices: { 'Client': 'ROLE_CLIENT', 'Administrateur': 'ROLE_RESTAURANT', 'Livreur': 'ROLE_DELIVER' }
             list:
                 fields:
                     -
@@ -174,7 +223,7 @@ easy_admin:
         Admin:
             class: App\Entity\User
             list:
-                dql_filter: "entity.roles LIKE '%%ROLE_ADMIN%%'"
+                dql_filter: "entity.roles LIKE '%%ROLE_RESTAURANT%%'"
             form:
                 fields:
                     -
@@ -293,54 +342,7 @@ easy_admin:
         MenuOptionProducts:
             class: App\Entity\MenuOptionProducts
             label: "Options - Produits"
-        Restaurant:
-            class: App\Entity\Restaurant
-            label: "Restaurants"
-            list:
-                actions: ['-delete']
-                fields:
-                    -
-                        property: id
-                        label: ID
-                    -
-                        property: name
-                        label: Nom
-                    -
-                        property: address
-                        type: Adresse
-                    -
-                        property: city
-                        label: Ville
-                    -
-                        property: status
-                        label: Statut
-                        type: toggle
-            form:
-                fields:
-                    -
-                        property: name
-                        label: Nom
-                    -
-                        property: description
-                        label: Description
-                    -
-                        property: imageFile
-                        type: vich_image
-                    -
-                        property: address
-                        label: Adresse
-                    -
-                        property: city
-                        label: Ville
-                    -
-                        property: owner
-                        label: Administrateur
-                    -
-                        property: restaurantSpecialities
-                        label: Menus spécialités
-                    -
-                        property: status
-                        label: Status
+        
         RestaurantSpeciality:
             class: App\Entity\RestaurantSpeciality
             label: "Spécialité des restaurants"
@@ -407,7 +409,7 @@ easy_admin:
             -
                 label: Utilisateurs
                 icon: users
-                role: ROLE_ADMIN
+                role: ROLE_SUPER_ADMIN
                 children:
                     -
                         entity: User
@@ -428,21 +430,27 @@ easy_admin:
                 entity: Restaurant
                 label: Restaurants
                 icon: thumb-tack
+                default: true
+                role: ROLE_RESTAURANT
             -
                 entity: Menu
                 label: Menus
                 icon: cutlery
+                role: ROLE_RESTAURANT
             -
                 entity: Product
                 label: Produits
                 icon: shopping-bag
+                role: ROLE_RESTAURANT
             -
                 entity: CategoryMenu
                 label: Catégories / Spécialités
                 icon: folder-open
+                role: ROLE_SUPER_ADMIN
             -
                 label: Commandes
                 icon: first-order
+                role: ROLE_RESTAURANT
                 children:
                     -
                         entity: Order
@@ -467,17 +475,21 @@ easy_admin:
                 entity: OrderStatus
                 label: Status de Commande
                 icon: smile-o
+                role: ROLE_SUPER_ADMIN
             -
                 entity: PaymentMode
                 label: Mode de paiement
                 icon: money
+                role: ROLE_SUPER_ADMIN
             -
                 entity: Ticket
                 label: Tickets restau
                 icon: drivers-license
+                role: ROLE_RESTAURANT
             -
                 label: Cartes
                 icon: map
+                role: ROLE_RESTAURANT
                 children:
                     -
                         route: map_delivers

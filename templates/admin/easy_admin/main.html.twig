@@ -74,7 +74,7 @@
                                                         {% endif %}
                                                     </li>
                                                     <li>
-                                                        <a href="{{ _logout_path }}"><i class="fa fa-sign-out"></i> {{ 'user.signout'|trans(domain = 'EasyAdminBundle') }}</a>
+                                                        <a href="{{ path('logout') }}"><i class="fa fa-sign-out"></i> {{ 'user.signout'|trans(domain = 'EasyAdminBundle') }}</a>
                                                     </li>
                                                     {% if is_granted('ROLE_PREVIOUS_ADMIN') %}
                                                         <li>
@@ -86,7 +86,7 @@
                                         {% endblock %}
                                     </li>
                                     <li class="dropdown">
-                                        <a href="{{ _logout_path }}">
+                                        <a href="{{ path('logout') }}">
                                             <i class="pe-7s-upload pe-rotate-90"></i>
                                         </a>
                                     </li>

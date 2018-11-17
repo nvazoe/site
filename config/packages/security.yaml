@@ -8,6 +8,13 @@ security:
     encoders:
         App\Entity\User:
             algorithm: bcrypt
+    
+    role_hierarchy:
+        ROLE_USER:        [ROLE_CLIENT, ROLE_USER] # user front-end
+        ROLE_RESTAURANT: ROLE_ADMIN
+        #ROLE_ADMIN:       ROLE_RESTAURANT # admin (minimum level to access back-office)
+        ROLE_SUPER_ADMIN: [ROLE_RESTAURANT, ROLE_ADMIN] # super-admin
+        
     firewalls:
         dev:
             pattern: ^/(_(profiler|wdt)|css|images|js)/
@@ -26,6 +33,9 @@ security:
                 login_path: adminlogin
                 check_path: adminlogin
                 default_target_path: /admin
+            logout:
+                path: logout
+                target: adminlogin
         api:
             pattern: ^/api
             stateless: true
@@ -43,7 +53,4 @@ security:
         - { path: ^/, roles: IS_AUTHENTICATED_ANONYMOUSLY }
         - { path: ^/api, roles: ROLE_USER }
         
-    role_hierarchy:
-        ROLE_USER:        ROLE_USER # user front-end
-        ROLE_ADMIN:       ROLE_ADMIN # admin (minimum level to access back-office)
-        ROLE_SUPER_ADMIN: [ROLE_USER, ROLE_ADMIN] # super-admin
+    

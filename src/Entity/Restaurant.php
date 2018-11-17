@@ -103,6 +103,11 @@ class Restaurant
      */
     private $imageFile;
 
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\Product", mappedBy="restaurant")
+     */
+    private $products;
+
     public function __construct()
     {
         $this->menus = new ArrayCollection();
@@ -111,6 +116,7 @@ class Restaurant
         $this->restaurantSpecialities = new ArrayCollection();
         $this->deliveryPropositions = new ArrayCollection();
         $this->tickets = new ArrayCollection();
+        $this->products = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -425,5 +431,36 @@ class Restaurant
     public function getImageFile()
     {
         return $this->imageFile;
+    }
+
+    /**
+     * @return Collection|Product[]
+     */
+    public function getProducts(): Collection
+    {
+        return $this->products;
+    }
+
+    public function addProduct(Product $product): self
+    {
+        if (!$this->products->contains($product)) {
+            $this->products[] = $product;
+            $product->setRestaurant($this);
+        }
+
+        return $this;
+    }
+
+    public function removeProduct(Product $product): self
+    {
+        if ($this->products->contains($product)) {
+            $this->products->removeElement($product);
+            // set the owning side to null (unless already changed)
+            if ($product->getRestaurant() === $this) {
+                $product->setRestaurant(null);
+            }
+        }
+
+        return $this;
     }
 }

@@ -174,7 +174,7 @@ class User implements UserInterface, \Serializable
         $this->date_updated = new \DateTime();
         $this->ordersDelivered = new ArrayCollection();
         $this->deliveryPropositions = new ArrayCollection();
-        $this->$tickets = new ArrayCollection();
+        $this->tickets = new ArrayCollection();
         $this->connexionLogs = new ArrayCollection();
     }
 
