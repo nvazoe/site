@@ -298,6 +298,49 @@ easy_admin:
             label: "Restaurants"
             list:
                 actions: ['-delete']
+                fields:
+                    -
+                        property: id
+                        label: ID
+                    -
+                        property: name
+                        label: Nom
+                    -
+                        property: address
+                        type: Adresse
+                    -
+                        property: city
+                        label: Ville
+                    -
+                        property: status
+                        label: Statut
+                        type: toggle
+            form:
+                fields:
+                    -
+                        property: name
+                        label: Nom
+                    -
+                        property: description
+                        label: Description
+                    -
+                        property: imageFile
+                        type: vich_image
+                    -
+                        property: address
+                        label: Adresse
+                    -
+                        property: city
+                        label: Ville
+                    -
+                        property: owner
+                        label: Administrateur
+                    -
+                        property: restaurantSpecialities
+                        label: Menus spécialités
+                    -
+                        property: status
+                        label: Status
         RestaurantSpeciality:
             class: App\Entity\RestaurantSpeciality
             label: "Spécialité des restaurants"
@@ -375,6 +418,9 @@ easy_admin:
                     -
                         entity: Deliver
                         label: Livreurs
+                    -
+                        route: logged_delivers
+                        label: Livreurs connectés
                     -
                         entity: Admin
                         label: Restaurateurs

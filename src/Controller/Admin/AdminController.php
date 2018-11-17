@@ -34,6 +34,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use App\Entity\Order;
 use App\Entity\OrderStatus;
 use App\Entity\DeliveryProposition;
+use App\Entity\ConnexionLog;
 
 class AdminController extends BaseAdminController {
     
@@ -367,7 +368,8 @@ class AdminController extends BaseAdminController {
     public function deliversInMapAction(Request $request){
         $em = $this->getDoctrine()->getManager();
         
-        $dels = $em->getRepository(User::class)->findAllUserByRole('ROLE_DELIVER', false);
+        $dels = $em->getRepository(User::class)->getConnectedUser('ROLE_DELIVER');
+        $delivers = [];
         foreach ($dels as $k=>$l){
             $delivers[$k]['name'] = $l->getFirstname().' '.$l->getLastname();
             $delivers[$k]['phone'] = $l->getPhoneNumber();
@@ -377,4 +379,43 @@ class AdminController extends BaseAdminController {
         }
         return array('delivers' => $delivers);
     }
+    
+    /**
+     * @Method({"GET"})
+     * @Route("/map-delivers")
+     */
+    public function deliversInMapAPIAction(Request $request){
+        $em = $this->getDoctrine()->getManager();
+        
+        $dels = $em->getRepository(User::class)->getConnectedUser('ROLE_DELIVER');
+        $delivers = [];
+        foreach ($dels as $k=>$l){
+            $delivers[$k]['name'] = $l->getFirstname().' '.$l->getLastname();
+            $delivers[$k]['phone'] = $l->getPhoneNumber();
+            $delivers[$k]['address'] = $l->getAddress();
+            $delivers[$k]['lat'] = $l->getLatitude();
+            $delivers[$k]['lng'] = $l->getLongitude();
+        }
+        return new JsonResponse($delivers);
+    }
+    
+    /**
+     * @Method({"GET", "POST"})
+     * @Route("/order/logged-delivers", name="logged_delivers")
+     * @Template("/admin/logged-delivers.html.twig")
+     */
+    public function deliversConnectedInfos(Request $request){
+        $em = $this->getDoctrine()->getManager();
+        
+        $dels = $em->getRepository(User::class)->getConnectedUser('ROLE_DELIVER');
+        
+        foreach($dels as $k=>$v){
+            $logs = $em->getRepository(ConnexionLog::class)->getUserLogs($v->getId());
+            $dels[$k]->logs = $logs;
+        }
+        
+        return array('delivers' => $dels);
+    }
+    
+    
 }

@@ -31,6 +31,7 @@ use App\Entity\Menu;
 use App\Entity\Order;
 use App\Entity\OrderStatus;
 use App\Entity\DeliveryProposition;
+use App\Entity\ConnexionLog;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
@@ -697,5 +698,45 @@ class DeliversController extends Controller{
             $result['items'] = [];
         }
         return new JsonResponse($result);
+    }
+    
+    
+    /**
+     * @Post("/api/delivers/{id}/deconnexion")
+     * 
+     * *@SWG\Response(
+     *      response=200,
+     *      description="Deconnect a deliver account"
+     * )
+     * 
+     * @SWG\Tag(name="Delivers")
+     */
+    public function deconnexionAction(Request $request, $id){
+        $em = $this->getDoctrine()->getManager();
+        
+        $user = $em->getRepository(ConnexionLog::class)->getLastConnectRow($id);
+        if($user){
+            if($user->getConnectStatus() == 0){
+                $result = array('code'=> 4022, 'description'=> "User not connected.");
+                return new JsonResponse($result, 400);
+            }
+            
+            $account = $em->getRepository(User::class)->find($id);
+            $account->setConnectStatus(0);
+            
+            
+            
+//            $conn->setUser($account);
+//            $conn->setRole("D");
+            $user->setConnectStatus(0);
+//            $conn->setDateCreated(new \DateTime());
+//            $conn->setstartDatetime(0);
+            $user->setendDatetime(time());
+            
+        }
+        
+        $em->flush();
+        
+        return new JsonResponse(array('code'=>200));
     }
 }

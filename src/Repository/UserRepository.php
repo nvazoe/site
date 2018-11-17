@@ -100,4 +100,11 @@ class UserRepository extends ServiceEntityRepository
         
         return $query->getQuery()->getResult();
     }
+    
+    public function getConnectedUser($role){
+        $query = $this->createQueryBuilder('u');
+        $query->andWhere('u.connectStatus = :cs')->setParameter('cs', 1);
+        $query->andWhere('u.roles LIKE :role')->setParameter('role', '%'.$role.'%');
+        return $query->getQuery()->getResult();
+    }
 }

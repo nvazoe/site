@@ -25,6 +25,7 @@ use GuzzleHttp\Client;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Cache\Adapter\FilesystemAdapter;
 use App\Entity\User;
+use App\Entity\ConnexionLog;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 /**
  * Description of UsersController
@@ -62,6 +63,7 @@ class UsersController extends Controller {
      */
     public function postLoginAction(Request $request)
     {
+        $em = $this->getDoctrine()->getManager();
         $login = $request->query->get('login')?$request->query->get('login'):$request->request->get('login');
         $pass = $request->query->get('pass')?$request->query->get('pass'):$request->request->get('pass');
 //        if(!$login || !$pass) {
@@ -88,17 +90,27 @@ class UsersController extends Controller {
             return new JsonResponse($result, 400);
         }
         
-        $user_account = $this->getDoctrine()->getRepository(User::class)->findOneBy(array('email'=>$login));
+        $user_account = $em->getRepository(User::class)->findOneBy(array('email'=>$login));
         if(!$user_account){
             $result = array('code' => 4007, 'description' => "Unexisting email.");
             return new JsonResponse($result, 400);
         }
+        
         $encoded = $this->container->get("security.password_encoder")->isPasswordValid($user_account, $pass);
         //var_dump($encoded, $pass, $user_account2->getPassword(), $user_account->getPassword());
         if($encoded != $user_account->getPassword()) {
             $result = array('code' => 4008, 'description' => "Bad credentials.");
             return new JsonResponse($result, 403);
         }
+        
+        $role = "S";
+        if(in_array('ROLE_DELIVER', $user_account->getRoles()))
+            $role = "D";
+        if(in_array('ROLE_CLIENT', $user_account->getRoles()))
+            $role = "C";
+        if(in_array('ROLE_ADMIN', $user_account->getRoles()))
+            $role = "A";
+        
         
         $banks = $user_account->getBankCards();
         $cards = [];
@@ -108,6 +120,22 @@ class UsersController extends Controller {
                 $cards[$k]['card_number'] = $v->getCardNumber();
             }
         }
+        
+        // Status connected and set last time logging
+        $user_account->setConnectStatus(1);
+        $user_account->setLastLogin(new \DateTime());
+        
+        
+        $conn = new ConnexionLog();
+        $conn->setUser($user_account);
+        $conn->setRole($role);
+        $conn->setConnectStatus(1);
+        $conn->setDateCreated(new \DateTime());
+        $conn->setstartDatetime(time());
+        $conn->setendDatetime(0);
+        $em->persist($conn);
+        $em->flush();
+        
         
         return new JsonResponse(array(
             'code' => 200,
@@ -123,54 +151,4 @@ class UsersController extends Controller {
         ));
     }
     
-    
-    /**
-     * @Get("/Users")
-     * 
-     * *@SWG\Response(
-     *      response=200,
-     *      description="Get users list"
-     * )
-     * 
-     * @QueryParam(
-     *      name="limit",
-     *      description="limit per page",
-     *      strict=false,
-     *      default=100
-     * )
-     * 
-     * @QueryParam(
-     *      name="page",
-     *      description="Page of set",
-     *      strict=false,
-     *      default=1
-     * )
-     * 
-     * @SWG\Tag(name="Users")
-     */
-    public function getUsersListAction(Request $request){
-        $em = $this->getDoctrine()->getManager();
-        $limit = $request->query->get('limit')?$request->query->get('limit'):$request->request->get('limit');
-        $page = $request->query->get('page')?$request->query->get('page'):$request->request->get('page');
-        
-        $menus = $em->getRepository(User::class)->findAll();
-        $array = [];
-        foreach ($menus as $k => $l){
-            $array[$k]["id"] = $l->getId();
-            $array[$k]["firstname"] = $l->getFirstname();
-            $array[$k]["lastname"] = $l->getLastname();
-            $array[$k]["username"] = $l->getUsername();
-            $array[$k]["email"] = $l->getEmail();
-        }
-        $result['code'] = 200;
-        if(count($array) > 0){
-             $result['items'] = $array;
-            //$result['total'] = $em->getRepository(Menu::class)->getMenus($limit, $page, true);
-            $result['current_page'] = $page;
-            $result['per_page'] = $limit;
-        }
-           
-        
-        return new JsonResponse($result, $result['code'] = 200);
-    }
 }

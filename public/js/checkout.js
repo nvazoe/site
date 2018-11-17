@@ -14,8 +14,28 @@ $(document).ready(function(){
             "client": 8,
             "delivery_address": "Presta",
             "delivery_phone": "674323",
-            "restaurant": 2
-        }
+            "restaurant": 2,
+            "payment_mode": 1,
+            "menus": $cart,
+            "creditcard": {
+                id: -1
+            }
+        };
+        
+        $.ajax({
+            url: $('body').data('base-url') + 'api/orders',
+            type: 'post',
+            headers: {
+                "content-type": 'application/json',
+                "accept": "application/json"
+            },
+            data: JSON.stringify(data),
+            crossDomain: true
+        }).done(function(resp){
+            console.log(resp);
+        }).fail(function(xhr){
+            console.log(xhr);
+        });
         
     });
 });

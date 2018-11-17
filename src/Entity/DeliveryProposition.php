@@ -106,4 +106,8 @@ class DeliveryProposition
 
         return $this;
     }
+    
+    public function __toString(){
+        return $this->getRestaurant()->getName().' - '.$this->getDeliver()->getLastname();
+    }
 }

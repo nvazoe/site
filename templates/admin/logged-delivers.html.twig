@@ -1,0 +1,66 @@
+{% extends 'admin/easy_admin/main.html.twig' %}
+
+
+{% block head_stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="{{ asset('fooTable/css/footable.core.min.css') }}">
+{% endblock %}
+
+{% block main %}
+    <div class="content animate-panel">
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="hpanel">
+                    <div class="panel-body">
+                        <table id="example1" class="footable table table-stripped toggle-arrow-tiny" data-page-size="8" data-filter=#filter>
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th data-toogle="true">Nom</th>
+                                    <th>Logs</th>
+                                    <th data-hide="all">Temps connexion / semaine</th>
+                                    <th data-hide="all">Temps connexion / mois</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for d in delivers %}
+                                    <tr>
+                                        <td>{{ d.id}}</td>
+                                        <td>{{ d.lastname }} {{ d.firstname }}</td>
+                                        <td>
+                                            <ol>
+                                                {% for lg in d.ConnexionLogs %}
+                                                    <li><span class="text-info">{{ lg.dateCreated|date('d M Y à H:i') }}</span></li>
+                                                {% endfor %}
+                                            </ol>
+                                        </td>
+                                        <td><span class="pie">6,9</span></td>
+                                        <td>40</td>
+                                    </tr>
+                                {% endfor %}
+                                
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block body_javascript %}
+    {{ parent() }}
+    <script src="{{ asset('fooTable/dist/footable.all.min.js') }}"></script>
+    <script>
+
+    $(function () {
+
+        // Initialize Example 1
+        $('#example1').footable();
+
+
+    });
+
+</script>
+
+{% endblock body_javascript %}

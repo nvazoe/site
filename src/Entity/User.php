@@ -6,6 +6,7 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Security\Core\User\UserInterface;
+use Doctrine\Common\Collections\Criteria;
 
 /**
  * @ORM\Entity(repositoryClass="App\Repository\UserRepository")
@@ -145,6 +146,21 @@ class User implements UserInterface, \Serializable
      */
     private $tickets;
 
+    /**
+     * @ORM\Column(type="boolean")
+     */
+    private $connectStatus;
+
+    /**
+     * @ORM\Column(type="datetime", nullable=true)
+     */
+    private $lastLogin;
+
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\ConnexionLog", mappedBy="user")
+     */
+    private $connexionLogs;
+
     public function __construct()
     {
         $this->restaurants = new ArrayCollection();
@@ -159,6 +175,7 @@ class User implements UserInterface, \Serializable
         $this->ordersDelivered = new ArrayCollection();
         $this->deliveryPropositions = new ArrayCollection();
         $this->$tickets = new ArrayCollection();
+        $this->connexionLogs = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -670,5 +687,69 @@ class User implements UserInterface, \Serializable
     public function getTickets(): Collection
     {
         return $this->tickets;
+    }
+
+    public function getConnectStatus(): ?bool
+    {
+        return $this->connectStatus;
+    }
+
+    public function setConnectStatus(bool $connectStatus): self
+    {
+        $this->connectStatus = $connectStatus;
+
+        return $this;
+    }
+
+    public function getLastLogin(): ?\DateTimeInterface
+    {
+        return $this->lastLogin;
+    }
+
+    public function setLastLogin(?\DateTimeInterface $lastLogin): self
+    {
+        $this->lastLogin = $lastLogin;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|ConnexionLog[]
+     */
+    public function getConnexionLogs(): Collection
+    {
+        return $this->connexionLogs;
+    }
+
+    public function addConnexionLog(ConnexionLog $connexionLog): self
+    {
+        if (!$this->connexionLogs->contains($connexionLog)) {
+            $this->connexionLogs[] = $connexionLog;
+            $connexionLog->setUser($this);
+        }
+
+        return $this;
+    }
+
+    public function removeConnexionLog(ConnexionLog $connexionLog): self
+    {
+        if ($this->connexionLogs->contains($connexionLog)) {
+            $this->connexionLogs->removeElement($connexionLog);
+            // set the owning side to null (unless already changed)
+            if ($connexionLog->getUser() === $this) {
+                $connexionLog->setUser(null);
+            }
+        }
+
+        return $this;
+    }
+    
+    
+    public function getActiveConnexionLogs(): Collection
+    {
+        $criteria = Criteria::create()->andWhere(Criteria::expr()->eq('connectStatus', 1))
+            ->orderBy(['id'=>'DESC']);
+        
+        return $this->connexionLogs->matching($criteria);
     }
 }

@@ -184,4 +184,8 @@ class Ticket
 
         return $this;
     }
+    
+    public function __toString(){
+        return $this->getClient()->getFirstname().' - '.$this->getCode();
+    }
 }

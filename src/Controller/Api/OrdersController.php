@@ -328,18 +328,19 @@ class OrdersController extends Controller {
             if (count($m['options'])) {
                 foreach ($m['options'] as $o) {
                     $menuOption = $em->getRepository(MenuOption::class)->find($o['option']);
+                    if(isset($o['products'])){
+                        foreach ($o['products'] as $op) {
+                            $prd = $em->getRepository(MenuOptionProducts::class)->find($op['id']);
 
-                    foreach ($o['products'] as $op) {
-                        $prd = $em->getRepository(MenuOptionProducts::class)->find($op['id']);
-
-                        $ordDtPrd = new OrderDetailsMenuProduct();
-                        $ordDtPrd->setOrderDetails($ordDt);
-                        $ordDtPrd->setMenu($menu);
-                        $ordDtPrd->setProduct($prd->getProduct());
-                        $ordDtPrd->setPrice($prd->getAttribut());
-                        $total += $ordDtPrd->getPrice() * (int) $m['quantity'];
+                            $ordDtPrd = new OrderDetailsMenuProduct();
+                            $ordDtPrd->setOrderDetails($ordDt);
+                            $ordDtPrd->setMenu($menu);
+                            $ordDtPrd->setProduct($prd->getProduct());
+                            $ordDtPrd->setPrice($prd->getAttribut());
+                            $total += $ordDtPrd->getPrice() * (int) $m['quantity'];
+                        }
                     }
-
+                    
                     $em->persist($ordDtPrd);
                 }
             }

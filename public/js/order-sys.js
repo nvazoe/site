@@ -53,6 +53,7 @@ $(document).ready(function () {
             console.log(resp);
             // set value
             $('#menu-name').html(resp.data.name);
+            $('#menu-name').data('menu', resp.data.id);
             $('#menu-description').html(resp.data.description);
             $('#unit-price, .amount-menu').data('unit-price', resp.data.price);
             $('.amount-menu').text(resp.data.price);
@@ -143,12 +144,13 @@ function add_to_basket() {
         var qty = parseInt($('.qty').text());
         var amount = parseFloat($('.amount-menu').text()).toFixed(2);
         var restau = $('#restau').data('restau');
+        var menu_id = $('#menu-name').data('menu');
 
         var options = $('.blck-option');
         var menus = [];
         for (var i = 0, c = options.length; i < c; i++) {
             var m = {
-                option_id: $(options[i]).find('.option-title').data('option')
+                option: $(options[i]).find('.option-title').data('option')
             };
             //console.log('option = '+ $(options[i]).find('.option-title').data('option'));
             var opts = $(options[i]).find('input:checked');
@@ -157,7 +159,7 @@ function add_to_basket() {
                 var prods = [];
                 for (v = 0, w = opts.length; v < w; v++) {
                     var v = {
-                        prd_id: $(opts[v]).data('option-prd'),
+                        id: $(opts[v]).data('option-prd'),
                         prd_name: $(opts[v]).data('option-name')
                     };
                     prods.push(v);
@@ -172,9 +174,10 @@ function add_to_basket() {
             var $cart = [];
         }
         var $item = {
+            "id": menu_id,
             "title": name,
             "amount": amount,
-            "qty": qty,
+            "quantity": qty,
             "options": menus
         };
         $cart.push($item);
@@ -193,7 +196,7 @@ function setup_cart($tring) {
         console.log($cart);
         // set DOM cart
         for (var a = 0, b = $cart.length; a < b; a++) {
-            $html += item_basket_html($cart[a].qty, $cart[a].title, $cart[a].amount, $cart[a].options, a);
+            $html += item_basket_html($cart[a].quantity, $cart[a].title, $cart[a].amount, $cart[a].options, a);
             $amount_cart = parseFloat($amount_cart) + (parseFloat($cart[a].amount));
             $nb_art += parseInt($cart[a].qty);
         }

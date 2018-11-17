@@ -32,7 +32,7 @@
     </head>
 
     {% block body %}
-        <body id="{% block body_id %}{% endblock %}" {% block body_class %}{% endblock %}>
+        <body id="{% block body_id %}{% endblock %}" {% block body_class %}{% endblock %} data-base-url="{{url('homepage')}}">
             {% block wrapper %}
                 {% block header %}
                     <div id="header">
@@ -168,7 +168,7 @@
                 <script src="{{ asset('js/app.js') }}"></script>
                 <script src="{{ asset('js/jquery-ui/jquery-ui.min.js') }}"></script>
                 <script src="{{ asset('js/form-menu.js') }}"></script>
-            {% endblock head_javascript %}
+        {% endblock head_javascript %}
         {% block body_javascript %}{% endblock body_javascript %}
 </body>
 {% endblock body %}

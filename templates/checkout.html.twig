@@ -1,52 +1,9 @@
 {% extends 'base.html.twig' %}
 
-{% block stylesheets %}
-    {#<style type="text/css">
-              @font-face {
-                font-family: 'UberMove-Regular';
-                src: local('UberMove-Regular'),
-                url(/static/fonts/UberMove-Regular.woff2) format('woff2'),
-                url(/static/fonts/UberMove-Regular.woff) format('woff'),
-                url(/static/fonts/UberMove-Regular.ttf) format('truetype'),
-                url(/static/fonts/UberMove-Regular.eot) format('embedded-opentype');
-              }
-              @font-face {
-                font-family: 'UberMove-Medium';
-                src: local('UberMove-Medium'),
-                url(/static/fonts/UberMove-Medium.woff2) format('woff2'),
-                url(/static/fonts/UberMove-Medium.woff) format('woff'),
-                url(/static/fonts/UberMove-Medium.ttf) format('truetype'),
-                url(/static/fonts/UberMove-Medium.eot) format('embedded-opentype');
-              }
-              @font-face {
-                font-family: 'UberMoveText-Regular';
-                src: local('UberMoveText-Regular'),
-                url(/static/fonts/UberMoveText-Regular.woff2) format('woff2'),
-                url(/static/fonts/UberMoveText-Regular.woff) format('woff'),
-                url(/static/fonts/UberMoveText-Regular.ttf) format('truetype'),
-                url(/static/fonts/UberMoveText-Regular.eot) format('embedded-opentype');
-              }
-              @font-face {
-                font-family: 'UberMoveText-Medium';
-                src: local('UberMoveText-Medium'),
-                url(/static/fonts/UberMoveText-Medium.woff2) format('woff2'),
-                url(/static/fonts/UberMoveText-Medium.woff) format('woff'),
-                url(/static/fonts/UberMoveText-Medium.ttf) format('truetype'),
-                url(/static/fonts/UberMoveText-Medium.eot) format('embedded-opentype');
-              }</style>
-    
-    <style type="text/css" class="_styletron_hydrate_">.ue-cf:hover{color:#247A00}.ue-cg:hover{transition:color 300ms ease;-webkit-transition:color 300ms ease;-moz-transition:color 300ms ease}.ue-di:hover{color:#E0E0E0}.ue-e2:hover{background-color:#757575}.ue-dt:after{content:'▾'}.ue-du:after{display:inline-block}.ue-a{min-height:100%}.ue-b{position:fixed}.ue-c{bottom:0}.ue-d{left:0}.ue-e{margin:16px}.ue-f{-webkit-flex-direction:column}.ue-g{-moz-flex-direction:column}.ue-h{-ms-flex-direction:column}.ue-i{display:-webkit-flex}.ue-j{margin-bottom:8px}.ue-k{padding:24px}.ue-l{background-color:#262626}.ue-m{text-align:center}.ue-n{width:100%}.ue-o{z-index:1000}.ue-p{-webkit-justify-content:center}.ue-q{-moz-justify-content:center}.ue-r{-ms-justify-content:center}.ue-s{max-width:1174px}.ue-t{color:#FFFFFF}.ue-u{-webkit-flex-grow:1}.ue-v{-moz-flex-grow:1}.ue-w{-ms-flex-grow:1}.ue-x{padding:4px}.ue-y{margin-left:24px}.ue-z{fill:#FFFFFF}.ue-a0{display:block}.ue-a1{min-height:100vh}.ue-a2{margin:auto}.ue-a3{background-color:#FFFFFF}.ue-a4{width:100vw}.ue-a5{z-index:7}.ue-a6{display:-webkit-box;display:-moz-box;display:-ms-flexbox;display:-webkit-flex;display:flex}.ue-a7{flex-wrap:wrap;-webkit-box-lines:multiple}.ue-a8{min-height:74px}.ue-a9{max-height:74px}.ue-aa{top:0}.ue-ab{align-items:center;-webkit-box-align:center}.ue-ac{flex:1 1 auto}.ue-ad{height:50px}.ue-ae{justify-content:center;-webkit-box-pack:center}.ue-af{height:100%}.ue-ag{margin-left:auto}.ue-ah{position:relative}.ue-ai{height:541px}.ue-aj{background-color:#F5F5F5}.ue-ak{width:5px}.ue-al{transition:all 0.6s cubic-bezier(.2, .8, .4, 1);-webkit-transition:all 0.6s cubic-bezier(.2, .8, .4, 1);-moz-transition:all 0.6s cubic-bezier(.2, .8, .4, 1)}.ue-am{box-shadow:0 20px 50px -20px rgba(0, 0, 0, 0.1)}.ue-an{padding-top:32px}.ue-ao{padding-bottom:80px}.ue-ap{cursor:pointer}.ue-aq{-webkit-user-select:none;-moz-user-select:none;-ms-user-select:none;user-select:none}.ue-ar{flex:1}.ue-as{justify-content:flex-end;-webkit-box-pack:end}.ue-at{align-items:flex-end;-webkit-box-align:end}.ue-au{margin-left:80px}.ue-av{height:40px}.ue-aw{margin-right:auto}.ue-b4{padding-left:8px}.ue-b6{-webkit-align-items:center}.ue-b7{-moz-align-items:center}.ue-b8{-ms-align-items:center}.ue-bc{fill:#262626}.ue-bd{border-radius:50%}.ue-be{padding-top:3px}.ue-bf{width:40px}.ue-bg{z-index:-1}.ue-bh{position:absolute}.ue-bi{background:rgba(0, 0, 0, 0.6)}.ue-bj{border-top:1px solid #E0E0E0}.ue-bk{padding-top:40px}.ue-bl{padding-bottom:0}.ue-bn{-webkit-font-smoothing:antialiased}.ue-bo{-moz-osx-font-smoothing:grayscale}.ue-bp{color:#757575}.ue-bq{font-family:UberMoveText-Regular, Helvetica, sans-serif}.ue-br{font-size:16px}.ue-bs{line-height:24px}.ue-bt{margin:40px}.ue-bu{padding-bottom:16px}.ue-bx{width:528px}.ue-bz{flex-direction:column;-webkit-box-orient:vertical;-webkit-box-direction:normal}.ue-c0{margin-right:32px}.ue-c1{list-style:none}.ue-c2{margin:0}.ue-c8{width:552px}.ue-c9{height:360px}.ue-ca{margin-right:24px}.ue-cb{width:160px}.ue-cc{color:#262626}.ue-cd{color:#000000}.ue-ce{transition:color 300ms ease;-webkit-transition:color 300ms ease;-moz-transition:color 300ms ease}.ue-ch{text-overflow:ellipsis}.ue-ci{overflow:hidden}.ue-cj{white-space:nowrap}.ue-ck{-webkit-transition:opacity 300ms ease}.ue-cl{-moz-transition:opacity 300ms ease}.ue-cm{-ms-transition:opacity 300ms ease}.ue-cn{opacity:0}.ue-co{opacity:1}.ue-cp{-webkit-transition:all 300ms ease}.ue-cq{-moz-transition:all 300ms ease}.ue-cr{-ms-transition:all 300ms ease}.ue-cs{-webkit-transform:translate(0, -100%)}.ue-ct{-moz-transform:translate(0, -100%)}.ue-cu{-ms-transform:translate(0, -100%)}.ue-cv{-webkit-transform:translate(0, 0)}.ue-cw{-moz-transform:translate(0, 0)}.ue-cx{-ms-transform:translate(0, 0)}.ue-cy{-webkit-transform:translate(0, 100%)}.ue-cz{-moz-transform:translate(0, 100%)}.ue-d0{-ms-transform:translate(0, 100%)}.ue-d1{-webkit-transform:translate(-100%, 0)}.ue-d2{-moz-transform:translate(-100%, 0)}.ue-d3{-ms-transform:translate(-100%, 0)}.ue-d4{-webkit-transform:translate(100%, 0)}.ue-d5{-moz-transform:translate(100%, 0)}.ue-d6{-ms-transform:translate(100%, 0)}.ue-d7{bottom:20px}.ue-d8{right:20px}.ue-d9{z-index:1}.ue-db{left:0px}.ue-dc{padding:54px 42px 54px 64px}.ue-de{opacity:0.3}.ue-df{margin-top:24px}.ue-dg{margin-bottom:24px}.ue-dh{padding:0}.ue-dj{font-size:14px}.ue-dk{line-height:20px}.ue-dl{font-size:10px !important}.ue-dm{margin-right:8px}.ue-dn{max-width:250px}.ue-do{margin-left:12px}.ue-dp{margin-right:12px}.ue-dq{padding:8px 0}.ue-dr{padding-right:30px}.ue-ds{text-transform:uppercase}.ue-dv{border:solid 1px white}.ue-dw{max-height:300px}.ue-dx{overflow-y:scroll}.ue-dy{border-top:none}.ue-dz{border:none}.ue-e0{border-bottom:solid 1px rgba(255, 255, 255, 0.5)}.ue-e1{padding:4px 12px}.ue-e3{z-index:6}.ue-e4{top:100%}.ue-e5{right:0}.ue-e6{-webkit-overflow-scrolling:touch}.ue-e7{z-index:5}.ue-e8{fill:currentColor}.ue-e9{padding:8px 16px}.ue-ea{border-radius:2px}.ue-eb{z-index:10}.ue-ec{padding:16px 24px}.ue-ed{box-shadow:0 0 10px 0 rgba(0, 0, 0, 0.1)}.ue-ee{transition:all 300ms ease;-webkit-transition:all 300ms ease;-moz-transition:all 300ms ease}.ue-ef{transform:translate(0, 100%)}.ue-eg{transform:translate(0, 0)}.ue-eh{left:50%}.ue-ei{bottom:8px}.ue-ej{transform:translate(-50%, 100%)}.ue-ek{transform:translate(-50%, 0)}.ue-el{margin-right:16px}.ue-em{height:16px}.ue-en{width:16px}.ue-eo{fill:#3e9920}.ue-ep{background:rgba(38, 38, 38, 0.8)}</style>
-    <style type="text/css" class="_styletron_hydrate_" media="(min-width: 769px)">.ue-ax{padding-left:32px}.ue-ay{padding-right:32px}.ue-az{max-width:1238px}.ue-b5{margin-right:8px}.ue-b9{padding-left:16px}.ue-by{width:344px}.ue-da{display:none}</style>
-    <style type="text/css" class="_styletron_hydrate_" media="(max-width: 768px)">.ue-b0{padding-left:16px}.ue-b1{padding-right:16px}.ue-b2{max-width:1206px}.ue-ba{padding-left:8px}.ue-bb{display:none}.ue-bm{flex-direction:column;-webkit-box-orient:vertical;-webkit-box-direction:normal}</style>
-    <style type="text/css" class="_styletron_hydrate_" media="(max-width: 1040px)">.ue-b3{display:none}</style>
-    <style type="text/css" class="_styletron_hydrate_" media="(min-width: 769px) and (max-width: 960px)">.ue-bv{margin-left:0}.ue-c5{height:540px}.ue-c6{width:368px}</style>
-    <style type="text/css" class="_styletron_hydrate_" media="(max-width: 575px)">.ue-bw{margin-left:0}.ue-c3{height:540px}.ue-c4{width:368px}.ue-dd{padding-left:24px}</style>
-    <style type="text/css" class="_styletron_hydrate_" media="(min-width: 576px) and (max-width: 768px)">.ue-c7{height:360px}</style>#}
-{% endblock %}
 
 {% block body %}
     <header>
-        <div>Paiement</div>
+        <div class="payment">Paiement</div>
     </header>
     <div class="container">
         <div class="row">
@@ -89,7 +46,7 @@
                 </div>
                 
                 <div>
-                    <h2>3. Paiement</h2>
+                    <h2>3. Mode de paiement</h2>
                     <div>
                         <div class="row">
                             <div class="col-sm-12">
@@ -97,7 +54,8 @@
                                     <div class="row">
                                         <div class="form-group col-sm-6">
                                             <select class="form-control">
-                                                <option>Moyen de paiement</option>
+                                                <option>Carte bancaire</option>
+                                                <option>Ticket restaurant</option>
                                             </select>
                                         </div>
                                     </div>

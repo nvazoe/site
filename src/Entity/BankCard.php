@@ -148,4 +148,8 @@ class BankCard
 
         return $this;
     }
+    
+    public function __toString(){
+        return $this->getOwnerName().'-'.$this->getId();
+    }
 }

@@ -23,23 +23,68 @@
 {% block body_javascript %}
     {{ parent() }}
     <script>
-      var map;
-      var france = {lat: 48.864716, lng: 2.349014};
-      var iconBase = '/images/icons/';
-      var icons = {
-        livreur: {
-            icon: iconBase + 'abattoirs-tradi.png'
-        },
-        restaurant:{
-            icon: iconBase + 'restaurant_icone.png'
+        function trace_client(){
+            $.ajax({
+                url: $('body').data('base-url') + 'admin/map-delivers',
+                type: 'get'
+            }).done(function(resp){
+                console.log(resp);
+                var iconBase = '/images/icons/';
+                var icons = {
+                    livreur: {
+                        icon: iconBase + 'abattoirs-tradi.png'
+                    },
+                    restaurant:{
+                        icon: iconBase + 'restaurant_icone.png'
+                    }
+                };
+                var icon = icons.livreur.icon;
+                var infowindow = new google.maps.InfoWindow();
+                for(var i=0, c=resp.length; i<c; i++){
+                    console.log(resp[i].lat);
+                    var marker = new google.maps.Marker({
+                        position: {lat: parseFloat(resp[i].lat), lng: parseFloat(resp[i].lng)},
+                        map: map,
+                        title: resp[i].name,
+                        draggable: false,
+                        content: resp[i].name,
+                        icon: icon
+                    });
+
+                    google.maps.event.addListener(marker, 'click', (function (marker, i) {
+                        return function () {
+                            var html = '<div class="content-pin">' +resp[i].name;
+                            html += '<ul class="list-unstyled">';
+                            html += '<li><strong>Phone</strong> : '+resp[i].phone+'</li>';
+                            html += '<li><strong>Adresse</strong> : '+resp[i].address+'</li>';
+                            html += '</ul></div>';
+                            map.panTo(marker.getPosition());
+                            infowindow.setContent(html);
+                            infowindow.open(map, marker, html);
+
+                                };
+                    })(marker, i));
+                }
+                {#for(var i=0, c=resp.length; i<c; i++){
+                    var o = {
+                        'name':resp[i].name,
+                        'lat': resp[i].lat,
+                        'lng': resp[i].lng,
+                        'phone': resp[i].phone,
+                        'address': resp[i].address
+                    };
+                    dels.push(o);
+                }#}
+            }).fail(function(jqXHR){
+                console.log(jqXHR);
+            });
         }
-    };
-    
-      function initMap() {
-        map = new google.maps.Map(document.getElementById('map'), {
-          center: france,
-          zoom: 8
-        });
+        
+    </script>
+    <script>
+        var map;
+        var france = {lat: 48.864716, lng: 2.349014};
+        
         var dels = [];
         {% if delivers %}
             {% for del in delivers %}
@@ -53,37 +98,19 @@
                 dels.push(o);
             {% endfor %}
         {% endif %}
-            
-        
+    
+      function initMap() {
+        map = new google.maps.Map(document.getElementById('map'), {
+          center: france,
+          zoom: 8
+        });
         
         
         // The marker, des liveurs
-        var icon = icons.livreur.icon;
-        var infowindow = new google.maps.InfoWindow();
-        for(var i=0, c=dels.length; i<c; i++){
-            var marker = new google.maps.Marker({
-                position: {lat: parseFloat(dels[i].lat), lng: parseFloat(dels[i].lng)},
-                map: map,
-                title: dels[i].name,
-                draggable: false,
-                content: dels[i].name,
-                icon: icon
-            });
-            
-            google.maps.event.addListener(marker, 'click', (function (marker, i) {
-                return function () {
-                    var html = '<div class="content-pin">' +dels[i].name;
-                    html += '<ul class="list-unstyled">';
-                    html += '<li><strong>Phone</strong> : '+dels[i].phone+'</li>';
-                    html += '<li><strong>Adresse</strong> : '+dels[i].address+'</li>';
-                    html += '</ul></div>';
-                    map.panTo(marker.getPosition());
-                    infowindow.setContent(html);
-                    infowindow.open(map, marker, html);
-
-                        };
-            })(marker, i));
-        }
+        
+        
+        trace_client();
+        setInterval(trace_client, 30000);
         
       }
     </script>

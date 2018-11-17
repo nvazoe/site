@@ -622,6 +622,7 @@ class ClientsController extends Controller {
         foreach ($tickets as $k=>$l){
             $array[$k]["id"] = $l->getId();
             $array[$k]['code'] = $l->getCode();
+            $array[$k]['amount'] = $l->getValue();
             $array[$k]['restaurant']['id'] = $l->getRestaurant()->getId();
             $array[$k]['restaurant']['name'] = $l->getRestaurant()->getName();
         }
@@ -821,5 +822,39 @@ class ClientsController extends Controller {
         $em->flush();
         
         return new JsonResponse(array('code' => 200));
+    }
+    
+    /**
+     * @Post("/api/clients/{id}/deconnexion")
+     * 
+     * *@SWG\Response(
+     *      response=200,
+     *      description="Deconnect a client account"
+     * )
+     * 
+     * @SWG\Tag(name="Clients")
+     */
+    public function deconnexionAction(Request $request, $id){
+        $em = $this->getDoctrine()->getManager();
+        
+        $user = $em->getRepository(ConnexionLog::class)->getLastConnectRow($id);
+        if($user){
+            if($user->getConnectStatus() == 0){
+                $result = array('code'=> 4022, 'description'=> "User not connected.");
+                return new JsonResponse($result, 400);
+            }
+            
+            $account = $em->getRepository(User::class)->find($id);
+            $account->setConnectStatus(0);
+            
+
+            $user->setConnectStatus(0);
+            $user->setendDatetime(time());
+            
+        }
+        
+        $em->flush();
+        
+        return new JsonResponse(array('code'=>200));
     }
 }

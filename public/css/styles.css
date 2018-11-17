@@ -342,3 +342,11 @@ footer {
 .footer {
     color: #fff;
 }
+
+.payment {
+    font-size: 3em;
+}
+
+main > header {
+    padding: 10px 20px 0px 40px;
+}
