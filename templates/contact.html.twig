@@ -1,0 +1,118 @@
+{% extends 'base.html.twig' %}
+
+
+{% block stylesheets %}
+    <style>
+    input.form-control, textarea.form-control {
+        border: none;
+        border-bottom: 1px solid #ccc;
+        box-shadow: unset;
+    }
+
+    textarea.form-control:focus, input.form-control:focus {
+        box-shadow: unset;
+    }
+
+    .page-title {
+        text-align: center;
+    }
+
+    ul.addr-list {
+        line-height: inherit;
+    }
+
+    .page-title h3 {
+        text-transform: uppercase;
+        color: #bfda6e;
+        font-size: 2.2em;
+    }
+
+    .contact-title {
+        text-transform: uppercase;
+        color: #bfda6e;
+        font-size: 1.3em;
+        font-weight: 700;
+        padding-bottom: 10px;
+    }
+
+    .contact-panel p {
+        font-size: 1.1em;
+        color: #bfda6e;
+    }
+
+    .button-action {
+        margin-bottom: 20px;
+    }
+
+    .button-action button {
+        border-radius: 30px;
+        padding: 15px 30px;
+        font-weight: 600;
+        margin-left: 10px;
+        background-color: #b7d300 !important;
+        color: #fff;
+    }
+</style>
+{% endblock %}
+
+{% block page_title %}Contact{% endblock %}
+
+{% block body %}
+    <div class="container">
+        <div class="row">
+            <div class="col-md-12 page-title">
+                <h3>Contactez-Nous</h3>
+                <p>Notre équipe reste à votre écoute pour vous rencontrer</p>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-9">
+                <form id="contact" action="" method="post" class="form-horizontal">
+                    <div class="col-sm-6">
+                        <div class="form-group">
+                            <div class="col-xs-12"><input type="text" name="name" placeholder="Votre nom" class="form-control"></div>
+                        </div>
+                    </div>
+                    <div class="col-sm-6">
+                        <div class="form-group">
+                            <div class="col-xs-12"><input type="text" name="prenom" placeholder="Votre prénom" class="form-control"></div>
+                        </div>
+                    </div>
+                    <div class="col-sm-6">
+                        <div class="form-group">
+                            <div class="col-xs-12"><input type="email" name="email" placeholder="Votre email" class="form-control"></div>
+                        </div>
+                    </div>
+                    <div class="col-sm-6">
+                        <div class="form-group">
+                            <div class="col-xs-12"><input type="tel" name="tel" placeholder="Votre numéro de téléphone" class="form-control"></div>
+                        </div>
+                    </div>
+                    <div class="col-sm-12">
+                        <div class="form-group">
+                            <div class="col-xs-12"><input type="text" name="subject" placeholder="Sujet de votre message" class="form-control"></div>
+                        </div>
+                    </div>
+                    <div class="col-sm-12">
+                        <div class="form-group">
+                            <div class="col-xs-12"><textarea name="form-control" name="message" class="form-control" placeholder="Votre message" rows="15"></textarea></div>
+                        </div>
+                    </div>
+                    
+                    <div class="button-action"><button class="btn btn-action btn-md">Envoyer</button></div>
+                </form>
+            </div>
+            <div class="col-md-3">
+                <div class="contact-panel">
+                    <div class="contact-title">Contact Info</div>
+                    <p>Adresse</p>
+                    <ul class="addr-list">
+                        <li>13 avenue auguste Renoir </li>
+                        <li>Contact@allozoe.fr</li>
+                        <li>Tel : 07 85 76 97 81</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

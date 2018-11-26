@@ -3,14 +3,14 @@
     <head>
         <meta charset="utf-8"/>
         <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
-        <title>{% block page_title %}{% endblock %} - Allo Zoe</title>
+        <title>{% block page_title %}{% endblock %} - Allo Zoé</title>
         <link rel="stylesheet" href="{{ asset('allozoe/css/bootstrap.css') }}">
         <link rel="stylesheet" href="{{ asset('allozoe/css/style.css') }}">
         <link rel="stylesheet" href="{{ asset('css/styles.css') }}">
         {% block stylesheets %}{% endblock %}
     </head>
     <body data-base-url="{{url('homepage')}}">
-        <header>
+        <header class="top-header">
             <div class="blck-logo">
                 <a href="{{ path('homepage') }}"><img src="{{ asset('images/logo.png') }}" alt="logo" /></a>
             </div>
@@ -23,12 +23,17 @@
                     </li>
                     <li>
                         <i class="fa fa-home"></i>
-                        <span><a href="#">Commander</a></span>
+                        <span><a href="{{ path('commander') }}">Commander</a></span>
                         <i class="underline"></i>
                     </li>
                     <li>
                         <i class="fa fa-home"></i>
-                        <span><a href="#">Contact</a></span>
+                        <span><a href="{{path('contact')}}">Contact</a></span>
+                        <i class="underline"></i>
+                    </li>
+                    <li>
+                        <i class="fa fa-home"></i>
+                        <span><a href="{{path('front_login')}}">Connexion</a></span>
                         <i class="underline"></i>
                     </li>
                 </ul>
@@ -41,7 +46,7 @@
         <main>
             {% block body %}{% endblock %}
         </main>
-        <footer>
+        <footer class="footer">
             <div class="footer">
                 <div class="footer-1">
                 <p>Mail : contact@allozoe.fr</p>

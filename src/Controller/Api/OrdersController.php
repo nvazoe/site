@@ -40,6 +40,7 @@ use App\Entity\MenuOptionProducts;
 use App\Entity\BankCard;
 use App\Entity\PaymentMode;
 use App\Entity\Ticket;
+use App\Entity\DeliveryProposition;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 /**
@@ -258,6 +259,9 @@ class OrdersController extends Controller {
         $amount = array_key_exists('amount', $data) ? $data['amount'] : null;
         $delivery_address = array_key_exists('delivery_address', $data) ? $data['delivery_address'] : null;
         $delivery_phone = array_key_exists('delivery_phone', $data) ? $data['delivery_phone'] : null;
+        $delivery_type = array_key_exists('delivery_type', $data) ? $data['delivery_type'] : "HOME";
+        $delivery_city = array_key_exists('delivery_city', $data) ? $data['delivery_city'] : null;
+        $delivery_note = array_key_exists('delivery_note', $data) ? $data['delivery_note'] : null;
         $menus = array_key_exists('menus', $data) ? $data['menus'] : [];
         $card = array_key_exists('creditcard', $data) ? $data['creditcard'] : [];
         $ticket = array_key_exists('ticket', $data) ? $data['ticket'] : [];
@@ -266,7 +270,7 @@ class OrdersController extends Controller {
         $cl = $em->getRepository(User::class)->find($client);
         $pymde = $em->getRepository(PaymentMode::class)->find($payment);
         $reference = substr(strtoupper(md5(random_bytes(6))), 0, 6);
-
+        $delivers = $em->getRepository(User::class)->findAllUserByRole('ROLE_DELIVER', false);
 
         // End validation
         $order = new Order();
@@ -275,6 +279,9 @@ class OrdersController extends Controller {
         $order->setRestaurant($restau);
         $order->setAddress($delivery_address);
         $order->setPhoneNumber($delivery_phone);
+        $order->setcity($delivery_city);
+        $order->setDeliveryNote($delivery_note);
+        $order->setDeliveryType($delivery_type);
         $order->setAmount($total);
         $order->setPaymentMode($pymde);
         $order->setOrderStatus($em->getRepository(OrderStatus::class)->find(1));
@@ -304,15 +311,29 @@ class OrdersController extends Controller {
             $order->setPayment($bc);
         }
         
+        
+        if($payment == 2){
+            $tkt = new Ticket();
+            $tkt->setClient($cl);
+            $tkt->setCode($ticket['code']);
+            $tkt->setRestaurant($restau);
+            $tkt->setDateCreated(new \DateTime());
+            $tkt->setValue($ticket['value']);
+            $tkt->setValid(1);
+            $em->persist($tkt);
+            
+            $order->setTicket($tkt);
+        }
+        
+
+        $em->persist($order);
+        
+        
         if(array_key_exists('id', $ticket)){
             $tk = $em->getRepository(Ticket::class)->find($ticket['id']);
             if($tk)
                 $order->setTicket($tk);
         }
-
-        $em->persist($order);
-
-
 
         foreach ($menus as $m) {
             $ordDt = new OrderDetails();
@@ -339,14 +360,28 @@ class OrdersController extends Controller {
                             $ordDtPrd->setPrice($prd->getAttribut());
                             $total += $ordDtPrd->getPrice() * (int) $m['quantity'];
                         }
+                        $em->persist($ordDtPrd);
                     }
                     
-                    $em->persist($ordDtPrd);
+                    
                 }
             }
         }
         $order->setAmount($total);
-//        $em->persist($order);
+        
+        
+        //propositions to dlivers
+        foreach ($delivers as $dl){
+            $delProposition = new DeliveryProposition();
+            $delProposition->setRestaurant($restau);
+            $delProposition->setValueResto(1);
+            $delProposition->setDeliver($dl);
+            $delProposition->setValueDeliver(0);
+            $delProposition->setCommand($order);
+
+            $em->persist($delProposition);
+        }
+        
         $em->flush();
 
         // Send mail to restaurant
@@ -413,8 +448,8 @@ class OrdersController extends Controller {
             $result['data']['card_id'] = null;
         }
         
-        if(isset($tk)){
-            $result['data']['ticket_id'] = $tk->getID();
+        if(isset($tkt)){
+            $result['data']['ticket_id'] = $tkt->getID();
         }else{
             $result['data']['ticket_id'] = null;
         }
@@ -838,6 +873,39 @@ class OrdersController extends Controller {
             $result = array('code' => 4000, 'description' => 'array \'creditcard\' parameter is required.');
             echo json_encode($result, JSON_UNESCAPED_SLASHES, 400);
             return false;
+        }
+        
+        if($params['payment_mode'] == 2){
+            if(array_key_exists('ticket', $params)){
+                if(array_key_exists('code', $params['ticket'])){
+                    if(!is_string($params['ticket']['code'])){
+                        $result = array('code' => 4000, 'description' => 'code ticket must be string.');
+                        echo json_encode($result, JSON_UNESCAPED_SLASHES, 400);
+                        return false;
+                    }
+                }else{
+                    $result = array('code' => 4000, 'description' => 'code ticket parameter is required.');
+                    echo json_encode($result, JSON_UNESCAPED_SLASHES, 400);
+                    return false;
+                }
+                
+                if(array_key_exists('value', $params['ticket'])){
+                    
+                    if(!is_numeric($params['ticket']['value']) && !is_null($params['ticket']['value'])){
+                        $result = array('code' => 4000, 'description' => 'value ticket must be float value.');
+                        echo json_encode($result, JSON_UNESCAPED_SLASHES, 400);
+                        return false;
+                    }
+                }else{
+                    $result = array('code' => 4000, 'description' => 'value ticket parameter is required and must be null.');
+                    echo json_encode($result, JSON_UNESCAPED_SLASHES, 400);
+                    return false;
+                }
+            }else{
+                $result = array('code' => 4000, 'description' => 'array \'ticket\' parameter is required.');
+                echo json_encode($result, JSON_UNESCAPED_SLASHES, 400);
+                return false;
+            }
         }
 
         return true;

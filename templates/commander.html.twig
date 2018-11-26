@@ -1,0 +1,24 @@
+{% extends 'base.html.twig' %}
+
+{% block page_title %}Commander{% endblock %}
+
+{% block body %}
+    <div class="padding-top-bottom">
+        <div class="container">
+            <div class="row">
+                {% for restau in restaurants %}
+                    <div class="col-md-4">
+                        <div class="thumbnail">
+                            <div style="background-image: url({% if not restau.image %}{{ asset('images/menu/dish.jpg')}}{%else%}{{ asset('images/restaurant/')}}{{restau.image}}{%endif%}); height:200px; background-size:cover;"></div>
+
+                            <div class="caption">
+                                <h4><a href="{{ path('restau', {'id': restau.id}) }}">{{restau.name}} {% if restau.address %}({{restau.address}} {{restau.city}}){%endif%}</a></h4>
+                                {#<p>{{ restau.description }}</p>#}
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+{% endblock %}

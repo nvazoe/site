@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="{{ app.request.locale|split('_')|first|default('en') }}">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <title>Impression ticket </title>
+        <link rel="stylesheet"  href="impression-ticket.css" media="print" />
+    </head>
+    <body>
+        <div class="title">{{ order.restaurant.name }}</div>
+        <div>{{ order.restaurant.address }}</div>
+        <div>Du {{ order.dateCreated|date('d - m - Y H:i:s')}}</div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Qte</th>
+                    <th>Produit</th>
+                    <th>Unit</th>
+                    <th>Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for ord in order.orderdetails %}
+                    <tr>
+                        <td>
+                            <div><strong>{{ord.quantity}}</strong></div>
+                        </td>
+                        <td>{{ord.menu.name}}</td>
+                        <td>{{ord.price}}</td>
+                        <td>{{ord.price * ord.quantity}}</td>
+                    </tr>
+                {%endfor%}
+            </tbody>
+            <tfooter>
+                <tr>
+                    <th colspan="3">Total commande</th>
+                    <td>{{total}} EUR</td>
+                </tr>
+            </tfooter>
+        </table>
+                
+        <hr>
+        
+        {% if order.payment %}
+            <div>Carte bancaire</div>
+        {% endif %}
+        
+        {% if order.ticket %}
+            <div class="title">TICKET RESTAURANT</div>
+            <div>N° {{ order.ticket.code }}</div>
+            <div>MONTANT = {{ total }} EUR</div>
+            <div>TICKET CLIENT A CONSERVER</div>
+        {% endif %}
+    </body>
+</html>

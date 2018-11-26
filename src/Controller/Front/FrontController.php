@@ -34,4 +34,36 @@ class FrontController extends Controller{
         
         return array('restaurants' => $restaurants);
     }
+    
+    /**
+     * @Method({"GET", "POST"})
+     * @Route("/contact", name="contact")
+     * @Template("/contact.html.twig")
+     */ 
+    public function contactAction(Request $request){
+        
+    }
+    
+    
+    /**
+     * @Method({"GET"})
+     * @Route("/commander", name="commander")
+     * @Template("/commander.html.twig")
+     */ 
+    public function commanderAction(Request $request){
+        $em = $this->getDoctrine()->getManager();
+        $restaurants = $em->getRepository(Restaurant::class)->findAll();
+        
+        return array('restaurants' => $restaurants);
+    }
+    
+    
+    /**
+     * @Method({"GET", "POST"})
+     * @Route("/login", name="front_login")
+     * @Template("/login.html.twig")
+     */
+    public function loginAction(Request $request){
+        
+    }
 }

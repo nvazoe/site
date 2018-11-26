@@ -132,7 +132,7 @@ class UsersController extends Controller {
         $conn->setConnectStatus(1);
         $conn->setDateCreated(new \DateTime());
         $conn->setstartDatetime(time());
-        $conn->setendDatetime(0);
+        $conn->setendDatetime(time());
         $em->persist($conn);
         $em->flush();
         

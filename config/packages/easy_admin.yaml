@@ -453,8 +453,8 @@ easy_admin:
                 role: ROLE_RESTAURANT
                 children:
                     -
-                        entity: Order
-                        label: Toutes
+                        route: dashboard_o
+                        label: Dashboard commandes
                     -
                         entity: NewOrder
                         label: Nouvelles commandes
@@ -481,11 +481,11 @@ easy_admin:
                 label: Mode de paiement
                 icon: money
                 role: ROLE_SUPER_ADMIN
-            -
-                entity: Ticket
-                label: Tickets restau
-                icon: drivers-license
-                role: ROLE_RESTAURANT
+#            -
+#                entity: Ticket
+#                label: Tickets restau
+#                icon: drivers-license
+#                role: ROLE_RESTAURANT
             -
                 label: Cartes
                 icon: map

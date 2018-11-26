@@ -321,6 +321,35 @@ class AdminController extends BaseAdminController {
         $details = $order->getOrderDetails();
         foreach($details as $dt){
             $total += intval($dt->getQuantity()) * floatval($dt->getPrice());
+            $dtt = $dt->getOrderDetailsMenuProducts();
+            foreach ($dtt as $val){
+                $total += floatval($val->getPrice());
+            }
+        }
+        
+        return array('order' => $order, 'delivers' => $delivers, 'total' => $total);
+    }
+    
+    
+    /**
+     * @Method({"GET"})
+     * @Route("/order/ticket/{id}", name="ticket")
+     * @Template("/admin/printable.html.twig")
+     */
+    public function printTicketAction(Request $request, $id){
+        $em = $this->getDoctrine()->getManager();
+        
+        $order = $em->getRepository(Order::class)->find($id);
+        $delivers = $em->getRepository(User::class)->findAllUserByRole('ROLE_DELIVER', false);
+        
+        $total = 0.00;
+        $details = $order->getOrderDetails();
+        foreach($details as $dt){
+            $total += intval($dt->getQuantity()) * floatval($dt->getPrice());
+            $dtt = $dt->getOrderDetailsMenuProducts();
+            foreach ($dtt as $val){
+                $total += floatval($val->getPrice());
+            }
         }
         
         return array('order' => $order, 'delivers' => $delivers, 'total' => $total);
@@ -422,8 +451,58 @@ class AdminController extends BaseAdminController {
     }
     
     
+    /**
+     * @Method({"GET"})
+     * @Route("/orders/dashboard", name="dashboard_o")
+     * @Template("/admin/orders-dashboard.html.twig")
+     */ 
+    public function ordersDashboard(Request $request){
+        $em = $this->getDoctrine()->getManager();
+        
+        $orders = $em->getRepository(Order::class)->getUserOrders($this->getUser()->getId(), 100, 1, array(1,2,7), false);
+        
+        return array('orders' => $orders, 'totalRows' => ceil(count($orders)/3));
+    }
+    
+    /**
+     * @Method({"GET"})
+     * @Route("/orders/infos")
+     */ 
+    public function jsonGetorders(Request $request){
+        $em = $this->getDoctrine()->getManager();
+        $status = $request->get('status');
+        $orders = $em->getRepository(Order::class)->getUserOrders($this->getUser()->getId(), 100, 1, $status, false);
+        $items = [];
+        foreach($orders as $key=>$val){
+            $items[$key] = $val->getId();
+        }
+        
+        return new JsonResponse(array('code'=>200, 'items' => $items));
+    }
+    
+    
+    /**
+     * @Method({"GET"})
+     * @Route("/orders/change-status")
+     */ 
+    public function orderchangestatus(Request $request){
+        $em = $this->getDoctrine()->getManager();
+        $status = $request->get('status');
+        $ord = $request->get('order');
+        //die(var_dump($ord));
+        $order = $em->getRepository(Order::class)->find($ord);
+        if($order){
+            $order->setOrderStatus($em->getRepository(OrderStatus::class)->find($status));
+        }
+        $em->flush();
+        
+        return new JsonResponse(array('code'=>200 ));
+    }
+    
+    
     public function createRestaurantListQueryBuilder($entityClass, $sortDirection, $sortField = null, $dqlFilter = null)
     {
+        
         //$idowner = isset($_GET['id'])?$_GET['id']:false;
         $idowner = $this->getUser()->getId();
         if($idowner){
@@ -438,9 +517,11 @@ class AdminController extends BaseAdminController {
         
         $restaurants = $this->getUser()->getRestaurants();
         $qb = parent::createListQueryBuilder($dqlFilter, $sortDirection, $sortField);
+        $ids = [];
         foreach ($restaurants as $k=>$v){
-            $qb->orWhere('entity.restaurant = '.$v->getId());
+            $ids[] = $v->getId();
         }
+        $qb->andWhere('entity.restaurant IN (:ids)')->setParameter('ids', $ids);
         
 
         return $qb;
@@ -452,10 +533,11 @@ class AdminController extends BaseAdminController {
         
         $restaurants = $this->getUser()->getRestaurants();
         $qb = parent::createListQueryBuilder($dqlFilter, $sortDirection, $sortField);
+        $ids = [];
         foreach ($restaurants as $k=>$v){
-            $qb->orWhere('entity.restaurant = '.$v->getId());
+            $ids[] = $v->getId();
         }
-        
+        $qb->andWhere('entity.restaurant IN (:ids)')->setParameter('ids', $ids);
 
         return $qb;
     }
@@ -465,11 +547,12 @@ class AdminController extends BaseAdminController {
         
         $restaurants = $this->getUser()->getRestaurants();
         $qb = parent::createListQueryBuilder($dqlFilter, $sortDirection, $sortField);
+        $qb->andWhere('entity.orderStatus = 1');
+        $ids = [];
         foreach ($restaurants as $k=>$v){
-            $qb->orWhere('entity.restaurant = '.$v->getId());
+            $ids[] = $v->getId();
         }
-        
-
+        $qb->andWhere('entity.restaurant IN (:ids)')->setParameter('ids', $ids);
         return $qb;
     }
     
@@ -478,9 +561,13 @@ class AdminController extends BaseAdminController {
         
         $restaurants = $this->getUser()->getRestaurants();
         $qb = parent::createListQueryBuilder($dqlFilter, $sortDirection, $sortField);
+        $qb->andWhere('entity.orderStatus = 2');
+        $ids = [];
         foreach ($restaurants as $k=>$v){
-            $qb->orWhere('entity.restaurant = '.$v->getId());
+            $ids[] = $v->getId();
         }
+        $qb->andWhere('entity.restaurant IN (:ids)')->setParameter('ids', $ids);
+        return $qb;
         
 
         return $qb;
@@ -491,11 +578,12 @@ class AdminController extends BaseAdminController {
         
         $restaurants = $this->getUser()->getRestaurants();
         $qb = parent::createListQueryBuilder($dqlFilter, $sortDirection, $sortField);
+        $qb->andWhere('entity.orderStatus = 6');
+        $ids = [];
         foreach ($restaurants as $k=>$v){
-            $qb->orWhere('entity.restaurant = '.$v->getId());
+            $ids[] = $v->getId();
         }
-        
-
+        $qb->andWhere('entity.restaurant IN (:ids)')->setParameter('ids', $ids);
         return $qb;
     }
     
@@ -505,11 +593,12 @@ class AdminController extends BaseAdminController {
         
         $restaurants = $this->getUser()->getRestaurants();
         $qb = parent::createListQueryBuilder($dqlFilter, $sortDirection, $sortField);
+        $qb->andWhere('entity.orderStatus = 4');
+        $ids = [];
         foreach ($restaurants as $k=>$v){
-            $qb->orWhere('entity.restaurant = '.$v->getId());
+            $ids[] = $v->getId();
         }
-        
-
+        $qb->andWhere('entity.restaurant IN (:ids)')->setParameter('ids', $ids);
         return $qb;
     }
     
@@ -518,10 +607,11 @@ class AdminController extends BaseAdminController {
         
         $restaurants = $this->getUser()->getRestaurants();
         $qb = parent::createListQueryBuilder($dqlFilter, $sortDirection, $sortField);
+        $ids = [];
         foreach ($restaurants as $k=>$v){
-            $qb->orWhere('entity.restaurant = '.$v->getId());
+            $ids[] = $v->getId();
         }
-        
+        $qb->andWhere('entity.restaurant IN (:ids)')->setParameter('ids', $ids);
 
         return $qb;
     }
@@ -532,10 +622,11 @@ class AdminController extends BaseAdminController {
         
         $restaurants = $this->getUser()->getRestaurants();
         $qb = parent::createListQueryBuilder($dqlFilter, $sortDirection, $sortField);
+        $ids = [];
         foreach ($restaurants as $k=>$v){
-            $qb->orWhere('entity.restaurant = '.$v->getId());
+            $ids[] = $v->getId();
         }
-        
+        $qb->andWhere('entity.restaurant IN (:ids)')->setParameter('ids', $ids);
 
         return $qb;
     }
@@ -553,6 +644,8 @@ class AdminController extends BaseAdminController {
         }
         return  $qb;
     }
+    
+    
     
     
 }

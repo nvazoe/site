@@ -26,14 +26,14 @@
                         <div class="col-md-6">
                             <h4>Invoice <small>{{ order.ref }}</small></h4>
                         </div>
-                        {#<div class="col-md-6">
+                        <div class="col-md-6">
                             <div class="text-right">
-                                <button class="btn btn-default btn-sm"><i class="fa fa-pencil"></i> Edit </button>
-                                <button class="btn btn-default btn-sm"><i class="fa fa-check "></i> Save </button>
-                                <button class="btn btn-primary btn-sm"><i class="fa fa-dollar"></i> Make A Payment</button>
+                                {#<button class="btn btn-default btn-sm"><i class="fa fa-pencil"></i> Edit </button>
+                                <button class="btn btn-default btn-sm"><i class="fa fa-check "></i> Save </button>#}
+                                <button class="btn btn-primary btn-sm"><i class="fa fa-print"></i> Imprimer</button>
                             </div>
 
-                        </div>#}
+                        </div>
                     </div>
                 </div>
                 <div class="panel-body p-xl">
@@ -51,7 +51,7 @@
                                 <input type="hidden" name="order" value="{{order.id}}" />
                                 {% if order.messenger %}
                                     <div class="form-group">
-                                        <select name="deliver" class="form-control" onchange="this.form.submit();" disabled="disabled">
+                                        <select name="deliver" class="form-control" onchange="this.form.submit();" >
                                             <option>Livreur de la commande</option>
                                             {% for d in delivers %}
                                                 <option value="{{d.id}}" {{ order.messenger ? order.messenger.id == d.id ? 'selected' : '' : '' }}>{{d.firstname}}</option>
@@ -108,12 +108,37 @@
                                     <td>
                                         <div><strong>{{ord.menu.name}}</strong></div>
                                         <small>
-                                            {{ord.menu.description}}
+                                            <ol>
+                                            {% for dt in ord.OrderDetailsMenuProducts %}
+                                                <li>{{dt.product.name}}</li>
+                                            {%endfor%}
+                                            </ol>
                                         </small>
                                     </td>
-                                    <td>{{ord.quantity}}</td>
-                                    <td>{{ord.price}}</td>
-                                    <td>{{ord.price * ord.quantity}}</td>
+                                    <td>
+                                        {{ord.quantity}}
+                                        <ul class="list-unstyled">
+                                        {% for dt in ord.OrderDetailsMenuProducts %}
+                                            <li>1</li>
+                                        {%endfor%}
+                                        </ul>
+                                    </td>
+                                    <td>
+                                        {{ord.price}}
+                                        <ul class="list-unstyled">
+                                            {% for dt in ord.OrderDetailsMenuProducts %}
+                                                <li>{{dt.price}}</li>
+                                            {%endfor%}
+                                        </ul>
+                                    </td>
+                                    <td>
+                                        {{ord.price * ord.quantity}}
+                                        <ul class="list-unstyled">
+                                            {% for dt in ord.OrderDetailsMenuProducts %}
+                                                <li>{{dt.price}}</li>
+                                            {%endfor%}
+                                        </ul>
+                                    </td>
                                 </tr>
                             {%endfor%}
 
@@ -177,23 +202,136 @@
     };
     
       function initMap() {
+        var directionsService = new google.maps.DirectionsService;
+        var directionsDisplay = new google.maps.DirectionsRenderer;
         map = new google.maps.Map(document.getElementById('map'), {
           center: france,
           zoom: 8
         });
+        directionsDisplay.setMap(map);
+        
         var dels = [];
-        {% if delivers %}
-            {% for del in delivers %}
-                var o = {
-                    'name':"{{ del.username }}",
-                    'lat': "{{ del.latitude }}",
-                    'lng': "{{ del.longitude }}",
-                    'phone': "{{ del.PhoneNumber }}",
-                    'address': "{{ del.Address }}"
+        {% if order.messenger %}
+                var liv = {
+                    'name' : "{{ order.messenger.username }}",
+                    'lat' : "{{ order.messenger.latitude }}",
+                    'lng': "{{ order.messenger.longitude }}",
+                    'phone': "{{ order.messenger.PhoneNumber }}",
+                    'address': "{{ order.messenger.Address }}"
                 };
-                dels.push(o);
-            {% endfor %}
+                // Marker du livreur
+                var infowindowLivreur = new google.maps.InfoWindow();
+                var mLiv = new google.maps.Marker({
+                    position: {lat: parseFloat(liv.lat), lng: parseFloat(liv.lng)},
+                    map: map,
+                    title: liv.name,
+                    icon: icons.livreur.icon,
+                    draggable: false
+                });
+                google.maps.event.addListener(mLiv, 'click', (function (mLiv) {
+                    return function () {
+                        var html = '<div class="content-pin">' +liv.name;
+                        html += '<ul class="list-unstyled">';
+                        html += '<li><strong>Phone</strong> : '+liv.phone+'</li>';
+                        html += '<li><strong>Adresse</strong> : '+liv.address+'</li>';
+                        html += '</ul></div>';
+                        map.panTo(mLiv.getPosition());
+                        infowindowLivreur.setContent(html);
+                        infowindowLivreur.open(map, mLiv, html);
+
+                            };
+                })(mLiv));
+                
+                setInterval(function(){
+                    //mLiv.setMap(null);
+                    
+                    $.ajax({
+                        url: $('body').data('base-url')+'api/delivers/'+{{ order.messenger.id }},
+                        type: 'get',
+                        headers:{
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json'
+                        },
+                        crossDomain: true
+                    }).done(function(resp){
+                        var data = resp.data;
+                        var livr = {
+                            'name' : data.username,
+                            'lat' : data.position.latitude,
+                            'lng': data.position.longitude,
+                            'phone': data.phone,
+                            'address': data.address
+                        };
+                        var infowindowLivreur = new google.maps.InfoWindow();
+                        var mLivr = new google.maps.Marker({
+                            position: {lat: parseFloat(livr.lat), lng: parseFloat(livr.lng)},
+                            map: map,
+                            title: livr.name,
+                            icon: icons.livreur.icon,
+                            draggable: false
+                        });
+                        google.maps.event.addListener(mLivr, 'click', (function (mLivr) {
+                            return function () {
+                                var html = '<div class="content-pin">' +livr.name;
+                                html += '<ul class="list-unstyled">';
+                                html += '<li><strong>Phone</strong> : '+livr.phone+'</li>';
+                                html += '<li><strong>Adresse</strong> : '+livr.address+'</li>';
+                                html += '</ul></div>';
+                                map.panTo(mLivr.getPosition());
+                                infowindowLivreur.setContent(html);
+                                infowindowLivreur.open(map, mLivr, html);
+
+                                    };
+                        })(mLivr));
+                        setTimeout(function(){
+                             mLivr.setMap(null);
+                        },3000);
+                    }).fail();
+                }, 5000);
+                
+                {%else%}
+                    {% if delivers %}
+                        {% for del in delivers %}
+                            var o = {
+                                'name':"{{ del.username }}",
+                                'lat': "{{ del.latitude }}",
+                                'lng': "{{ del.longitude }}",
+                                'phone': "{{ del.PhoneNumber }}",
+                                'address': "{{ del.Address }}"
+                            };
+                            dels.push(o);
+                        {% endfor %}
+                    {% endif %}
+
+                    // The marker, des liveurs
+                    var icon = icons.livreur.icon;
+                    var infowindow = new google.maps.InfoWindow();
+                    for(var i=0, c=dels.length; i<c; i++){
+                        var marker = new google.maps.Marker({
+                            position: {lat: parseFloat(dels[i].lat), lng: parseFloat(dels[i].lng)},
+                            map: map,
+                            title: dels[i].name,
+                            draggable: false,
+                            content: dels[i].name,
+                            icon: icon
+                        });
+
+                        google.maps.event.addListener(marker, 'click', (function (marker, i) {
+                            return function () {
+                                var html = '<div class="content-pin">' +dels[i].name;
+                                html += '<ul class="list-unstyled">';
+                                html += '<li><strong>Phone</strong> : '+dels[i].phone+'</li>';
+                                html += '<li><strong>Adresse</strong> : '+dels[i].address+'</li>';
+                                html += '</ul></div>';
+                                map.panTo(marker.getPosition());
+                                infowindow.setContent(html);
+                                infowindow.open(map, marker, html);
+
+                                    };
+                        })(marker, i));
+                    }
         {% endif %}
+        
             
         var resto = {
             'name' : "{{ order.restaurant.name }}",
@@ -204,6 +342,7 @@
         };
         
         // Marker du restaurant
+        var infowindowResto = new google.maps.InfoWindow();
         var mResto = new google.maps.Marker({
             position: {lat: parseFloat(resto.lat), lng: parseFloat(resto.lng)},
             map: map,
@@ -219,40 +358,32 @@
                     html += '<li><strong>Adresse</strong> : '+resto.adr+'</li>';
                     html += '</ul></div>';
                     map.panTo(mResto.getPosition());
-                    infowindow.setContent(html);
-                    infowindow.open(map, mResto, html);
+                    infowindowResto.setContent(html);
+                    infowindowResto.open(map, mResto, html);
 
                         };
             })(mResto));
         
-        // The marker, des liveurs
-        var icon = icons.livreur.icon;
-        var infowindow = new google.maps.InfoWindow();
-        for(var i=0, c=dels.length; i<c; i++){
-            var marker = new google.maps.Marker({
-                position: {lat: parseFloat(dels[i].lat), lng: parseFloat(dels[i].lng)},
-                map: map,
-                title: dels[i].name,
-                draggable: false,
-                content: dels[i].name,
-                icon: icon
-            });
-            
-            google.maps.event.addListener(marker, 'click', (function (marker, i) {
-                return function () {
-                    var html = '<div class="content-pin">' +dels[i].name;
-                    html += '<ul class="list-unstyled">';
-                    html += '<li><strong>Phone</strong> : '+dels[i].phone+'</li>';
-                    html += '<li><strong>Adresse</strong> : '+dels[i].address+'</li>';
-                    html += '</ul></div>';
-                    map.panTo(marker.getPosition());
-                    infowindow.setContent(html);
-                    infowindow.open(map, marker, html);
-
-                        };
-            })(marker, i));
-        }
+        {#var orig = new google.maps.LatLng(liv.lat, liv.lng);
+        var dest = new google.maps.LatLng(resto.lat, resto.lng);
+        calculateAndDisplayRoute(directionsService, directionsDisplay, orig, dest);#}
         
+      }
+      
+      
+      function calculateAndDisplayRoute(directionsService, directionsDisplay, mrkO, mrkD) {
+      //var geocoder = new google.maps.Geocoder;
+        directionsService.route({
+          origin: mrkO,
+          destination: mrkD,
+          travelMode: 'DRIVING'
+        }, function(response, status) {
+          if (status === 'OK') {
+            directionsDisplay.setDirections(response);
+          } else {
+            window.alert('Directions request failed due to ' + status);
+          }
+        });
       }
     </script>
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyD9qWr1Xq89haWKgy_cAmyEqMJ_ZonMWJA&callback=initMap"

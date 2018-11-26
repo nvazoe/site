@@ -3,8 +3,10 @@
 namespace App\Repository;
 
 use App\Entity\Order;
+use App\Entity\User;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Symfony\Bridge\Doctrine\RegistryInterface;
+use Doctrine\ORM\Query\Expr\Join;
 
 /**
  * @method Order|null find($id, $lockMode = null, $lockVersion = null)
@@ -64,7 +66,48 @@ class OrderRepository extends ServiceEntityRepository
         
         
                
-        return $select->getQuery()->getResult();            
+        return $select->getQuery()->getResult();
+        
+    }
+    
+    
+    public function getUserOrders($user, $limit, $page, $status, $count=false)
+    {
+        $select = $this->createQueryBuilder('o');
+        
+        $select = $select->Join('App\Entity\Restaurant', 'r', \Doctrine\ORM\Query\Expr\Join::WITH, 'r.id = o.restaurant');
+        $select = $select->Join('App\Entity\User', 'u', \Doctrine\ORM\Query\Expr\Join::WITH, 'u.id = r.owner');
+        
+        $select = $select->andWhere('r.owner = :u')->setParameter('u', $user);
+        
+        if($status){
+            if(!is_array($status)){
+                $select = $select->andWhere ('o.orderStatus = :cat')->setParameter ('cat', $status);
+            }else{
+                $select = $select->andWhere ('o.orderStatus IN (:cat)')->setParameter ('cat', array_values($status));
+            }
+        }
+        
+        if($count)
+            return $select->select('COUNT(o)')->getQuery()->getSingleScalarResult();
+        
+        if($limit)
+            $select = $select->setFirstResult( ($page-1)*$limit )->setMaxResults( $limit );
+        
+        $select->orderBy('o.id', 'desc');
+        
+//        if($status)
+//            $select = $select->andWhere ('o.orderStatus = :cat')->setParameter ('cat', $status);
+//        
+//        if($count)
+//            return $select->select('COUNT(o)')->getQuery()->getSingleScalarResult();
+//        
+//        if($limit)
+//            $select = $select->setFirstResult( ($page-1)*$limit )->setMaxResults( $limit );
+        
+        
+        
+        return $select->getQuery()->getResult();
         
     }
     

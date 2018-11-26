@@ -144,6 +144,7 @@ function add_to_basket() {
         var qty = parseInt($('.qty').text());
         var amount = parseFloat($('.amount-menu').text()).toFixed(2);
         var restau = $('#restau').data('restau');
+        var restau_id = $('#restau').data('restau-id');
         var menu_id = $('#menu-name').data('menu');
 
         var options = $('.blck-option');
@@ -183,6 +184,7 @@ function add_to_basket() {
         $cart.push($item);
         localStorage.setItem('cart', JSON.stringify($cart));
         localStorage.setItem('restau', restau);
+        localStorage.setItem('restau_id', restau_id);
         setup_cart(localStorage.cart);
     } catch (error) {
         console.log(error);
@@ -198,9 +200,9 @@ function setup_cart($tring) {
         for (var a = 0, b = $cart.length; a < b; a++) {
             $html += item_basket_html($cart[a].quantity, $cart[a].title, $cart[a].amount, $cart[a].options, a);
             $amount_cart = parseFloat($amount_cart) + (parseFloat($cart[a].amount));
-            $nb_art += parseInt($cart[a].qty);
+            $nb_art += parseInt($cart[a].quantity);
         }
-        
+        console.log($nb_art);
         localStorage.setItem('amount', $amount_cart.toFixed(2));
         localStorage.setItem('nb_article', $nb_art);
         // update de DOM

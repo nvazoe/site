@@ -1,5 +1,6 @@
 {% extends 'base.html.twig' %}
 
+{% block page_title %}Checkout{% endblock %}
 
 {% block body %}
     <header>
@@ -21,22 +22,25 @@
                         <div class="row">
                             <div class="col-sm-4"><img src="{{ asset('images/staticmap.png') }}" alt="map"/></div>
                             <div class="col-sm-8">
-                                <form>
+                                <form id="address-form" method="post">
                                     <div class="row">
                                         <div class="form-group col-sm-6">
-                                            <input type="radio" name="kr"><label>Livraison à domicile</label>
+                                            <input type="radio" name="delivery-type" id="delivery-type-1" value="HOME" checked="checked" ><label for="delivery-type-1">Livraison à domicile</label>
                                         </div>
                                         <div class="form-group col-sm-6">
-                                            <input type="radio" name="kr"><label>Rendez-vous au véhicule</label>
+                                            <input type="radio" name="delivery-type" id="delivery-type-2" value="ON_ROAD"><label for="delivery-type-2">Rendez-vous au véhicule</label>
                                         </div>
                                         <div class="form-group col-sm-12">
-                                            <input type="text" class="form-control" name="city" placeholder="Toulouse">
+                                            <input type="text" class="form-control" name="city" placeholder="Ville: Toulouse">
                                         </div>
                                         <div class="form-group col-sm-12">
-                                            <input type="text" class="form-control" name="city" placeholder="Appartement/Bureau/Etage">
+                                            <input type="text" class="form-control" name="address" placeholder="Adresse: Appartement/Bureau/Etage">
                                         </div>
                                         <div class="form-group col-sm-12">
-                                            <input type="text" class="form-control" name="city" placeholder="Ajouter une note pour la livraison.">
+                                            <input type="tel" class="form-control" name="phone" placeholder="Téléphone contact pour livraison">
+                                        </div>
+                                        <div class="form-group col-sm-12">
+                                            <textarea type="text" class="form-control" name="delivery-note" placeholder="Ajouter une note pour la livraison."></textarea>
                                         </div>
                                     </div>
                                 </form>
@@ -53,14 +57,15 @@
                                 <form>
                                     <div class="row">
                                         <div class="form-group col-sm-6">
-                                            <select class="form-control">
-                                                <option>Carte bancaire</option>
-                                                <option>Ticket restaurant</option>
+                                            <select class="form-control" name="mpayment" form="address-form">
+                                                <option value="0">Votre mode de paiement</option>
+                                                <option value="1">Carte bancaire</option>
+                                                <option value="2" selected="selected">Ticket restaurant</option>
                                             </select>
                                         </div>
                                     </div>
                                 </form>
-                                <span>Ajouter un code promotionnel</span>
+                                {#<span>Ajouter un code promotionnel</span>#}
                             </div>
                             
                         </div>
@@ -154,6 +159,9 @@
 {% endblock %}
 
 {% block javascripts %}
+    <script src="{{ asset('jqueryvalidation/jquery.validate.min.js') }}"></script>
+    <script src="{{ asset('jqueryvalidation/localization/messages_fr.min.js') }}"></script>
+    <script src="{{ asset('jqueryvalidation/additional-methods.min.js') }}"></script>
     <script src="{{ asset('js/order-sys.js') }}"></script>
     <script src="{{ asset('js/checkout.js') }}"></script>
 {% endblock %}

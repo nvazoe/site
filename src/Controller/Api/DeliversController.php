@@ -552,6 +552,8 @@ class DeliversController extends Controller{
                 $result['data']['firstname'] = $deliver->getFirstname();
                 $result['data']['lastname'] = $deliver->getLastname();
                 $result['data']['email'] = $deliver->getEmail();
+                $result['data']['phone'] = $deliver->getPhoneNumber();
+                $result['data']['address'] = $deliver->getAddress();
                 $result['data']['position']['latitude'] = $deliver->getLatitude();
                 $result['data']['position']['longitude'] = $deliver->getLongitude();
             }
@@ -601,6 +603,32 @@ class DeliversController extends Controller{
         
         $del->setLatitude($latitude);
         $del->setLongitude($longitude);
+        
+        $user = $em->getRepository(ConnexionLog::class)->getLastConnectRow($id);
+        if($user){
+            if(time() - $user->getstartDatetime() <= 300 ){
+                $user->setendDatetime(time());
+            }else{
+                $role = "S";
+                if(in_array('ROLE_DELIVER', $del->getRoles()))
+                    $role = "D";
+                if(in_array('ROLE_CLIENT', $del->getRoles()))
+                    $role = "C";
+                if(in_array('ROLE_ADMIN', $del->getRoles()))
+                    $role = "A";
+                
+                $conn = new ConnexionLog();
+                $conn->setUser($del);
+                $conn->setRole($role);
+                $conn->setConnectStatus(1);
+                $conn->setDateCreated(new \DateTime());
+                $conn->setstartDatetime(time());
+                $conn->setendDatetime(time());
+                $em->persist($conn);
+            }
+        }
+        
+        
         
         $em->flush();
         
@@ -724,13 +752,7 @@ class DeliversController extends Controller{
             $account = $em->getRepository(User::class)->find($id);
             $account->setConnectStatus(0);
             
-            
-            
-//            $conn->setUser($account);
-//            $conn->setRole("D");
             $user->setConnectStatus(0);
-//            $conn->setDateCreated(new \DateTime());
-//            $conn->setstartDatetime(0);
             $user->setendDatetime(time());
             
         }
@@ -738,5 +760,35 @@ class DeliversController extends Controller{
         $em->flush();
         
         return new JsonResponse(array('code'=>200));
+    }
+    
+    
+    /**
+     * @Get("/api/delivers/{id}/ping")
+     * 
+     * *@SWG\Response(
+     *      response=200,
+     *      description="Get connect status"
+     * )
+     * 
+     * @SWG\Tag(name="Delivers")
+     */
+    public function getConnectStatus(Request $request, $id){
+        $em = $this->getDoctrine()->getManager();
+        
+        $user = $em->getRepository(User::class)->find($id);
+        
+        if(!$user){
+            $result = array('code' => 400, 'description' => "Unexisting deliver account");
+            return new JsonResponse($result, 400);
+        }
+        
+        if($user->getConnectStatus()){
+            $result = "CONNECTED";
+        }else{
+            $result = "NON CONNECTED";
+        }
+        
+        return new JsonResponse(array('code'=>200, 'data' => $result));
     }
 }

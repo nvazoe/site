@@ -14,40 +14,109 @@
 
 {% block carousel %}
     <!-- SLIDER -->
-            <div class="fg-slider" id="slider-1">
-                <div class="fg-content text-center">
-                    <p>Hi There... I'm Sarah Smith</p>
-                    <a href="#about-me" class="btn hover">
-                        <i class="fa fa-angle-right" aria-hidden="true"></i> More about me...</a>
-                </div>
-                <img src="{{ asset('images/slide-1.jpg') }}" alt="">
+    <div class="fg-slider" id="slider-1">
+        <div class="fg-content text-center">
+            <p>Hi There... I'm Sarah Smith</p>
+            <a href="#about-me" class="btn hover">
+                <i class="fa fa-angle-right" aria-hidden="true"></i> More about me...</a>
+        </div>
+        <img src="{{ asset('images/slide-1.jpg') }}" alt="">
 
-                <div class="fg-content text-center">
-                    <p>Hi There... I'm Sarah Smith</p>
-                    <a href="#about-me" class="btn hover">
-                        <i class="fa fa-angle-right" aria-hidden="true"></i> More about me...</a>
-                </div>
-                <img src="{{ asset('images/slide-2.jpg') }}" alt="">
-            </div>
+        <div class="fg-content text-center">
+            <p>Hi There... I'm Sarah Smith</p>
+            <a href="#about-me" class="btn hover">
+                <i class="fa fa-angle-right" aria-hidden="true"></i> More about me...</a>
+        </div>
+        <img src="{{ asset('images/slide-2.jpg') }}" alt="">
+    </div>
 {% endblock %}
 
 {% block body %}
-    <div class="container">
-        <div class="row">
-            {% for restau in restaurants %}
-                <div class="col-md-4">
-                    <div class="thumbnail">
-                        <div style="background-image: url({% if not restau.image %}{{ asset('images/menu/dish.jpg')}}{%else%}{{ asset('images/restaurant/')}}{{restau.image}}{%endif%}); height:200px; background-size:cover;"></div>
-                        
-                            <div class="caption">
-                                <h4><a href="{{ path('restau', {'id': restau.id}) }}">{{restau.name}} {% if restau.address %}({{restau.address}} {{restau.city}}){%endif%}</a></h4>
-                                {#<p>{{ restau.description }}</p>#}
-                            </div>
-                    </div>
+    <div class="block-infos">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-2 col-md-offset-1">
+                    <div class="div-img"><img src="{{asset('images/fire-130x130.png')}}" alt="image"></div>
+                    <div class="bool-title">Chaud</div>
+                    <p class="descript">
+                        Nos véhicules sont équipés afin deconserver vos plats au chaud.
+                    </p>
                 </div>
-            {% endfor %}
+                <div class="col-md-2">
+                    <div class="div-img">
+                        <img src="{{asset('images/cold-130x130.png')}}" alt="image">
+                    </div>
+                    <div class="bool-title">Froid</div>
+                    <p class="descript">
+                        Nos véhicules sont équipés afin deconserver vos plats au froid.
+                    </p>
+                </div>
+                <div class="col-md-2">
+                    <div class="div-img">
+                        <img src="{{asset('images/light-130x130.png')}}" alt="image">
+                    </div>
+                    <div class="bool-title">Ecologie</div>
+                    <p class="descript">
+                        Nous protégeons la planète en vous livrant avec nos voitures éléctriques.
+                    </p>
+                </div>
+                <div class="col-md-2">
+                    <div class="div-img">
+                        <img src="{{asset('images/chrono-130x130.png')}}" alt="image">
+                    </div>
+                    <div class="bool-title">Rapidité</div>
+                    <p class="descript">
+                        Nous livrons vos envies en un temps limité.
+                    </p>
+                </div>
+                <div class="col-md-2">
+                    <div class="div-img">
+                        <img src="{{asset('images/lock-130x130.png')}}" alt="image">
+                    </div>
+                    <div class="bool-title">Sécurité</div>
+                    <p class="descript">
+                        Nous assurons la sécurité alimentaire de vos plats.
+                    </p>
+                </div>
+            </div>
         </div>
     </div>
+    <div class="block-pub">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6 iphone"><img src="{{asset('images/iphone.png')}}"></div>
+                <div class="col-md-6">
+                    <div class="first-block">
+                        <p><img src="{{ asset('images/allo_zoe_logo_blanc.png') }}"/> ARRIVE PROCHAINEMENT SUR VOTRE TELEPHONE</p>
+                        <p class="text-center"><img src="{{asset('images/App-portable.png')}}"</p>
+                    </div>
+                    <div class="second-block">
+                        <p>VOUS POUVEZ COMMANDER PENDANT CE TEMPS SUR NOTRE SITE EN LIGNE !</p>
+                        <p><button class="btn btn-order">COMMANDEZ</button></p>
+                    </div>
+                </div>
+            </div>
+            <div></div> 
+        </div>
+    </div>
+                    
+    <div class="block-social-network">
+        <h3 class="">
+            Retrouver nous sur
+        </h3>
+        <ul class="list-inline">
+            <li>
+                <a href="#"><img src="{{ asset('images/twitter.png') }}"</a>
+            </li>
+            <li>
+                <a href="#"><img src="{{ asset('images/instagram.png') }}"</a>
+            </li>
+            <li>
+                <a href="#"><img src="{{ asset('images/facebook.png') }}"</a>
+            </li>
+        </ul>
+    </div>
+
 {% endblock %}
 
 {% block javascripts %}

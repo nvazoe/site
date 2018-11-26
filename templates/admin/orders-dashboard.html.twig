@@ -1,0 +1,200 @@
+{% extends 'admin/easy_admin/main.html.twig' %}
+
+{% block head_stylesheets %}
+    {{parent()}}
+    <link rel="stylesheet" href="{{ asset('toastr/toastr.min.css') }}">
+    <style>
+        .row-first{
+            margin-bottom: 10px;
+        }
+        .row-last{
+            margin-top: 10px;
+        }
+        .round {
+            border: 1px solid #000;
+            height: 30px;
+            width: 30px;
+            border-radius: 50%;
+            display: inline-flex;
+            margin-left: 25px;
+        }
+        .ref {
+            display: inline-flex;
+        }
+        .tab-orders .col-lg-4 {
+            max-height: 400px;
+            height: 400px;
+        }
+
+        .tab-orders .table-responsive.m-t {
+            max-height: 200px;
+            overflow: visible;
+        }
+    </style>
+    
+{% endblock %}
+
+{% block main %}
+   
+    
+    <div class="content animate-panel">
+        <div class="row tab-orders">
+            {% if orders|length %}
+                {% for o in orders %}
+                <div class="col-lg-4">
+                <div class="hpanel">
+                    <div class="panel-body">
+                        {#1er ligne#}
+                        <div class="row row-first">
+                            <div class="col-md-6 col-sm-6">
+                                {% if o.orderstatus.id == 7 %}<div class="print"><a href="{{path('ticket', {'id': o.id})}}" class="btn btn-default btn-sm">RE-IMPRIMER TICKET</a></div>{%else%}<div class="print"><a href="{{path('ticket', {'id': o.id})}}" class="btn btn-danger2 btn-sm">IMPRIMER TICKET</a></div>{%endif%}
+                            </div>
+                            <div class="col-md-6 col-sm-6">
+                                <div class="ref">N°{{ o.ref }}</div>
+                                <div class="round {% if o.orderstatus.id == 6 %}
+                                     bg-green 
+                                {%elseif o.orderstatus.id == 7 %}
+                                    bg-yellow
+                                    {%else%}
+                                    bg-red 
+                                    {%endif%}"></div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <h3>{{ o.restaurant.name }}</h3>
+                            <div class="table-responsive m-t">
+                                <table class="table table-striped">
+                                    <thead>
+                                    <tr>
+                                        <th>Item List</th>
+                                        <th>Quantity</th>
+                                        <th>Unit Price</th>
+                                        <th>Total Price</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    {% for ord in o.orderdetails %}
+                                        <tr>
+                                            <td>
+                                                <div><strong>{{ord.menu.name}}</strong></div>
+                                            </td>
+                                            <td>{{ord.quantity}}</td>
+                                            <td>{{ord.price}}</td>
+                                            <td>{{ord.price * ord.quantity}}</td>
+                                        </tr>
+                                    {%endfor%}
+
+                                    </tbody>
+                                </table>
+                            </div>
+                            
+                        </div>
+                        <div class="row row-last">
+                            {% if o.orderstatus.id == 6 %}
+                                <div class="col-md-offset-3 col-md-6">
+                                    <div class="text-center"><button type="button" data-order="{{o.id}} class="btn btn-success btn-sm">BOUTON <br> RÉCUPÉRÉE <br> PAR LIVREUR</button></div>
+                                </div>
+                                {%elseif o.orderstatus.id == 7 %}
+                                    <div class="col-md-offset-3 col-md-6">
+                                        <div class="text-center"><button type="button" data-order="{{o.id}}" class="btn btn-warning2 btn-sm valider">BOUTON <br> VALIDER <br> COMMANDE</button></div>
+                                    </div>
+                                {% else %}
+                                    <div class="col-md-6">
+                                        <div><a href="{{path('invoice', {'id': o.id})}}" class="btn btn-danger2 btn-sm">BOUTON VOIR CMD</a></div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="pull-right"><button type="button" data-order="{{o.id}}" class="btn btn-danger2 btn-sm prepared">BOUTON PREPARER</button></div>
+                                    </div>
+                            {%endif%}
+                            
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+                {%else%}
+                    <div class="text-big text-center text-info">Aucune commande nouvelle pour le moment</div>
+            {% endif %}
+        </div>
+    </div>
+    <embed src="{{ asset('sounds/unconvinced.mp3') }}" autostart="false" width="0" height="0" id="sound1" enablejavascript="true">
+{% endblock %}
+{% block body_javascript %}
+    <script src="{{ asset('toastr/toastr.min.js') }}"></script>
+    <script>
+        alertNewOrder();
+        setInterval(function(){alertNewOrder();}, 30000);
+        function alertNewOrder(){
+            $.ajax({
+                url: $('body').data('base-url')+'admin/orders/infos',
+                type: 'get',
+                headers:{
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                crossDomain: true,
+                data: {status: 1}
+            }).done(function(resp){
+                if(typeof resp.items != 'undefined')
+                    if(resp.items.length){
+                        
+                        toastr.warning('Vous avez '+ resp.items.length +' nouvelles commandes', 'Nouvelles commandes!');
+                        PlaySound('sound1');
+                    }
+            }).fail(function(xhr){});
+        }
+        function PlaySound(soundObj) {
+            var sound = $(soundObj);
+            sound.play();
+          }
+    </script>
+    <script>
+        // action preparer button
+        $('body').on('click', 'button.btn.btn-danger2.btn-sm.prepared',function(){
+            var data = $(this).data('order');
+            var base = $('body').data('base-url');
+            $.ajax({
+                url: base + 'admin/orders/change-status',
+                type: 'get',
+                headers:{
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                crossDomain: true,
+                data: {status: 7, order: data}
+            }).done(function(resp){
+                console.log(resp);
+                $('button.btn.btn-danger2.btn-sm.prepared[data-order='+data+']').closest('.panel-body').find('.print').html('<a href="'+$('body').data('base-url')+'admin/order/ticket/'+data+'" class="btn btn-default btn-sm">RE-IMPRIMER TICKET</a></div>');
+                $('button.btn.btn-danger2.btn-sm.prepared[data-order='+data+']').closest('.panel-body').find('.round').addClass('bg-yellow').removeClass('bg-red');
+                $('button.btn.btn-danger2.btn-sm.prepared[data-order='+data+']').closest('.panel-body').find('.row-last > .col-md-6').fadeOut();
+                $('button.btn.btn-danger2.btn-sm.prepared[data-order='+data+']').closest('.panel-body').find('.row-last').html('<div class="col-md-offset-3 col-md-6"><div class="text-center"><button type="button" data="'+data+'" class="btn btn-warning2 btn-sm valider">BOUTON <br> VALIDER <br> COMMANDE</button></div></div>');
+            }).fail(function(){});
+            
+            
+            //alert('Bonjour '+ data);
+        });
+        // action valider button
+        $('body').on('click','button.btn.btn-warning2.btn-sm.valider', function(){
+            var data = $(this).data('order');
+            $.ajax({
+                url: $('body').data('base-url')+'admin/orders/change-status',
+                type: 'get',
+                headers:{
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                crossDomain: true,
+                data: {status: 6, order: data}
+            }).done(function(resp){
+                console.log(resp);
+                $('button.btn.btn-warning2.btn-sm.valider[data-order='+data+']').closest('.panel-body').find('.print').fadeOut();
+                $('button.btn.btn-warning2.btn-sm.valider[data-order='+data+']').closest('.panel-body').find('.round').addClass('bg-green').removeClass('bg-yellow');
+                $('button.btn.btn-warning2.btn-sm.valider[data-order='+data+']').closest('.panel-body').find('.row-last > .col-md-6').fadeOut();
+                $('button.btn.btn-warning2.btn-sm.valider[data-order='+data+']').closest('.panel-body').find('.row-last').html('<div class="col-md-offset-3 col-md-6"><div class="text-center"><button type="button" data="'+data+'" class="btn btn-success btn-sm valider">BOUTON <br> RÉCUPÉRÉE <br> PAR LIVREUR</button></div></div>');
+            }).fail(function(){});
+            
+            //alert('Bonjour '+ data);
+        });
+    </script>
+{% endblock body_javascript %}
+
