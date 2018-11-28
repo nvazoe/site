@@ -48,11 +48,14 @@ class ProductRepository extends ServiceEntityRepository
     }
     */
     
-    public function findByNameField($value)
+    public function findByNameField($value, $user)
     {
         return $this->createQueryBuilder('p')
+            ->join('App\Entity\Restaurant', 'r', \Doctrine\ORM\Query\Expr\Join::WITH, 'r.id = p.restaurant')
+            ->join('App\Entity\User', 'u',\Doctrine\ORM\Query\Expr\Join::WITH, 'u.id = r.owner')
             ->andWhere('p.name LIKE :val')
             ->setParameter('val', '%'.$value.'%')
+            ->andWhere('u.id = :user')->setParameter('user', $user)
             ->orderBy('p.id', 'DESC')
             //->setMaxResults(10)
             ->getQuery()

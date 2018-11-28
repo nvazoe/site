@@ -107,6 +107,19 @@ class AdminController extends BaseAdminController {
         $entity->setPassword($this->container->get("security.password_encoder")->encodePassword($entity, $entity->getPassword()));
     }
     
+    public function prePersistRestaurantEntity($entity) {
+        $lieu = $entity->getAddress().', '.$entity->getCp().', '.$entity->getCity();
+        
+        $url = "https://maps.google.com/maps/api/geocode/json?components=country:FR&key=AIzaSyAt0qBmUbppuFGzGCqhqREOdgwBq-vgJkA&address=".urlencode($lieu);
+        $location = file_get_contents($url);
+        $loc = json_decode($location, true);
+        //echo '<pre>'; die(var_dump($loc["results"][0]["geometry"]["location"])); echo '</pre>';
+        $geo_restau = $loc["results"][0]["geometry"]["location"];
+        $entity->setLongitude($geo_restau["lng"]);
+        $entity->setLatidude($geo_restau["lat"]);
+        $entity->setPassword($this->container->get("security.password_encoder")->encodePassword($entity, $entity->getPassword()));
+    }
+    
     public function preUpdateClientEntity($entity) {
         if (!is_null($entity->getPassword())) {
             //  update password          
@@ -150,7 +163,7 @@ class AdminController extends BaseAdminController {
         if(is_null($id_menu)){
             $products = $em->getRepository(Product::class)->findAll();
             $categories = $em->getRepository(CategoryMenu::class)->findAll();
-            $restaurants = $em->getRepository(Restaurant::class)->findAll();
+            $restaurants = $this->getUser()->getRestaurants();
         }else{
             $menu = new Menu($id_menu);
             die($menu->getName());
@@ -161,6 +174,7 @@ class AdminController extends BaseAdminController {
             $menu = $request->get('dishmenu');
             $options = $request->get('options');
             $photo = $request->files->get('dishmenu')['photo'];
+            
 //            echo '<pre>';
 //            var_dump($options);
 //            echo '</pre>'; die();
@@ -188,26 +202,26 @@ class AdminController extends BaseAdminController {
             }
             
             $em->persist($dishmenu);
-            $em->flush();
             
-            foreach ($options as $opt){
+            if($options){
+                foreach ($options as $opt){
                 $option = new MenuOption();
                 $option->setName($opt['name']);
                 $option->setType($opt['type']);
                 $option->setItem($opt['item']);
                 
                 $em->persist($option);
-                $em->flush();
+                
                 
                 // association produit - option
                 foreach ($opt['productoption'] as $prdOpt){
                     $prdOption = new MenuOptionProducts();
                     $prdOption->setMenuOption($option);
-                    $prdOption->setProduct($em->getRepository(Product::class)->find($prdOpt['product']));
+                    $prdOption->setProduct($em->getRepository(Product::class)->find($prdOpt['id']));
                     $prdOption->setAttribut($prdOpt['price']);
                     
                     $em->persist($prdOption);
-                    $em->flush();
+                    
                 }
                 // association menu - option
                 $menuoption = new MenuMenuOption();
@@ -215,9 +229,11 @@ class AdminController extends BaseAdminController {
                 $menuoption->setMenuOption($option);
                 
                 $em->persist($menuoption);
-                $em->flush();
+                
+            }
             }
             
+            $em->flush();
             
             $this->addFlash('success', 'Menu correctement ajouté.');
             return $this->redirectToRoute('easyadmin', [
@@ -253,7 +269,8 @@ class AdminController extends BaseAdminController {
     public function getproduct(Request $request){
         $em = $this->getDoctrine()->getManager();
         $product = $request->get('product');
-        $products = $em->getRepository(Product::class)->findByNameField($product);
+        $user = $this->getUser()->getid();
+        $products = $em->getRepository(Product::class)->findByNameField($product, $user);
         
         $array = [];
         foreach ($products as $k => $p){
@@ -327,7 +344,15 @@ class AdminController extends BaseAdminController {
             }
         }
         
-        return array('order' => $order, 'delivers' => $delivers, 'total' => $total);
+        $lieu = $order->getAddress().', '.$order->getCp().', '.$order->getCity();
+        
+        $url = "https://maps.google.com/maps/api/geocode/json?components=country:FR&key=AIzaSyAt0qBmUbppuFGzGCqhqREOdgwBq-vgJkA&address=".urlencode($lieu);
+         $location = file_get_contents($url);
+         $loc = json_decode($location, true);
+        //echo '<pre>'; die(var_dump($loc["results"][0]["geometry"]["location"])); echo '</pre>';
+        $geo_order = $loc["results"][0]["geometry"]["location"];
+        
+        return array('order' => $order, 'delivers' => $delivers, 'total' => $total, 'geo_order'=>$geo_order);
     }
     
     
@@ -371,16 +396,19 @@ class AdminController extends BaseAdminController {
             
             $orderObj = $em->getRepository(Order::class)->find($order);
             
-            foreach ($delivers as $dl){
-                $delProposition = new DeliveryProposition();
-                $delProposition->setRestaurant($orderObj->getRestaurant());
-                $delProposition->setValueResto(1);
-                $delProposition->setDeliver($em->getRepository(User::class)->find($dl));
-                $delProposition->setValueDeliver(0);
-                $delProposition->setCommand($orderObj);
-                
-                $em->persist($delProposition);
+            if(is_array($delivers)){
+                foreach ($delivers as $dl){
+                    $delProposition = new DeliveryProposition();
+                    $delProposition->setRestaurant($orderObj->getRestaurant());
+                    $delProposition->setValueResto(1);
+                    $delProposition->setDeliver($em->getRepository(User::class)->find($dl));
+                    $delProposition->setValueDeliver(0);
+                    $delProposition->setCommand($orderObj);
+
+                    $em->persist($delProposition);
+                }
             }
+            
             
             $status = $em->getRepository(OrderStatus::class)->find(2);
             $orderObj->setOrderStatus($status);
@@ -646,6 +674,39 @@ class AdminController extends BaseAdminController {
     }
     
     
+    public function createProductSearchQueryBuilder($entityClass, $searchQuery, array $searchableFields, $sortField = null, $sortDirection = null, $dqlFilter = null)
+    {
+        $restaurants = $this->getUser()->getRestaurants();
+        $qb = parent::createSearchQueryBuilder($entityClass, $searchQuery, $searchableFields, $sortField, $sortDirection, $dqlFilter);
+        $ids = [];
+        foreach ($restaurants as $k=>$v){
+            $ids[] = $v->getId();
+        }
+        $qb->andWhere('entity.restaurant IN (:ids)')->setParameter('ids', $ids);
+        return  $qb;
+    }
+    
+    public function createMenuSearchQueryBuilder($entityClass, $searchQuery, array $searchableFields, $sortField = null, $sortDirection = null, $dqlFilter = null)
+    {
+        $restaurants = $this->getUser()->getRestaurants();
+        $qb = parent::createSearchQueryBuilder($entityClass, $searchQuery, $searchableFields, $sortField, $sortDirection, $dqlFilter);
+        $ids = [];
+        foreach ($restaurants as $k=>$v){
+            $ids[] = $v->getId();
+        }
+        $qb->andWhere('entity.restaurant IN (:ids)')->setParameter('ids', $ids);
+        return  $qb;
+    }
+    
+    public function createRestaurantSearchQueryBuilder($entityClass, $searchQuery, array $searchableFields, $sortField = null, $sortDirection = null, $dqlFilter = null)
+    {
+        $idowner = $this->getUser()->getId();
+        if($idowner){
+            $dqlFilter = 'entity.owner = '.$idowner;
+        }
+
+        return parent::createSearchQueryBuilder($entityClass, $searchQuery, $searchableFields, $sortField, $sortDirection, $dqlFilter);
+    }
     
     
 }

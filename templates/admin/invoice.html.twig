@@ -194,10 +194,13 @@
       var iconBase = '/images/icons/';
       var icons = {
         livreur: {
-            icon: iconBase + 'abattoirs-tradi.png'
+            icon: iconBase + 'livreur_icone_leonel.png'
         },
         restaurant:{
-            icon: iconBase + 'restaurant_icone.png'
+            icon: iconBase + 'restaurant_icone_leonel.png'
+        },
+        order:{
+            icon: iconBase + 'commande_icone_leonel.png'
         }
     };
     
@@ -206,9 +209,40 @@
         var directionsDisplay = new google.maps.DirectionsRenderer;
         map = new google.maps.Map(document.getElementById('map'), {
           center: france,
-          zoom: 8
+          zoom: 12
         });
         directionsDisplay.setMap(map);
+        
+        var order = {
+            'name' : "{{ order.ref }}",
+            'lat' : "{{ geo_order.lat }}",
+            'lng': "{{ geo_order.lng }}",
+            'city': "{{ order.city }}",
+            'adr': "{{ order.address }}"
+        };
+        
+        // Marker du order
+        var infowindowOrder = new google.maps.InfoWindow();
+        var mOrder = new google.maps.Marker({
+            position: {lat: parseFloat(order.lat), lng: parseFloat(order.lng)},
+            map: map,
+            title: 'COMMANDE : '+order.name,
+            icon: icons.order.icon,
+            draggable: false
+        });
+        google.maps.event.addListener(mOrder, 'click', (function (mOrder) {
+            return function () {
+                var html = '<div class="content-pin"><strong>COMMANDE : </strong>' +order.name;
+                html += '<ul class="list-unstyled">';
+                html += '<li><strong>Adresse</strong> : '+order.adr+'</li>';
+                html += '<li><strong>Ville</strong> : '+order.city+'</li>';
+                html += '</ul></div>';
+                map.panTo(mOrder.getPosition());
+                infowindowOrder.setContent(html);
+                infowindowOrder.open(map, mOrder, html);
+
+                    };
+        })(mOrder));
         
         var dels = [];
         {% if order.messenger %}
@@ -283,6 +317,12 @@
 
                                     };
                         })(mLivr));
+                        
+                        
+                        var orig = new google.maps.LatLng(livr.lat, livr.lng);
+                        var dest = new google.maps.LatLng(order.lat, order.lng);
+                        calculateAndDisplayRoute(directionsService, directionsDisplay, orig, dest);
+                        
                         setTimeout(function(){
                              mLivr.setMap(null);
                         },3000);
@@ -346,7 +386,7 @@
         var mResto = new google.maps.Marker({
             position: {lat: parseFloat(resto.lat), lng: parseFloat(resto.lng)},
             map: map,
-            title: resto.name,
+            title: 'RESTAURANT : '+resto.name,
             icon: icons.restaurant.icon,
             draggable: false
         });
@@ -363,10 +403,6 @@
 
                         };
             })(mResto));
-        
-        {#var orig = new google.maps.LatLng(liv.lat, liv.lng);
-        var dest = new google.maps.LatLng(resto.lat, resto.lng);
-        calculateAndDisplayRoute(directionsService, directionsDisplay, orig, dest);#}
         
       }
       
@@ -386,7 +422,7 @@
         });
       }
     </script>
-    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyD9qWr1Xq89haWKgy_cAmyEqMJ_ZonMWJA&callback=initMap"
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDlHJyOaa1i7sl_VvSJ-MR3w5uAT3M_UgQ&callback=initMap"
     async defer></script>
     
     {# icheck #}

@@ -2,6 +2,11 @@
 
 {% block page_title %}Checkout{% endblock %}
 
+{% block stylesheets %}
+    {{parent()}}
+    <link rel="stylesheet" href="{{ asset('toastr/toastr.min.css') }}">
+{% endblock %}
+
 {% block body %}
     <header>
         <div class="payment">Paiement</div>
@@ -37,6 +42,9 @@
                                             <input type="text" class="form-control" name="address" placeholder="Adresse: Appartement/Bureau/Etage">
                                         </div>
                                         <div class="form-group col-sm-12">
+                                            <input type="text" class="form-control" name="cp" placeholder="Code postal">
+                                        </div>
+                                        <div class="form-group col-sm-12">
                                             <input type="tel" class="form-control" name="phone" placeholder="Téléphone contact pour livraison">
                                         </div>
                                         <div class="form-group col-sm-12">
@@ -57,10 +65,10 @@
                                 <form>
                                     <div class="row">
                                         <div class="form-group col-sm-6">
-                                            <select class="form-control" name="mpayment" form="address-form">
-                                                <option value="0">Votre mode de paiement</option>
+                                            <select class="form-control" name="mpayment" form="address-form" id="select-payment">
+                                                <option value="0">Choisissez votre mode de paiement</option>
                                                 <option value="1">Carte bancaire</option>
-                                                <option value="2" selected="selected">Ticket restaurant</option>
+                                                <option value="2">Ticket restaurant</option>
                                             </select>
                                         </div>
                                     </div>
@@ -69,19 +77,36 @@
                             </div>
                             
                         </div>
-                        <div class="form-ticket hidden">
-                            <form class="form-horizontal">
+                        <div class="form-ticket hidden" id="form-ticket">
+                            <form class="form-horizontal" id="ticket-form">
                                 <div class="container">
                                     <div class="row">
                                         <div class="form-group col-sm-6">
                                             <label>Valeur du ticket (€)</label>
-                                            <input class="form-control" name="ticket-value" type="text">
+                                            <input class="form-control" name="ticket-value" type="text" required form="address-form">
                                         </div>
                                     </div>
                                 </div>
                                 
                             </form>
-                        </div>   
+                        </div>
+                        <div class="form-card hidden" id="form-card">
+                            <h3>Utilisez la carte</h3>
+                            
+                            <form class="form-horizontal">
+                                <div class="container">
+                                    <div class="row">
+                                        <div class="form-group col-sm-12">
+                                            <input class="col-xs-1" name="ticket-value" value="1" type="radio" /><label class="col-xs-8">************1234</label>
+                                        </div>
+                                        <div class="form-group col-sm-12">
+                                            <input class="col-xs-1" name="ticket-value" value="1" type="radio" /><label class="col-xs-8">************1234</label>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                            </form>
+                        </div>  
                     </div>
                 </div>
             </div>
@@ -172,9 +197,28 @@
 {% endblock %}
 
 {% block javascripts %}
+    
     <script src="{{ asset('jqueryvalidation/jquery.validate.min.js') }}"></script>
     <script src="{{ asset('jqueryvalidation/localization/messages_fr.min.js') }}"></script>
     <script src="{{ asset('jqueryvalidation/additional-methods.min.js') }}"></script>
+    <script src="{{ asset('toastr/toastr.min.js') }}"></script>
     <script src="{{ asset('js/order-sys.js') }}"></script>
     <script src="{{ asset('js/checkout.js') }}"></script>
+    <script>
+        $('#select-payment').on('change', function(){
+            var val = $(this).val();
+            if(val == 2){
+                $('#form-ticket').removeClass('hidden');
+            }else{
+                $('#form-ticket').addClass('hidden');
+            }
+            
+            if(val == 1){
+                $('#form-card').removeClass('hidden');
+            }else{
+                $('#form-card').addClass('hidden');
+            }
+        });
+    </script>
 {% endblock %}
+    

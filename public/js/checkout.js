@@ -6,6 +6,7 @@
 
 
 $(document).ready(function(){
+    toastr.options.closeButton = true;
     $('.restau-name').html(localStorage.restau);
     $('#pass-order').on('click', function(){
         make_order();
@@ -20,7 +21,7 @@ function make_order(){
             return arg !== value;
         }, "Value must not equal arg.");
         
-        var validator = $('#address-form').validate({
+        var validator = $('#address-form, #ticket-form').validate({
             rules:{
                 city:{
                     required:true
@@ -29,10 +30,18 @@ function make_order(){
                     required:true
                 },
                 phone:{
-                    required:true
+                    required:true,
+                    number: true
                 },
                 mpayment:{
                     valueNotEquals: 0
+                },
+                cp:{
+                    required: true,
+                    number: true
+                },
+                'ticket-value':{
+                    number: true
                 }
             },
             messages:{
@@ -43,10 +52,15 @@ function make_order(){
                     required: 'Champ requis'
                 },
                 phone:{
-                    required: 'Champ requis'
+                    required: 'Champ requis',
+                    number: 'Valeur numérique réquise'
                 },
                 mpayment:{
                     valueNotEquals: 'Choisissez un mode paiement.'
+                },
+                cp:{
+                    required: 'Champ requis',
+                    number: 'Valeur numérique réquise'
                 }
             }
         });
@@ -83,6 +97,7 @@ function order(){
             "delivery_phone": $('input[name="phone"]').val(),
             "delivery_city": $('input[name="city"]').val(),
             "delivery_type": $('input[name="delivery-type"]').val(),
+            "delivery_cp": $('input[name="cp"]').val(),
             "delivery_note": $('input[name="delivery-note"]').val(),
             "restaurant": parseInt(localStorage.restau_id),
             "payment_mode": parseInt(pm),
@@ -104,9 +119,18 @@ function order(){
             crossDomain: true
         }).done(function(resp){
             console.log(resp);
+            toastr.info('Votre commande a été enregistrée.');
             localStorage.clear();
         }).fail(function(xhr){
-            console.log(xhr);
+            if(typeof xhr.responseText != 'undefined'){
+                var resp = JSON.parse(xhr.responseText);
+                if(resp.code == 4025){
+                    //alert("Vous devez choisir un mode de paiement.");
+                    toastr.error('Vous devez choisir un mode de paiement.');
+                }
+                if(resp.code == 4000)
+                    toastr.error('Paramètres invalides.');
+            }
         });
         
         

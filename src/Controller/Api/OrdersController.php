@@ -261,6 +261,7 @@ class OrdersController extends Controller {
         $delivery_phone = array_key_exists('delivery_phone', $data) ? $data['delivery_phone'] : null;
         $delivery_type = array_key_exists('delivery_type', $data) ? $data['delivery_type'] : "HOME";
         $delivery_city = array_key_exists('delivery_city', $data) ? $data['delivery_city'] : null;
+        $delivery_cp = array_key_exists('delivery_cp', $data) ? $data['delivery_cp'] : null;
         $delivery_note = array_key_exists('delivery_note', $data) ? $data['delivery_note'] : null;
         $menus = array_key_exists('menus', $data) ? $data['menus'] : [];
         $card = array_key_exists('creditcard', $data) ? $data['creditcard'] : [];
@@ -280,6 +281,7 @@ class OrdersController extends Controller {
         $order->setAddress($delivery_address);
         $order->setPhoneNumber($delivery_phone);
         $order->setcity($delivery_city);
+        $order->setcp($delivery_cp);
         $order->setDeliveryNote($delivery_note);
         $order->setDeliveryType($delivery_type);
         $order->setAmount($total);
@@ -563,7 +565,7 @@ class OrdersController extends Controller {
 
     public function validate_post_order($params) {
         $em = $this->getDoctrine()->getManager();
-
+        
         if (!is_array($params)) {
             $result = array('code' => 4000, 'description' => 'invalid input');
             echo json_encode($result, JSON_UNESCAPED_SLASHES, 400);
@@ -620,7 +622,7 @@ class OrdersController extends Controller {
             
             $pm = $em->getRepository(PaymentMode::class)->find($params['payment_mode']);
             if (!$pm) {
-                $result = array('code' => 4000, 'description' => 'Undefined payment mode.');
+                $result = array('code' => 4025, 'description' => 'Undefined payment mode.');
                 echo json_encode($result, JSON_UNESCAPED_SLASHES, 400);
                 return false;
             }
@@ -639,6 +641,31 @@ class OrdersController extends Controller {
             }
         } else {
             $result = array('code' => 4000, 'description' => 'delivery_address is required.');
+            echo json_encode($result, JSON_UNESCAPED_SLASHES, 400);
+            return false;
+        }
+        
+        if (array_key_exists('delivery_city', $params)) {
+            if (!is_string($params['delivery_city'])) {
+                $result = array('code' => 4000, 'description' => 'delivery_city must be string.');
+                echo json_encode($result, JSON_UNESCAPED_SLASHES, 400);
+                return false;
+            }
+        } else {
+            $result = array('code' => 4000, 'description' => 'delivery_city is required.');
+            echo json_encode($result, JSON_UNESCAPED_SLASHES, 400);
+            return false;
+        }
+        
+        
+        if (array_key_exists('delivery_cp', $params)) {
+            if (!is_string($params['delivery_cp'])) {
+                $result = array('code' => 4000, 'description' => 'delivery_cp must be string.');
+                echo json_encode($result, JSON_UNESCAPED_SLASHES, 400);
+                return false;
+            }
+        } else {
+            $result = array('code' => 4000, 'description' => 'delivery_cp is required.');
             echo json_encode($result, JSON_UNESCAPED_SLASHES, 400);
             return false;
         }

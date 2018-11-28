@@ -7,7 +7,7 @@
         <div class="row">
             <div class="col-md-12">
                 <div class="text-center m-b-md">
-                    <h3><strong>Allo Zoé</strong></h3>
+                    <h3><strong>Connexion</strong></h3>
                 </div>
                 <div class="hpanel">
                     <div class="panel-body">
@@ -22,7 +22,7 @@
                                 {% endif %}
                             {% endfor %}
                         {% endfor %}
-                        <form action="{{ path('adminlogin') }}" id="loginForm" method="post" >
+                        <form action="{{ path('login') }}" id="loginForm" method="post" >
                             <div class="form-group">
                                 <label class="control-label" for="username">Username</label>
                                 <input type="text" placeholder="example@gmail.com" title="Please enter you username" required="" value="" name="_username" id="username" class="form-control" />

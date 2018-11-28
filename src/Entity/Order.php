@@ -139,6 +139,11 @@ class Order
      */
     private $ticket;
 
+    /**
+     * @ORM\Column(type="string", length=255, nullable=true)
+     */
+    private $cp;
+
     public function __construct()
     {
         $this->orderDetails = new ArrayCollection();
@@ -490,6 +495,18 @@ class Order
     public function setTicket(?Ticket $ticket): self
     {
         $this->ticket = $ticket;
+
+        return $this;
+    }
+
+    public function getCp(): ?string
+    {
+        return $this->cp;
+    }
+
+    public function setCp(?string $cp): self
+    {
+        $this->cp = $cp;
 
         return $this;
     }

@@ -79,7 +79,5 @@ class RestaurantsController extends Controller {
      * @Route("/checkout", name="checkout")
      * @Template("/checkout.html.twig")
      */
-    public function checkoutAction(Request $request){
-        
-    }
+    public function checkoutAction(Request $request){}
 }

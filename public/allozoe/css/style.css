@@ -55,7 +55,8 @@ p.header-text-1 {
     padding: 10px;
     width: 50%;
     margin-top: 50px;
-    padding-left: 120px;
+/*    padding-left: 120px;*/
+    color:#fff;
 }
 
 .footer-2 {
@@ -149,8 +150,42 @@ body > main > div.block-social-network > ul > li > a > img{
 
 .first-block, .second-block {
     background-color: #aac230a8;
+    max-width: 340px;
 }
 
 .padding-top-bottom{
     padding: 30px 0px;
+}
+
+.first-block {
+    margin-top: 80px;
+    padding: 25px;
+}
+
+.second-block {
+    margin-top: 40px;
+    text-align: center;
+    padding: 20px;
+}
+
+.first-block img.allozoe {
+    width: 102px;
+}
+
+.first-block p, .second-block p:first-child {
+    text-align: center;
+    font-family: monospace;
+    color: #fff;
+    font-size: 16px;
+    font-weight: 500;
+}
+
+.iphone {
+    margin-top: 100px;
+}
+
+.login-container {
+    max-width: 420px;
+    margin: auto;
+    padding-top: 6%;
 }

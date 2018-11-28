@@ -46,25 +46,28 @@
         <main>
             {% block body %}{% endblock %}
         </main>
-        <footer class="footer">
-            <div class="footer">
-                <div class="footer-1">
-                <p>Mail : contact@allozoe.fr</p>
-                <p>Tel : 07 85 76 97 81</p>
-            </div>
-            <div class="footer-2">
-                <div class="footer-img"><img src="{{ asset('images/paiement-300x53.png') }}" alt="img-payment" /></div>
-                <div class="footer-menu">
-                    <ul class="list-inline">
-                        <li><a href="#">Accueil</a></li>
-                        <li><a href="#">Commandez</a></li>
-                        <li><a href="#">Contact</a></li>
-                    </ul>
+        <footer class="pied">
+            <div class="container footer">
+                <div class="row">
+                    <div class="col-md-6 footer-1">
+                        <p>Mail : contact@allozoe.fr</p>
+                        <p>Tel : 07 85 76 97 81</p>
+                    </div>
+                    <div class="col-md-6 footer-2">
+                        <div class="footer-img"><img src="{{ asset('images/paiement-300x53.png') }}" alt="img-payment" /></div>
+                        <div class="footer-menu">
+                            <ul class="list-inline">
+                                <li><a href="#">Accueil</a></li>
+                                <li><a href="#">Commandez</a></li>
+                                <li><a href="#">Contact</a></li>
+                            </ul>
+                        </div>
+                        <div class="footer-links">
+                            <ul class="list-inline"><li>Mentions légales</li></ul>
+                        </div>
+                    </div>
                 </div>
-                <div class="footer-links">
-                    <ul class="list-inline"><li>Mentions légales</li></ul>
-                </div>
-            </div>
+                
             </div>
         </footer>
                 

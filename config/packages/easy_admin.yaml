@@ -41,12 +41,21 @@ easy_admin:
                     -
                         property: address
                         label: Adresse
+                        type_options:
+                            required: true
+                    -
+                        property: cp
+                        label: Code postal
+                        type_options:
+                            required: true
                     -
                         property: city
                         label: Ville
+                        type_options:
+                            required: true
                     -
                         property: owner
-                        label: Administrateur
+                        label: Propriétaire
                     -
                         property: restaurantSpecialities
                         label: Menus spécialités
@@ -223,7 +232,7 @@ easy_admin:
         Admin:
             class: App\Entity\User
             list:
-                dql_filter: "entity.roles LIKE '%%ROLE_RESTAURANT%%'"
+                dql_filter: "entity.roles LIKE '%%ROLE_ADMIN%%'"
             form:
                 fields:
                     -
@@ -319,6 +328,9 @@ easy_admin:
                     -
                         property: price
                         label: Prix
+                    -
+                        property: restaurant
+                        label: Restaurant
                     -
                         property: imageFile
                         type: vich_image

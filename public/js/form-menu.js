@@ -24,14 +24,16 @@ $('.duplicate-1').on('click', function(){
     var blk = $('.clonable-1').clone(true).css({'display': 'block'}).removeClass('clonable-1');
     var name = $(this).closest('.input-block').find('#search-prd').val(); console.log(name);
     $(this).closest('.input-block').find('#search-prd').val('');
+    
     var price = $(this).closest('.input-block').find('#scr-price').val(); console.log(price);
     $(this).closest('.input-block').find('#scr-price').val('');
+    
     var prd = $(this).closest('.input-block').find('#scr-price').attr('data-prd-id');
     $(this).closest('.input-block').find('#scr-price').attr('data-prd-id', 0);
     
     
-    $(blk).find('.prd-name').val(name);
-    $(blk).find('.prd-price').val(price);
+    $(blk).find('.prd-name').attr('value', name);
+    $(blk).find('.prd-price').attr('value', price);
     $(blk).find('.prd-id').attr('value', prd);
     $(this).closest('.global-1').append(blk);
     update_index_sub($(this).closest('.global-1'));
