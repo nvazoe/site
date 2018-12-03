@@ -113,6 +113,11 @@ class Restaurant
      */
     private $cp;
 
+    /**
+     * @ORM\Column(type="string", length=255, nullable=true)
+     */
+    private $stripeAccountId;
+
     public function __construct()
     {
         $this->menus = new ArrayCollection();
@@ -477,6 +482,18 @@ class Restaurant
     public function setCp(?string $cp): self
     {
         $this->cp = $cp;
+
+        return $this;
+    }
+
+    public function getStripeAccountId(): ?string
+    {
+        return $this->stripeAccountId;
+    }
+
+    public function setStripeAccountId(?string $stripeAccountId): self
+    {
+        $this->stripeAccountId = $stripeAccountId;
 
         return $this;
     }

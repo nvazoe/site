@@ -35,6 +35,8 @@ use App\Entity\Order;
 use App\Entity\OrderStatus;
 use App\Entity\DeliveryProposition;
 use App\Entity\ConnexionLog;
+use App\Entity\ShippingLog;
+use App\Entity\Configuration;
 
 class AdminController extends BaseAdminController {
     
@@ -108,8 +110,9 @@ class AdminController extends BaseAdminController {
     }
     
     public function prePersistRestaurantEntity($entity) {
-        $lieu = $entity->getAddress().', '.$entity->getCp().', '.$entity->getCity();
+        $em = $this->getDoctrine()->getManager();
         
+        $lieu = $entity->getAddress().', '.$entity->getCp().', '.$entity->getCity();
         $url = "https://maps.google.com/maps/api/geocode/json?components=country:FR&key=AIzaSyAt0qBmUbppuFGzGCqhqREOdgwBq-vgJkA&address=".urlencode($lieu);
         $location = file_get_contents($url);
         $loc = json_decode($location, true);
@@ -117,7 +120,18 @@ class AdminController extends BaseAdminController {
         $geo_restau = $loc["results"][0]["geometry"]["location"];
         $entity->setLongitude($geo_restau["lng"]);
         $entity->setLatidude($geo_restau["lat"]);
-        $entity->setPassword($this->container->get("security.password_encoder")->encodePassword($entity, $entity->getPassword()));
+        
+        
+        // Create Stripe account ID
+        $stripePublicKey = $em->getRepository(Configuration::class)->findOneByName('AZ_STRIPE_ACCOUNT_SECRET')->getValue();
+        \Stripe\Stripe::setApiKey($stripePublicKey);
+        
+        $acct = \Stripe\Account::create([
+            "country" => "US",
+            "type" => "custom"
+        ]);
+        if($acct)
+            $entity->setStripeAccountId($acct->id);
     }
     
     public function preUpdateClientEntity($entity) {
@@ -468,14 +482,17 @@ class AdminController extends BaseAdminController {
     public function deliversConnectedInfos(Request $request){
         $em = $this->getDoctrine()->getManager();
         
-        $dels = $em->getRepository(User::class)->getConnectedUser('ROLE_DELIVER');
-        
+        $dels = $em->getRepository(User::class)->findAllUserByRole('ROLE_DELIVER', false);
+        $arrayDels = [];
         foreach($dels as $k=>$v){
-            $logs = $em->getRepository(ConnexionLog::class)->getUserLogs($v->getId());
-            $dels[$k]->logs = $logs;
+            $logs = $em->getRepository(ShippingLog::class)->getDeliverActionBetweenAPeriod($v->getId(), time(), time()-60);
+            //$dels[$k]->logs = $logs;
+            if(count($logs) <= 2){
+                $arrayDels[] = $v;
+            }
         }
         
-        return array('delivers' => $dels);
+        return array('delivers' => $arrayDels);
     }
     
     
@@ -487,7 +504,7 @@ class AdminController extends BaseAdminController {
     public function ordersDashboard(Request $request){
         $em = $this->getDoctrine()->getManager();
         
-        $orders = $em->getRepository(Order::class)->getUserOrders($this->getUser()->getId(), 100, 1, array(1,2,7), false);
+        $orders = $em->getRepository(Order::class)->getUserOrders($this->getUser()->getId(), 100, 1, array(1,6,7), false);
         
         return array('orders' => $orders, 'totalRows' => ceil(count($orders)/3));
     }
@@ -706,6 +723,16 @@ class AdminController extends BaseAdminController {
         }
 
         return parent::createSearchQueryBuilder($entityClass, $searchQuery, $searchableFields, $sortField, $sortDirection, $dqlFilter);
+    }
+    
+    
+    /**
+     * @Method({"GET"})
+     * @Route("/delivers/{id}", name="info_deliver")
+     * @Template("/admin/info-deliver.html.twig")
+     */ 
+    public function viewDeliverAction(Request $request, $id){
+        $id = base64_decode($id);
     }
     
     

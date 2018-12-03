@@ -14,3 +14,6 @@ vich_uploader:
         restaurants:
             uri_prefix: /images/restaurant
             upload_destination: '%kernel.project_dir%/public/images/restaurant'
+        slideshow:
+            uri_prefix: /images/slideshow
+            upload_destination: '%kernel.project_dir%/public/images/slideshow'

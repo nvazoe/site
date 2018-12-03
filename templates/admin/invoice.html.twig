@@ -76,6 +76,18 @@
                                             
                                 {% endif %}
                             </form>
+                            <form class="form-horizontal" action="{{path('assign')}}" method="post">
+                                <input type="hidden" name="order" value="{{order.id}}" />
+                                    <div class="form-group">
+                                        <select name="deliver" class="form-control" onchange="this.form.submit();" >
+                                            <option>Statut de la commande</option>
+                                            {#{% for d in delivers %}
+                                                <option value="{{d.id}}" {{ order.messenger ? order.messenger.id == d.id ? 'selected' : '' : '' }}>{{d.firstname}}</option>
+                                            {% endfor %}#}
+                                        </select>
+                                    </div>
+                                        
+                            </form>
                         </div>
                         <div class="col-sm-6 text-right">
                             <span>To:</span>

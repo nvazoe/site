@@ -5,6 +5,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
         <title>{% block page_title %}{% endblock %} - Allo Zoé</title>
         <link rel="stylesheet" href="{{ asset('allozoe/css/bootstrap.css') }}">
+        <link rel="stylesheet" href="{{ asset('fonts/css/font-awesome.min.css') }}">
         <link rel="stylesheet" href="{{ asset('allozoe/css/style.css') }}">
         <link rel="stylesheet" href="{{ asset('css/styles.css') }}">
         {% block stylesheets %}{% endblock %}
@@ -15,27 +16,28 @@
                 <a href="{{ path('homepage') }}"><img src="{{ asset('images/logo.png') }}" alt="logo" /></a>
             </div>
             <div class="blck-menu">
+                {% set current_path = app.request.get('_route') %}
                 <ul>
-                    <li class="active">
+                    <li {{ current_path == 'homepage' ? 'class="active"' : ''}}>
                         <i class="fa fa-home"></i>
                         <span><a href="{{ path('homepage') }}">Accueil</a></span>
                         <i class="underline"></i>
                     </li>
-                    <li>
-                        <i class="fa fa-home"></i>
+                    <li {% if current_path in ['commander', 'restau', 'checkout'] %}class="active"{%endif%}>
+                        <i class="fa fa-shopping-cart"></i>
                         <span><a href="{{ path('commander') }}">Commander</a></span>
                         <i class="underline"></i>
                     </li>
-                    <li>
-                        <i class="fa fa-home"></i>
+                    <li {{ current_path == 'contact' ? 'class="active"' : ''}}>
+                        <i class="fa fa-envelope"></i>
                         <span><a href="{{path('contact')}}">Contact</a></span>
                         <i class="underline"></i>
                     </li>
-                    <li>
+                    {#<li>
                         <i class="fa fa-home"></i>
                         <span><a href="{{path('front_login')}}">Connexion</a></span>
                         <i class="underline"></i>
-                    </li>
+                    </li>#}
                 </ul>
             </div>
             
@@ -44,6 +46,15 @@
         </header>
         {% block carousel %}{% endblock %}
         <main>
+            {% for label, messages in app.flashes %}
+                {% for message in messages %}
+                    <div class="flash-{{ label }} alert alert-{{ label }} text-center">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endfor %}
+            
+            
             {% block body %}{% endblock %}
         </main>
         <footer class="pied">

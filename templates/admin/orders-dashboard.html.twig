@@ -27,8 +27,8 @@
         }
 
         .tab-orders .table-responsive.m-t {
-            max-height: 200px;
-            overflow: visible;
+            max-height: 125px;
+            overflow: auto;
         }
     </style>
     
@@ -47,7 +47,7 @@
                         {#1er ligne#}
                         <div class="row row-first">
                             <div class="col-md-6 col-sm-6">
-                                {% if o.orderstatus.id == 7 %}<div class="print"><a href="{{path('ticket', {'id': o.id})}}" class="btn btn-default btn-sm">RE-IMPRIMER TICKET</a></div>{%else%}<div class="print"><a href="{{path('ticket', {'id': o.id})}}" class="btn btn-danger2 btn-sm">IMPRIMER TICKET</a></div>{%endif%}
+                                {% if o.orderstatus.id == 7 %}<div class="print"><a href="{{path('ticket', {'id': o.id})}}" class="btn btn-default btn-sm">RE-IMPRIMER TICKET</a></div>{%elseif o.orderstatus.id == 1 %}<div class="print"><a href="{{path('ticket', {'id': o.id})}}" class="btn btn-danger2 btn-sm">IMPRIMER TICKET</a></div>{%endif%}
                             </div>
                             <div class="col-md-6 col-sm-6">
                                 <div class="ref">N°{{ o.ref }}</div>
@@ -92,17 +92,17 @@
                         <div class="row row-last">
                             {% if o.orderstatus.id == 6 %}
                                 <div class="col-md-offset-3 col-md-6">
-                                    <div class="text-center"><button type="button" data-order="{{o.id}} class="btn btn-success btn-sm">BOUTON <br> RÉCUPÉRÉE <br> PAR LIVREUR</button></div>
+                                    <div class="text-center"><button type="button" data-order="{{o.id}}" class="btn btn-success btn-sm">BOUTON <br> RÉCUPÉRÉE <br> PAR LIVREUR</button></div>
                                 </div>
                                 {%elseif o.orderstatus.id == 7 %}
                                     <div class="col-md-offset-3 col-md-6">
                                         <div class="text-center"><button type="button" data-order="{{o.id}}" class="btn btn-warning2 btn-sm valider">BOUTON <br> VALIDER <br> COMMANDE</button></div>
                                     </div>
                                 {% else %}
-                                    <div class="col-md-6">
+                                    <div class="col-md-6 col-sm-6">
                                         <div><a href="{{path('invoice', {'id': o.id})}}" class="btn btn-danger2 btn-sm">BOUTON VOIR CMD</a></div>
                                     </div>
-                                    <div class="col-md-6">
+                                    <div class="col-md-6 col-sm-6">
                                         <div class="pull-right"><button type="button" data-order="{{o.id}}" class="btn btn-danger2 btn-sm prepared">BOUTON PREPARER</button></div>
                                     </div>
                             {%endif%}
@@ -117,7 +117,7 @@
             {% endif %}
         </div>
     </div>
-    <embed src="{{ asset('sounds/unconvinced.mp3') }}" autostart="false" width="0" height="0" id="sound1" enablejavascript="true">
+    {#<embed src="{{ asset('sounds/unconvinced.mp3') }}" autostart="false" width="0" height="0" id="sound1" enablejavascript="true">#}
 {% endblock %}
 {% block body_javascript %}
     <script src="{{ asset('toastr/toastr.min.js') }}"></script>
@@ -138,8 +138,12 @@
                 if(typeof resp.items != 'undefined')
                     if(resp.items.length){
                         
-                        toastr.warning('Vous avez '+ resp.items.length +' nouvelles commandes', 'Nouvelles commandes!');
-                        PlaySound('sound1');
+                        toastr.info('Vous avez '+ resp.items.length +' nouvelles commandes', 'Nouvelles commandes!');
+                        $('body').append('<embed src="'+$('body').data('base-url')+'sounds/unconvinced.mp3" autostart="false" width="0" height="0" id="sound1" enablejavascript="true">');
+                        setTimeout(function(){
+                            $('embed').remove();
+                        }, 10000);
+                        
                     }
             }).fail(function(xhr){});
         }

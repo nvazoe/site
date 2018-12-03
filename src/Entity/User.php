@@ -161,6 +161,13 @@ class User implements UserInterface, \Serializable
      */
     private $connexionLogs;
 
+    /**
+     * @ORM\Column(type="string", length=255, nullable=true)
+     */
+    private $stripeId;
+
+    
+
     public function __construct()
     {
         $this->restaurants = new ArrayCollection();
@@ -176,6 +183,7 @@ class User implements UserInterface, \Serializable
         $this->deliveryPropositions = new ArrayCollection();
         $this->tickets = new ArrayCollection();
         $this->connexionLogs = new ArrayCollection();
+        $this->shippingLogs = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -752,4 +760,31 @@ class User implements UserInterface, \Serializable
         
         return $this->connexionLogs->matching($criteria);
     }
+
+    public function getStripeId(): ?string
+    {
+        return $this->stripeId;
+    }
+
+    public function setStripeId(?string $stripeId): self
+    {
+        $this->stripeId = $stripeId;
+
+        return $this;
+    }
+
+    public function removeShippingLog(ShippingLog $shippingLog): self
+    {
+        if ($this->shippingLogs->contains($shippingLog)) {
+            $this->shippingLogs->removeElement($shippingLog);
+            // set the owning side to null (unless already changed)
+            if ($shippingLog->getMessenger() === $this) {
+                $shippingLog->setMessenger(null);
+            }
+        }
+
+        return $this;
+    }
+
+    
 }

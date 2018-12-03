@@ -67,39 +67,24 @@
         </div>
         <div class="row">
             <div class="col-md-9">
-                <form id="contact" action="" method="post" class="form-horizontal">
-                    <div class="col-sm-6">
-                        <div class="form-group">
-                            <div class="col-xs-12"><input type="text" name="name" placeholder="Votre nom" class="form-control"></div>
-                        </div>
-                    </div>
-                    <div class="col-sm-6">
-                        <div class="form-group">
-                            <div class="col-xs-12"><input type="text" name="prenom" placeholder="Votre prénom" class="form-control"></div>
-                        </div>
-                    </div>
-                    <div class="col-sm-6">
-                        <div class="form-group">
-                            <div class="col-xs-12"><input type="email" name="email" placeholder="Votre email" class="form-control"></div>
-                        </div>
-                    </div>
-                    <div class="col-sm-6">
-                        <div class="form-group">
-                            <div class="col-xs-12"><input type="tel" name="tel" placeholder="Votre numéro de téléphone" class="form-control"></div>
-                        </div>
-                    </div>
-                    <div class="col-sm-12">
-                        <div class="form-group">
-                            <div class="col-xs-12"><input type="text" name="subject" placeholder="Sujet de votre message" class="form-control"></div>
-                        </div>
-                    </div>
-                    <div class="col-sm-12">
-                        <div class="form-group">
-                            <div class="col-xs-12"><textarea name="form-control" name="message" class="form-control" placeholder="Votre message" rows="15"></textarea></div>
-                        </div>
-                    </div>
+                <form id="form-contact" action="{{path('contact')}}" method="post" class="form-horizontal">
                     
-                    <div class="button-action"><button class="btn btn-action btn-md">Envoyer</button></div>
+                        <div class="form-group">
+                            <div class="col-md-6"><input type="text" name="name" placeholder="Votre nom" class="form-control"></div>
+                            <div class="col-md-6"><input type="text" name="prenom" placeholder="Votre prénom" class="form-control"></div>
+                        </div>
+                        <div class="form-group">
+                            <div class="col-md-6"><input type="email" name="email" placeholder="Votre email" class="form-control"></div>
+                            <div class="col-md-6"><input type="tel" name="phone" placeholder="Votre numéro de téléphone" class="form-control"></div>
+                        </div>
+                        <div class="form-group">
+                            <div class="col-md-12"><input type="text" name="subject" placeholder="Sujet de votre message" class="form-control"></div>
+                        </div>
+                        <div class="form-group">
+                            <div class="col-md-12"><textarea name="message" class="form-control" placeholder="Votre message" rows="15"></textarea></div>
+                        </div>
+                    
+                    <div class="button-action"><button class="btn btn-action btn-md" id="submit">Envoyer</button></div>
                 </form>
             </div>
             <div class="col-md-3">
@@ -115,4 +100,13 @@
             </div>
         </div>
     </div>
+{% endblock %}
+
+{% block javascripts %}
+
+    <script src="{{ asset('jqueryvalidation/jquery.validate.min.js') }}"></script>
+    <script src="{{ asset('jqueryvalidation/localization/messages_fr.min.js') }}"></script>
+    <script src="{{ asset('jqueryvalidation/additional-methods.min.js') }}"></script>
+    <script src="{{ asset('toastr/toastr.min.js') }}"></script>
+    <script src="{{ asset('js/contact.js') }}"></script>
 {% endblock %}

@@ -39,6 +39,7 @@ use App\Entity\ShippingStatus;
 use App\Entity\MenuOptionProducts;
 use App\Entity\BankCard;
 use App\Entity\PaymentMode;
+use App\Entity\Configuration;
 use App\Entity\Ticket;
 use App\Entity\DeliveryProposition;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
@@ -241,6 +242,8 @@ class OrdersController extends Controller {
         $total = 0.00;
         $order_infos = file_get_contents('php://input');
         $data = json_decode($order_infos, TRUE);
+        
+        //echo '<pre>'; die(var_dump($data)); echo '</pre>';
 
         if (!is_array($data)) {
             $result = array("code" => 4000, "description" => "invalide request body");
@@ -272,6 +275,7 @@ class OrdersController extends Controller {
         $pymde = $em->getRepository(PaymentMode::class)->find($payment);
         $reference = substr(strtoupper(md5(random_bytes(6))), 0, 6);
         $delivers = $em->getRepository(User::class)->findAllUserByRole('ROLE_DELIVER', false);
+        $azCommission = $em->getRepository(Configuration::class)->findOneByName('AZ_STRIPE_COMMISSION')->getValue();
 
         // End validation
         $order = new Order();
@@ -287,31 +291,32 @@ class OrdersController extends Controller {
         $order->setAmount($total);
         $order->setPaymentMode($pymde);
         $order->setOrderStatus($em->getRepository(OrderStatus::class)->find(1));
+        $order->setCommission(intval($azCommission) / 100);
 
 
-        if ($card['id'] > 0) {
-            $b = $card['id'];
-            $bc = $em->getRepository(BankCard::class)->find($b);
-            $order->setPayment($bc);
-        } elseif ($card['id'] == 0) {
-            $name = $card['name'];
-            $card_nber = $card['card_number'];
-            $security = $card['security'];
-            $month = $card['month'];
-            $year = $card['year'];
-
-            $bc = new BankCard();
-            $bc->setOwnerName($name);
-            $bc->setUser($cl);
-            $bc->setMonthExp($month);
-            $bc->setYearExp($year);
-            $bc->setSecurityCode($security);
-            $bc->setCardNumber($card_nber);
-
-            $em->persist($bc);
-
-            $order->setPayment($bc);
-        }
+//        if ($card['id'] > 0) {
+//            $b = $card['id'];
+//            $bc = $em->getRepository(BankCard::class)->find($b);
+//            $order->setPayment($bc);
+//        } elseif ($card['id'] == 0) {
+//            $name = $card['name'];
+//            $card_nber = $card['card_number'];
+//            $security = $card['security'];
+//            $month = $card['month'];
+//            $year = $card['year'];
+//
+//            $bc = new BankCard();
+//            $bc->setOwnerName($name);
+//            $bc->setUser($cl);
+//            $bc->setMonthExp($month);
+//            $bc->setYearExp($year);
+//            $bc->setSecurityCode($security);
+//            $bc->setCardNumber($card_nber);
+//
+//            $em->persist($bc);
+//
+//            $order->setPayment($bc);
+//        }
         
         
         if($payment == 2){
@@ -382,6 +387,31 @@ class OrdersController extends Controller {
             $delProposition->setCommand($order);
 
             $em->persist($delProposition);
+            
+            // Send mail to delivers
+            $message2 = (new \Swift_Message('Nouvelle commande à livrer'))
+                ->setFrom('contact@ubereat.com')
+                ->setTo($dl->getEmail())
+                ->setBody(
+                    $this->renderView(
+                        // templates/emails/registration.html.twig
+                        'emails/new-order-to-deliver.html.twig', array('name' => $dl->getFirstname(), 'order' => $order)
+                    ), 'text/html'
+                )
+                ->setCharset('utf-8')
+            /*
+             * If you also want to include a plaintext version of the message
+              ->addPart(
+              $this->renderView(
+              'emails/registration.txt.twig',
+              array('name' => $name)
+              ),
+              'text/plain'
+              )
+             */
+            ;
+
+            $mailer->send($message2);
         }
         
         $em->flush();
@@ -896,11 +926,12 @@ class OrdersController extends Controller {
                 echo json_encode($result, JSON_UNESCAPED_SLASHES, 400);
                 return false;
             }
-        } else {
-            $result = array('code' => 4000, 'description' => 'array \'creditcard\' parameter is required.');
-            echo json_encode($result, JSON_UNESCAPED_SLASHES, 400);
-            return false;
-        }
+        } 
+//        else {
+//            $result = array('code' => 4000, 'description' => 'array \'creditcard\' parameter is required.');
+//            echo json_encode($result, JSON_UNESCAPED_SLASHES, 400);
+//            return false;
+//        }
         
         if($params['payment_mode'] == 2){
             if(array_key_exists('ticket', $params)){

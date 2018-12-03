@@ -17,27 +17,29 @@
                                 <tr>
                                     <th>ID</th>
                                     <th data-toogle="true">Nom</th>
-                                    <th>Logs</th>
-                                    <th data-hide="all">Temps connexion / semaine</th>
-                                    <th data-hide="all">Temps connexion / mois</th>
+                                    <th>Nombre de livraison durant la dernière heure</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {% for d in delivers %}
+                                {% if delivers|length %}
+                                    {% for d in delivers %}
                                     <tr>
-                                        <td>{{ d.id}}</td>
-                                        <td>{{ d.lastname }} {{ d.firstname }}</td>
+                                        <td>{{d.id}}</td>
+                                        <td><a href="{{path('info_deliver', {'id': d.id|base64_encode})}}">{{ d.lastname }} {{ d.firstname }}</a></td>
                                         <td>
-                                            <ol>
-                                                {% for lg in d.ConnexionLogs %}
-                                                    <li><span class="text-info">{{ lg.dateCreated|date('d M Y à H:i') }}</span></li>
+                                            {#<ol>
+                                                {% for lg in d.ShippingLogs %}
+                                                    <li><span class="text-info">{{ lg.makeAt }}</span></li>
                                                 {% endfor %}
-                                            </ol>
+                                            </ol>#}
+                                            <span class="badge badge-info">{{d.ShippingLogs|length}}</span>
                                         </td>
-                                        <td><span class="pie">6,9</span></td>
-                                        <td>40</td>
                                     </tr>
                                 {% endfor %}
+                                    {%else%}
+                                        Aucun résultat trouvé
+                                {%endif%}
+                                
                                 
                             </tbody>
                         </table>

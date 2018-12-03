@@ -7,13 +7,82 @@
 
 $(document).ready(function(){
     toastr.options.closeButton = true;
+    
+    // Create a Stripe client.
+    var stripe = Stripe('pk_test_hUvysW5ZouHgLBqNi8zADyfX');
+    // Create an instance of Elements.
+    var elements = stripe.elements();
+
+    // Custom styling can be passed to options when creating an Element.
+    // (Note that this demo uses a wider set of styles than the guide below.)
+    var style = {
+        base: {
+            color: '#32325d',
+            lineHeight: '18px',
+            fontFamily: '"Helvetica Neue", Helvetica, sans-serif',
+            fontSmoothing: 'antialiased',
+            fontSize: '16px',
+            '::placeholder': {
+                color: '#aab7c4'
+            }
+        },
+        invalid: {
+            color: '#fa755a',
+            iconColor: '#fa755a'
+        }
+    };
+
+    // Create an instance of the card Element.
+    var card = elements.create('card', {style: style});
+    
+    var mode_payment = $('#select-payment');
+    
+    mode_payment.on('change', function () {
+            var val = $(this).val();
+            if (val == 2) {
+                $('#form-ticket').removeClass('hidden');
+            } else {
+                $('#form-ticket').addClass('hidden');
+            }
+
+            if (val == 1) {
+                $('#form-card').removeClass('hidden');
+                
+
+                // Add an instance of the card Element into the `card-element` <div>.
+                card.mount('#card-element');
+                
+
+                // Handle real-time validation errors from the card Element.
+                card.addEventListener('change', function (event) {
+                    var displayError = document.getElementById('card-errors');
+                    if (event.error) {
+                        displayError.textContent = event.error.message;
+                    } else {
+                        displayError.textContent = '';
+                    }
+                });
+            } else {
+                $('#form-card').addClass('hidden');
+            }
+        });
+    
+    
+    
+    // Affiche le nom du restaurant
     $('.restau-name').html(localStorage.restau);
+    
     $('#pass-order').on('click', function(){
-        make_order();
+        if(mode_payment.val() == 1)
+            make_order_cb(stripe, card);
+        else
+            make_order_tkt();
     });
+    
+    
 });
 
-function make_order(){
+function make_order_cb(stripe, card){
     try{
         
         // validate select
@@ -21,7 +90,7 @@ function make_order(){
             return arg !== value;
         }, "Value must not equal arg.");
         
-        var validator = $('#address-form, #ticket-form').validate({
+        var validator = $('#payment-form').validate({
             rules:{
                 city:{
                     required:true
@@ -42,6 +111,10 @@ function make_order(){
                 },
                 'ticket-value':{
                     number: true
+                },
+                email:{
+                    required: true,
+                    email: true
                 }
             },
             messages:{
@@ -65,77 +138,156 @@ function make_order(){
             }
         });
         
-        var $validated = $('#address-form').valid();
+        var $validated = $('#payment-form').valid();
         if(!$validated){
             //alert('Erreur de renseignement');
         }else{
-            order();
+            // Handle form submission.
+            var form = document.getElementById('payment-form');
+            form.addEventListener('submit', function(event) {
+              event.preventDefault();
+
+              stripe.createToken(card).then(function(result) {
+                if (result.error) {
+                  // Inform the user if there was an error.
+                  var errorElement = document.getElementById('card-errors');
+                  errorElement.textContent = result.error.message;
+                } else {
+                  
+                  
+                  stripeTokenHandler(result.token);
+                }
+              });
+            });
+            //order(stripe, card);
         }
     }catch(error){
         console.log(error);
     }
 }
 
-function order(){
+
+// Submit the form with the token ID.
+function stripeTokenHandler(token) {
+    // Insert the token ID into the form so it gets submitted to the server
+    var form = document.getElementById('payment-form');
+    
+    var hiddenInput = document.createElement('input');
+    hiddenInput.setAttribute('type', 'hidden');
+    hiddenInput.setAttribute('name', 'stripeToken');
+    hiddenInput.setAttribute('value', token.id);
+    form.appendChild(hiddenInput);
+    
+    // Send the token to your server.
+    var cart = JSON.parse(localStorage.cart);
+    var hiddenInputMenu = document.createElement('input');
+    hiddenInputMenu.setAttribute('type', 'hidden');
+    hiddenInputMenu.setAttribute('name', 'menus');
+    hiddenInputMenu.setAttribute('value', JSON.stringify(cart));
+    form.appendChild(hiddenInputMenu);
+    
+    var resto = localStorage.restau_id;
+    var hiddenInputRestau = document.createElement('input');
+    hiddenInputRestau.setAttribute('type', 'hidden');
+    hiddenInputRestau.setAttribute('name', 'restau');
+    hiddenInputRestau.setAttribute('value', resto);
+    form.appendChild(hiddenInputRestau);
+    
+    localStorage.clear();
+    
+    // Submit the form
+    form.submit();
+}
+
+
+function make_order_tkt(){
     try{
-        var $cart = JSON.parse(localStorage.cart);
-        var pm = $('select[name="mpayment"]').val();
-        if(pm == 2){
-            var ticket = {
-                code: "NSLO-KSNO-DMME",
-                value: 4.60
-            };
-        }else{
-            var ticket = {
-                id: -1
-            };
-        }
-        //console.log($cart);
-        var data = {
-            "client": 8,
-            "delivery_address": $('input[name="address"]').val(),
-            "delivery_phone": $('input[name="phone"]').val(),
-            "delivery_city": $('input[name="city"]').val(),
-            "delivery_type": $('input[name="delivery-type"]').val(),
-            "delivery_cp": $('input[name="cp"]').val(),
-            "delivery_note": $('input[name="delivery-note"]').val(),
-            "restaurant": parseInt(localStorage.restau_id),
-            "payment_mode": parseInt(pm),
-            "menus": $cart,
-            "creditcard": {
-                id: -1
-            },
-            "ticket": ticket
-        };
         
-        $.ajax({
-            url: $('body').data('base-url') + 'api/orders',
-            type: 'post',
-            headers: {
-                "content-type": 'application/json',
-                "accept": "application/json"
-            },
-            data: JSON.stringify(data),
-            crossDomain: true
-        }).done(function(resp){
-            console.log(resp);
-            toastr.info('Votre commande a été enregistrée.');
-            localStorage.clear();
-        }).fail(function(xhr){
-            if(typeof xhr.responseText != 'undefined'){
-                var resp = JSON.parse(xhr.responseText);
-                if(resp.code == 4025){
-                    //alert("Vous devez choisir un mode de paiement.");
-                    toastr.error('Vous devez choisir un mode de paiement.');
+        // validate select
+        $.validator.addMethod("valueNotEquals", function (value, element, arg) {
+            return arg !== value;
+        }, "Value must not equal arg.");
+        
+        var validator = $('#payment-form').validate({
+            rules:{
+                city:{
+                    required:true
+                },
+                address:{
+                    required:true
+                },
+                phone:{
+                    required:true,
+                    number: true
+                },
+                mpayment:{
+                    valueNotEquals: 0
+                },
+                cp:{
+                    required: true,
+                    number: true
+                },
+                'ticket-value':{
+                    number: true
+                },
+                email:{
+                    required: true,
+                    email: true
                 }
-                if(resp.code == 4000)
-                    toastr.error('Paramètres invalides.');
+            },
+            messages:{
+                city:{
+                    required: 'Champ requis'
+                },
+                address:{
+                    required: 'Champ requis'
+                },
+                phone:{
+                    required: 'Champ requis',
+                    number: 'Valeur numérique réquise'
+                },
+                mpayment:{
+                    valueNotEquals: 'Choisissez un mode paiement.'
+                },
+                cp:{
+                    required: 'Champ requis',
+                    number: 'Valeur numérique réquise'
+                }
             }
         });
         
-        
-        
-        
+        var $validated = $('#payment-form').valid();
+        if(!$validated){
+            //alert('Erreur de renseignement');
+        }else{
+            // Handle form submission.
+            var form = document.getElementById('payment-form');
+            
+            var hiddenInput = document.createElement('input');
+            hiddenInput.setAttribute('type', 'hidden');
+            hiddenInput.setAttribute('name', 'value-ticket');
+            hiddenInput.setAttribute('value', $('input[name="ticket-value"]').val());
+            form.appendChild(hiddenInput);// Send the token to your server.
+            
+            
+            var cart = JSON.parse(localStorage.cart);
+            var hiddenInputMenu = document.createElement('input');
+            hiddenInputMenu.setAttribute('type', 'hidden');
+            hiddenInputMenu.setAttribute('name', 'menus');
+            hiddenInputMenu.setAttribute('value', JSON.stringify(cart));
+            form.appendChild(hiddenInputMenu);
+
+            var resto = localStorage.restau_id;
+            var hiddenInputRestau = document.createElement('input');
+            hiddenInputRestau.setAttribute('type', 'hidden');
+            hiddenInputRestau.setAttribute('name', 'restau');
+            hiddenInputRestau.setAttribute('value', resto);
+            form.appendChild(hiddenInputRestau);
+            
+            
+            localStorage.clear();
+            form.submit();
+        }
     }catch(error){
         console.log(error);
     }

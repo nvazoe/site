@@ -32,6 +32,7 @@ use App\Entity\Order;
 use App\Entity\OrderStatus;
 use App\Entity\DeliveryProposition;
 use App\Entity\ConnexionLog;
+use App\Entity\ShippingLog;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
@@ -424,18 +425,22 @@ class DeliversController extends Controller{
         if(!$ord){
             $result = array('code' => 400, 'description' => "Unexisting order");
             return new JsonResponse($result, 400);
-        }elseif(!in_array($ord->getOrderStatus()->getId(), [2, 5])){
+        }elseif($ord->getMessenger()){
             $result = array('code' => 400, 'description' => "Deliver already assigned.");
             return new JsonResponse($result, 400);
         }
         
         $orderRow = $em->getRepository(DeliveryProposition::class)->getOrderRow($deliver, $order);
         if($orderRow){
-            $orderRow->setValueDeliver(1);
             $ord->setMessenger($del);
             $ord->setOrderStatus($em->getRepository(OrderStatus::class)->find(6));
-            $em->flush();
+            
         }
+        
+        $propos = $em->getRepository(DeliveryProposition::class)->findBy(array("command" => $orderRow->getCommand()));
+        foreach($propos as $val)
+            $em->remove ($val);
+        $em->flush();
         
         return new JsonResponse(array('code'=>200));
     }
@@ -452,7 +457,7 @@ class DeliversController extends Controller{
      * 
      * @SWG\Tag(name="Delivers")
      */
-    public function shippedDeliveringAction(Request $request, $deliver, $order){
+    public function shippedOrderAction(Request $request, $deliver, $order){
         $em = $this->getDoctrine()->getManager();
         
         $del = $em->getRepository(User::class)->find($deliver);
@@ -476,8 +481,44 @@ class DeliversController extends Controller{
             return new JsonResponse($result, 400);
         }
         
-        //Update status order
-        $ord->setOrderStatus(4);
+        $shipLog = new ShippingLog();
+        $shipLog->setMessenger($del);
+        $shipLog->setCommand($ord);
+        $shipLog->setMakeAt(time());
+        
+        $em->persist($shipLog);
+        
+        try{
+            if($ord->getPaymentMode()->getId() == 1){
+                $stripePublicKey = $em->getRepository(Configuration::class)->findOneByName('AZ_STRIPE_ACCOUNT_SECRET')->getValue();
+                // Set your secret key: remember to change this to your live secret key in production
+                // See your keys here: https://dashboard.stripe.com/account/apikeys
+                \Stripe\Stripe::setApiKey($stripePublicKey);
+                
+                $charge = \Stripe\Charge::create([
+                    'amount' => $total*100, // $15.00 this time
+                    'currency' => 'eur',
+                    'customer' => $customer->id, // Previously stored, then retrieved
+                    'metadata' => ['order_id' => $order->id],
+                    'destination' =>  [
+                        'account' => "{".$ord->getRestaurant()->getStripeAccountid()."}",
+                        'amount' => $ord->getRestauEarn()
+                    ],
+                    'source' => $ord->getClient()->getStripeid()
+                ]);
+            }
+            
+            if($charge){
+                //Update status order
+                $ord->setOrderStatus($em->getRepository(OrderStatus::class)->find(4));
+                $ord->setBalanceTransaction($charge->balance_transaction);
+            }
+            
+        }catch(\Exception $e){
+            echo $e->getMessage();
+        }
+        
+        
         
         $em->flush();
         

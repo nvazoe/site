@@ -144,6 +144,26 @@ class Order
      */
     private $cp;
 
+    /**
+     * @ORM\OneToOne(targetEntity="App\Entity\Facture", mappedBy="command", cascade={"persist", "remove"})
+     */
+    private $facture;
+
+    /**
+     * @ORM\OneToOne(targetEntity="App\Entity\ShippingLog", mappedBy="command", cascade={"persist", "remove"})
+     */
+    private $shippingLog;
+
+    /**
+     * @ORM\Column(type="string", length=255, nullable=true)
+     */
+    private $balanceTransaction;
+
+    /**
+     * @ORM\Column(type="float")
+     */
+    private $commission;
+
     public function __construct()
     {
         $this->orderDetails = new ArrayCollection();
@@ -510,4 +530,73 @@ class Order
 
         return $this;
     }
+
+    public function getFacture(): ?Facture
+    {
+        return $this->facture;
+    }
+
+    public function setFacture(Facture $facture): self
+    {
+        $this->facture = $facture;
+
+        // set the owning side of the relation if necessary
+        if ($this !== $facture->getCommand()) {
+            $facture->setCommand($this);
+        }
+
+        return $this;
+    }
+
+    public function getShippingLog(): ?ShippingLog
+    {
+        return $this->shippingLog;
+    }
+
+    public function setShippingLog(ShippingLog $shippingLog): self
+    {
+        $this->shippingLog = $shippingLog;
+
+        // set the owning side of the relation if necessary
+        if ($this !== $shippingLog->getCommand()) {
+            $shippingLog->setCommand($this);
+        }
+
+        return $this;
+    }
+
+    public function getBalanceTransaction(): ?string
+    {
+        return $this->balanceTransaction;
+    }
+
+    public function setBalanceTransaction(?string $balanceTransaction): self
+    {
+        $this->balanceTransaction = $balanceTransaction;
+
+        return $this;
+    }
+
+    public function getCommission(): ?float
+    {
+        return $this->commission;
+    }
+
+    public function setCommission(float $commission): self
+    {
+        $this->commission = $commission;
+
+        return $this;
+    }
+    
+    
+    public function getAllozoeCommission(){
+        return $this->getAmount()*$this->getCommission();
+    }
+    
+    public function getRestauEarn(){
+        return $this->getAmount() - $this->getAllozoeCommission();
+    }
+
+
 }

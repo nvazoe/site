@@ -140,11 +140,21 @@ function options_html(dat) {
 
 function add_to_basket() {
     try {
+        var restau = $('#restau').data('restau');
+        var restau_id = $('#restau').data('restau-id');
+        
+        // Clear basket if he want to add menu from another restau
+        if(typeof localStorage.restau_id != 'undefined')
+            if(restau_id != localStorage.restau_id)
+                localStorage.clear();
+        
+        
+        
+        
         var name = $('#menu-name').text();
         var qty = parseInt($('.qty').text());
         var amount = parseFloat($('.amount-menu').text()).toFixed(2);
-        var restau = $('#restau').data('restau');
-        var restau_id = $('#restau').data('restau-id');
+
         var menu_id = $('#menu-name').data('menu');
 
         var options = $('.blck-option');

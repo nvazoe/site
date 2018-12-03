@@ -334,6 +334,9 @@ easy_admin:
                     -
                         property: imageFile
                         type: vich_image
+                    -
+                        property: status
+                        label: Actif
             list:
                 title: Produits
                 fields:
@@ -346,6 +349,10 @@ easy_admin:
                     -
                         property: price
                         label: Prix
+                    -
+                        property: status
+                        label: Statut
+                        type: toggle
                     -
                         property: image
                         type: image
@@ -377,6 +384,29 @@ easy_admin:
                 actions: [-delete, -new]
                 dql_filter: "entity.orderStatus = 4"
                 title: Commandes livrées
+                fields:
+                    -
+                        property: id
+                        label: ID
+                    -
+                        property: ref
+                        label: Reférence
+                    -
+                        property: amount
+                        label: Montant
+                    -
+                        property: date_created
+                        label: "Date commande"
+                    -
+                        property: address
+                        label: "Adresse de livraison"
+                    -
+                        property: AllozoeCommission
+                        label: Commission Allozoé
+                    -
+                        property: RestauEarn
+                        label: Revenu restaurant
+                    
         NewOrder:
             class: App\Entity\Order
             label: Nouvelles commandes
@@ -410,6 +440,31 @@ easy_admin:
         Ticket:
             class: App\Entity\Ticket
             label: Tickets
+        SlideShow:
+            class: App\Entity\Slideshow
+            label: Slideshow
+            form:
+                fields:
+                    -
+                        property: imageFile
+                        type: vich_image
+                    -
+                        property: title
+                        label: Titre
+                        type_options:
+                            required: false
+                    -
+                        property: subtitle
+                        label: Sous-titre
+                        type_options:
+                            required: false
+                    -
+                        property: addClasses
+                        label: Classes CSS
+                    -
+                        property: active
+                        label: Actif
+                        
             
     design:
         form_theme: '%env(APP_TEMPLATE_ADMIN)%%env(DS)%easy_admin%env(DS)%form%env(DS)%bootstrap_3_horizontal_layout.html.twig'
@@ -506,5 +561,13 @@ easy_admin:
                     -
                         route: map_delivers
                         label: Livreurs
+            -
+                label: Configurations
+                icon: cog
+                route: stripe_config
+            -
+                label: Slideshow
+                icon: desktop
+                entity: SlideShow
                     
 

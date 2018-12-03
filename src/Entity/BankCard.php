@@ -17,17 +17,17 @@ class BankCard
     private $id;
 
     /**
-     * @ORM\Column(type="string", length=255)
+     * @ORM\Column(type="string", length=255, nullable=true)
      */
     private $ownerName;
 
     /**
-     * @ORM\Column(type="string", length=255)
+     * @ORM\Column(type="string", length=255, nullable=true)
      */
     private $cardNumber;
 
     /**
-     * @ORM\Column(type="string", length=255)
+     * @ORM\Column(type="string", length=255, nullable=true)
      */
     private $securityCode;
 
@@ -38,12 +38,12 @@ class BankCard
     private $user;
 
     /**
-     * @ORM\Column(type="string", length=2)
+     * @ORM\Column(type="string", length=2, nullable=true)
      */
     private $monthExp;
 
     /**
-     * @ORM\Column(type="string", length=4)
+     * @ORM\Column(type="string", length=4, nullable=true)
      */
     private $yearExp;
 
@@ -51,6 +51,11 @@ class BankCard
      * @ORM\OneToOne(targetEntity="App\Entity\Order", mappedBy="payment", cascade={"persist", "remove"})
      */
     private $command;
+
+    /**
+     * @ORM\Column(type="string", length=255, nullable=true)
+     */
+    private $stripeId;
 
     public function getId(): ?int
     {
@@ -151,5 +156,17 @@ class BankCard
     
     public function __toString(){
         return $this->getOwnerName().'-'.$this->getId();
+    }
+
+    public function getStripeId(): ?string
+    {
+        return $this->stripeId;
+    }
+
+    public function setStripeId(string $stripeId): self
+    {
+        $this->stripeId = $stripeId;
+
+        return $this;
     }
 }
