@@ -139,6 +139,7 @@ class MenusController extends Controller {
                     $result['data']['options']["$k"]["id"] = $v->getMenuOption()->getId();
                     $result['data']['options']["$k"]["name"] = $v->getMenuOption()->getName();
                     $result['data']['options']["$k"]["item_required"] = $v->getMenuOption()->getItem();
+                    $result['data']['options']["$k"]["type"] = $v->getMenuOption()->getType();
                     //Get products for options
                     $products = $v->getMenuOption()->getYes();
                     if(!is_null($products)){

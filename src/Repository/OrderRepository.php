@@ -94,8 +94,7 @@ class OrderRepository extends ServiceEntityRepository
         if($limit)
             $select = $select->setFirstResult( ($page-1)*$limit )->setMaxResults( $limit );
         
-        $select->orderBy('o.id', 'desc');
-        
+        $select->orderBy('o.id', 'desc');      
 //        if($status)
 //            $select = $select->andWhere ('o.orderStatus = :cat')->setParameter ('cat', $status);
 //        

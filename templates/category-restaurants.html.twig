@@ -10,14 +10,15 @@
         <div class="row">
             {% for restau in category.RestaurantSpecialities %}
                 <div class="col-md-4">
-                    <div class="thumbnail">
-                        
-                        <div style="background-image: url({% if not restau.restaurant.image %}{{ asset('images/menu/dish.jpg')}}{%else%}{{ asset('images/restaurant/')}}{{restau.restaurant.image}}{%endif%}); height:200px; background-size:cover;"></div>
-                            <div class="caption">
-                                <h4><a href="{{ path('restau', {'id': restau.restaurant.id}) }}">{{restau.restaurant.name}} {% if restau.restaurant.address %}({{restau.restaurant.address}} {{restau.restaurant.city}}){%endif%}</a></h4>
-                                <p>{{ restau.restaurant.description }}</p>
-                            </div>
-                    </div>
+                    <a href="{{ path('restau', {'id': restau.restaurant.id}) }}">
+                        <div class="thumbnail">
+                            <div style="background-image: url({% if not restau.restaurant.image %}{{ asset('images/menu/dish.jpg')}}{%else%}{{ asset('images/restaurant/')}}{{restau.restaurant.image}}{%endif%}); height:200px; background-size:cover;"></div>
+                                <div class="caption">
+                                    <h4><a href="{{ path('restau', {'id': restau.restaurant.id}) }}">{{restau.restaurant.name}} {% if restau.restaurant.address %}({{restau.restaurant.address}} {{restau.restaurant.city}}){%endif%}</a></h4>
+                                    <p>{{ restau.restaurant.description }}</p>
+                                </div>
+                        </div>
+                    </a>
                 </div>
             {% endfor %}
         </div>

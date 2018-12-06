@@ -43,21 +43,20 @@
     <div class="container">
         <form action="{{path('save_credit')}}" method="post" id="payment-form">
             <div class="row">
-            <div class="col-md-8">
-                <div>
-                    <h2>1. Heure de livraison</h2>
+                <div class="col-md-8">
                     <div>
-                        <span>Dès que disponible</span>
-                        <span class="pull-right"><a>Planifier</a></span>
+                        <h2>1. Heure de livraison</h2>
+                        <div>
+                            <span id="getPlan">Dès que disponible</span>
+                            <span class="pull-right" id="classPage"><a href="#" data-toggle="modal" data-target="#myModal">Planifier</a></span>
+                        </div>
                     </div>
-                </div>
-                <div>
-                    <h2>2. Confirmer l'emplacement</h2>
                     <div>
-                        <div class="row">
-                            <div class="col-sm-4"><img src="{{ asset('images/staticmap.png') }}" alt="map"/></div>
-                            <div class="col-sm-8">
-                                
+                        <h2>2. Confirmer l'emplacement</h2>
+                        <div>
+                            <div class="row">
+                                <div class="col-sm-4"><img src="{{ asset('images/staticmap.png') }}" alt="map" sytle="display:none;"/></div>
+                                <div class="col-sm-8">
                                     <div class="row">
                                         <div class="form-group col-sm-6">
                                             <input type="radio" name="delivery-type" id="delivery-type-1" value="HOME" checked="checked" ><label for="delivery-type-1">Livraison à domicile</label>
@@ -84,16 +83,16 @@
                                             <textarea type="text" class="form-control" name="delivery-note" placeholder="Ajouter une note pour la livraison."></textarea>
                                         </div>
                                     </div>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
 
-                <div>
-                    <h2>3. Mode de paiement</h2>
                     <div>
-                        <div class="row">
-                            <div class="col-sm-12">
+                        <h2>3. Mode de paiement</h2>
+                        <div>
+                            <div class="row">
+                                <div class="col-sm-12">
                                     <div class="row">
                                         <div class="form-group col-sm-6">
                                             <select class="form-control" name="mpayment" id="select-payment">
@@ -103,133 +102,189 @@
                                             </select>
                                         </div>
                                     </div>
-                                {#<span>Ajouter un code promotionnel</span>#}
+                                    {#<span>Ajouter un code promotionnel</span>#}
+                                </div>
+                            </div>
+                            <div class="form-ticket hidden" id="form-ticket">
+                                <form class="form-horizontal" id="ticket-form">
+                                    <div class="container">
+                                        <div class="row">
+                                            <div class="form-group col-sm-6">
+                                                <label>Valeur du ticket (€)</label>
+                                                <input class="form-control" name="ticket-value" type="number" required form="address-form">
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                </form>
+                            </div>
+                            <div class="form-card hidden" id="form-card">
+                                <div class="form-row">
+                                    <label for="card-element">
+                                        Credit or debit card
+                                    </label>
+                                    <div id="card-element">
+                                        <!-- A Stripe Element will be inserted here. -->
+                                    </div>
+
+                                    <!-- Used to display form errors. -->
+                                    <div id="card-errors" role="alert"></div>
+                                </div>
+                            </div>  
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="box-payment">
+                        <span>Votre commande</span>
+                        <div class="restau-name"></div>
+                        <button class="btn btn-success" id="pass-order">Passez commande</button>
+                    </div>
+                    <div class="box-basket">
+
+
+                    </div>
+                    <div class="box-infos">
+                        <span>Ajoutez des articles à votre panier et ils s'y afficheront</span>
+                    </div>
+                </div>
+            </div>
+
+
+
+
+                <!-- Modal -->
+                <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+                    <div class="modal-dialog modal-sm">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                                <h4 class="modal-title" id="myModalLabel">Choisir l'heure de livraison</h4>
+                            </div>
+                            <div class="modal-body" style="display:grid;">
+                                <div class="form-group">
+                                    <div class="col-md-12">
+                                        <label>Date</label>
+                                        <select name="delivery-date" class="form-control">
+                                            <option value="{{ "now"|date("l, d M") }}">{{ "now"|date("l, d M") }}</option>
+                                            {% for i in 1..6 %}
+                                                <option value="{{ "now"|date_modify( "+" ~ i ~ "day")|date("l, d M") }}">{{ "now"|date_modify( "+" ~ i ~ "day")|date("l, d M") }}</option>
+                                            {% endfor %}
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+
+                                        <div class="col-md-12">
+                                            <label>Heure</label>
+                                            <select name="delivery-hour" class="form-control">
+                                                <option value="dès que possible">Selectionner une heure</option>
+                                                <option value="06h00 - 06h15">06h00 - 06h15</option>
+                                                <option value="06h15 - 06h30">06h15 - 06h30</option>
+                                                <option value="06h30 - 06h45">06h15 - 06h30</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <div class="text-center" style="margin-top:10px;"><button type="button" class="btn btn-primary" data-dismiss="modal" id="setPlan">Programmer une heure</button></div>
+                                </div>
                             </div>
                         </div>
-                        <div class="form-ticket hidden" id="form-ticket">
-                            <form class="form-horizontal" id="ticket-form">
-                                <div class="container">
+                    </div>
+                <div class="modal fade" id="myModal2" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+                    <div class="modal-dialog modal-sm">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                                <h4 class="modal-title" id="myModalLabel">Choisir l'heure de livraison</h4>
+                            </div>
+                            <div class="modal-body" style="display:grid;">
+                                <div class="text-center" style="margin-top:10px;"><button type="button" class="btn btn-primary" data-dismiss="modal" id="setPlan2">Livrer maintenant</button></div>
+                            </div> 
+                        </div>
+                    </div>
+                </div>
+            </form>
+
+        </div>
+
+
+        <!-- Modal -->
+        <div class="modal fade" id="info" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                        <h4 class="modal-title" id="myModalLabel">Modal title</h4>
+                    </div>
+                    <div class="modal-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <img src="">
+                            </div>
+                            <section class="col-md-6">
+                                <header>
+                                    <h3 id="menu-name">NOM DU MENU</h3>
+                                    <p id="menu-description">Marque</p>
+                                </header>
+                                <main>
+                                    <div class="block-options">
+                                        <div class="blck-option">
+                                            <div class="option-title">
+                                                <h3>Accompagnements</h3>
+                                                <p>Choisissez 1</p>
+                                                <span class="badge">Obligatoire</span>
+                                            </div>
+                                            <div>
+                                                <form class="form-horizontal">
+                                                    <div class="form-group">
+                                                        <div class=""><div class="col-sm-1"><input type="radio" name="options"></div><label class="col-sm-8">Option 1</label><label class="col-sm-3"><span class="price">2</span> <span class="currency">€</span></label></div>
+                                                        <div class=""><div class="col-sm-1"><input type="radio" name="options"></div><label class="col-sm-8">Option 2</label><label class="col-sm-3"><span class="price">299</span> <span class="currency">€</span></label></div>
+                                                        <div class=""><div class="col-sm-1"><input type="radio" name="options"></div><label  class="col-sm-8">Option 3</label><label class="col-sm-3"><span class="price">20</span> <span class="currency">€</span></label></div>
+                                                    </div>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="option-info">Pour être informé sur les allergènes présents dans les produits proposés par ce restaurant, cliquez ici.</div>
+                                </main>
+                                <footer class="footer-menu">
                                     <div class="row">
-                                        <div class="form-group col-sm-6">
-                                            <label>Valeur du ticket (€)</label>
-                                            <input class="form-control" name="ticket-value" type="number" required form="address-form">
+                                        <div class="col-sm-4">
+                                            <div class="actionqty minus">
+                                                <button>
+                                                    <svg viewBox="0 0 64 64" width="16px" height="16px" class=" ue-dz"><g><path d="M55 36H9a1 1 0 0 1-1-1v-6a1 1 0 0 1 1-1h46a1 1 0 0 1 1 1v6a1 1 0 0 1-1 1z"></path></g></svg>
+                                                </button>
+                                            </div>
+                                            <div class="qty">1</div>
+                                            <div class="actionqty plus">
+                                                <button>
+                                                    <svg viewBox="0 0 64 64" width="16px" height="16px" class=" ue-dz"><path d="M56 29v6a1 1 0 0 1-1 1H36v19a1 1 0 0 1-1 1h-6a1 1 0 0 1-1-1V36H9a1 1 0 0 1-1-1v-6a1 1 0 0 1 1-1h19V9a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v19h19a1 1 0 0 1 1 1z"></path></svg>
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-8">
+                                            <button class="btn btn-success basket" data-unit-price="9" id="unit-price">Ajouter au panier <span class="amount-menu"></span><span>€</span></button>
                                         </div>
                                     </div>
-                                </div>
-
-                            </form>
+                                </footer>
+                            </section>
                         </div>
-                        <div class="form-card hidden" id="form-card">
-                            <div class="form-row">
-                                <label for="card-element">
-                                    Credit or debit card
-                                </label>
-                                <div id="card-element">
-                                    <!-- A Stripe Element will be inserted here. -->
-                                </div>
 
-                                <!-- Used to display form errors. -->
-                                <div id="card-errors" role="alert"></div>
-                            </div>
-                        </div>  
                     </div>
                 </div>
             </div>
-            <div class="col-md-4">
-                <div class="box-payment">
-                    <span>Votre commande</span>
-                    <div class="restau-name"></div>
-                    <button class="btn btn-success" id="pass-order">Passez commande</button>
-                </div>
-                <div class="box-basket">
-
-
-                </div>
-                <div class="box-infos">
-                    <span>Ajoutez des articles à votre panier et ils s'y afficheront</span>
-                </div>
-            </div>
         </div>
-        </form>
-        
-    </div>
+        {% endblock %}
 
+            {% block javascripts %}
 
-    <!-- Modal -->
-    <div class="modal fade" id="info" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                    <h4 class="modal-title" id="myModalLabel">Modal title</h4>
-                </div>
-                <div class="modal-body">
-                    <div class="row">
-                        <div class="col-md-6">
-                            <img src="">
-                        </div>
-                        <section class="col-md-6">
-                            <header>
-                                <h3 id="menu-name">NOM DU MENU</h3>
-                                <p id="menu-description">Marque</p>
-                            </header>
-                            <main>
-                                <div class="block-options">
-                                    <div class="blck-option">
-                                        <div class="option-title">
-                                            <h3>Accompagnements</h3>
-                                            <p>Choisissez 1</p>
-                                            <span class="badge">Obligatoire</span>
-                                        </div>
-                                        <div>
-                                            <form class="form-horizontal">
-                                                <div class="form-group">
-                                                    <div class=""><div class="col-sm-1"><input type="radio" name="options"></div><label class="col-sm-8">Option 1</label><label class="col-sm-3"><span class="price">2</span> <span class="currency">€</span></label></div>
-                                                    <div class=""><div class="col-sm-1"><input type="radio" name="options"></div><label class="col-sm-8">Option 2</label><label class="col-sm-3"><span class="price">299</span> <span class="currency">€</span></label></div>
-                                                    <div class=""><div class="col-sm-1"><input type="radio" name="options"></div><label  class="col-sm-8">Option 3</label><label class="col-sm-3"><span class="price">20</span> <span class="currency">€</span></label></div>
-                                                </div>
-                                            </form>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="option-info">Pour être informé sur les allergènes présents dans les produits proposés par ce restaurant, cliquez ici.</div>
-                            </main>
-                            <footer class="footer-menu">
-                                <div class="row">
-                                    <div class="col-sm-4">
-                                        <div class="actionqty minus">
-                                            <button>
-                                                <svg viewBox="0 0 64 64" width="16px" height="16px" class=" ue-dz"><g><path d="M55 36H9a1 1 0 0 1-1-1v-6a1 1 0 0 1 1-1h46a1 1 0 0 1 1 1v6a1 1 0 0 1-1 1z"></path></g></svg>
-                                            </button>
-                                        </div>
-                                        <div class="qty">1</div>
-                                        <div class="actionqty plus">
-                                            <button>
-                                                <svg viewBox="0 0 64 64" width="16px" height="16px" class=" ue-dz"><path d="M56 29v6a1 1 0 0 1-1 1H36v19a1 1 0 0 1-1 1h-6a1 1 0 0 1-1-1V36H9a1 1 0 0 1-1-1v-6a1 1 0 0 1 1-1h19V9a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v19h19a1 1 0 0 1 1 1z"></path></svg>
-                                            </button>
-                                        </div>
-                                    </div>
-                                    <div class="col-sm-8">
-                                        <button class="btn btn-success basket" data-unit-price="9" id="unit-price">Ajouter au panier <span class="amount-menu"></span><span>€</span></button>
-                                    </div>
-                                </div>
-                            </footer>
-                        </section>
-                    </div>
-
-                </div>
-            </div>
-        </div>
-    </div>
-{% endblock %}
-
-{% block javascripts %}
-
-    <script src="{{ asset('jqueryvalidation/jquery.validate.min.js') }}"></script>
-    <script src="{{ asset('jqueryvalidation/localization/messages_fr.min.js') }}"></script>
-    <script src="{{ asset('jqueryvalidation/additional-methods.min.js') }}"></script>
-    <script src="{{ asset('toastr/toastr.min.js') }}"></script>
-    <script src="https://js.stripe.com/v3/"></script>
-    <script src="{{ asset('js/order-sys.js') }}"></script>
-    <script src="{{ asset('js/checkout.js') }}"></script>
-{% endblock %}
+                <script src="{{ asset('jqueryvalidation/jquery.validate.min.js') }}"></script>
+                <script src="{{ asset('jqueryvalidation/localization/messages_fr.min.js') }}"></script>
+                <script src="{{ asset('jqueryvalidation/additional-methods.min.js') }}"></script>
+                <script src="{{ asset('toastr/toastr.min.js') }}"></script>
+                <script src="https://js.stripe.com/v3/"></script>
+                <script src="{{ asset('js/order-sys.js') }}"></script>
+                <script src="{{ asset('js/checkout.js') }}"></script>
+            {% endblock %}

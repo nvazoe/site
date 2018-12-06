@@ -81,7 +81,7 @@ class UserRepository extends ServiceEntityRepository
 //        return $qb->getQuery()->getSingleScalarResult();
 //    }
     
-    public function getOrders($client, $messenger, $status, $limit, $page, $count = false){
+    public function getOrders($client, $messenger, $status, $restaurant, $limit, $page, $count = false){
         $this->_entityName = Order::class;
         
         $query = $this->createQueryBuilder('o');
@@ -93,6 +93,8 @@ class UserRepository extends ServiceEntityRepository
             $query = $query->andWhere ('o.messenger = :msg')->setParameter ('msg', $messenger);
         if($status)
             $query = $query->andWhere ('o.orderStatus = :status')->setParameter ('status', $status);
+        if($restaurant)
+            $query = $query->andWhere ('o.restaurant = :restau')->setParameter ('restau', $restaurant);
         if($count)
             return $query->select('COUNT(o)')->getQuery()->getSingleScalarResult();
         if($limit)

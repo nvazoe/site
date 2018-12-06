@@ -17,7 +17,17 @@
                                 <tr>
                                     <th>ID</th>
                                     <th data-toogle="true">Nom</th>
-                                    <th>Nombre de livraison durant la dernière heure</th>
+                                    <th>
+                                        Nombre de livraison durant la/les 
+                                        <form style="display: inline;">
+                                            <select name="period" onchange="this.form.submit();">
+                                                {% for i in 1..24 %}
+                                                    <option value="{{i}}" {{ period == i ? 'selected="selected"' : ''}}>{{i}}</option>
+                                                {%endfor%}
+                                            </select>
+                                        </form>
+                                            dernière(s) heure(s)
+                                    </th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -32,15 +42,13 @@
                                                     <li><span class="text-info">{{ lg.makeAt }}</span></li>
                                                 {% endfor %}
                                             </ol>#}
-                                            <span class="badge badge-info">{{d.ShippingLogs|length}}</span>
+                                            <span class="badge badge-info">{{d.delCount}}</span>
                                         </td>
                                     </tr>
                                 {% endfor %}
                                     {%else%}
                                         Aucun résultat trouvé
                                 {%endif%}
-                                
-                                
                             </tbody>
                         </table>
                     </div>

@@ -30,6 +30,7 @@ use App\Entity\Restaurant;
 use App\Entity\Menu;
 use App\Entity\BankCard;
 use App\Entity\Ticket;
+use App\Entity\ShippingNote;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 
 /**
@@ -337,6 +338,12 @@ class ClientsController extends Controller {
      *      strict=false
      * )
      * 
+     * @QueryParam(
+     *      name="restaurant",
+     *      description="restaurant ID",
+     *      strict=false
+     * )
+     * 
      * @SWG\Tag(name="Clients")
      */
     public function getClientOrders(Request $request, $id){
@@ -344,6 +351,7 @@ class ClientsController extends Controller {
         $limit = $request->query->get('limit')?$request->query->get('limit'):$request->request->get('limit');
         $page = $request->query->get('page')?$request->query->get('page'):$request->request->get('page');
         $status = $request->query->get('status')?$request->query->get('status'):$request->request->get('status');
+        $restaurant = $request->query->get('restaurant')?$request->query->get('restaurant'):$request->request->get('restaurant');
         
         // Default values
         $limit = ($limit == null) ? 100 : $limit;
@@ -356,7 +364,7 @@ class ClientsController extends Controller {
         }
         
         $array = [];
-        $orders = $em->getRepository(User::class)->getOrders($id, null, $status, $limit, $page, false);
+        $orders = $em->getRepository(User::class)->getOrders($id, null, $status, $restaurant, $limit, $page, false);
         foreach ($orders as $k=>$l){
             $array[$k]["id"] = $l->getId();
             $array[$k]['amount'] = $l->getAmount();
@@ -367,6 +375,13 @@ class ClientsController extends Controller {
             $array[$k]['status']['name'] = $l->getOrderStatus()->getName();
             $array[$k]['restaurant']['id'] = $l->getRestaurant()->getId();
             $array[$k]['restaurant']['name'] = $l->getRestaurant()->getName();
+            
+            $note = $em->getRepository(ShippingNote::class)->findOneBy(array('command' => $l));
+            if($note){
+                $array[$k]['noted'] = 1;
+            }else{
+                $array[$k]['noted'] = 0;
+            }
         }
         $result['code'] = 200;
         if(count($array) > 0){

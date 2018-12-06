@@ -41,6 +41,7 @@ use App\Entity\BankCard;
 use App\Entity\PaymentMode;
 use App\Entity\Configuration;
 use App\Entity\Ticket;
+use App\Entity\ShippingNote;
 use App\Entity\DeliveryProposition;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
@@ -1013,6 +1014,120 @@ class OrdersController extends Controller {
             'data' => array(
                 'order_id' => $order->getId(),
                 'reference' => $order->getRef()
+            )
+        );
+
+        return new JsonResponse($result);
+    }
+    
+    
+    
+    /**
+     * @Post("/api/orders/{id}/note")
+     * 
+     * *@SWG\Response(
+     *      response=200,
+     *      description="Note the service"
+     * )
+     * 
+     * @QueryParam(
+     *      name="restaurant_note",
+     *      description="Note give to restaurant",
+     *      strict=false
+     * )
+     * 
+     * @QueryParam(
+     *      name="deliver_note",
+     *      description="Note give to deliver",
+     *      strict=false
+     * )
+     * 
+     * @QueryParam(
+     *      name="perquisite",
+     *      description="Perquisite given to deliver",
+     *      strict=false
+     * )
+     * 
+     * @SWG\Tag(name="Orders")
+     */
+    public function orderNoteAction(Request $request, $id) {
+        $em = $this->getDoctrine()->getManager();
+        
+        $order_note = file_get_contents('php://input');
+        $data = json_decode($order_note, TRUE);
+        
+        
+        $order = $em->getRepository(Order::class)->find($id);
+        if (!$order) {
+            $result = array('code' => 4000, 'description' => 'Unexisting order.');
+            return new JsonResponse($result, 400);
+        }
+        
+        $noted = $em->getRepository(ShippingNote::class)->findOneBy(array('command' => $order));
+        if($noted){
+            $result = array('code' => 4030, 'description' => 'Order has been already note.');
+            return new JsonResponse($result, 400);
+        }
+        
+        if(array_key_exists('perquisite', $data)){
+            if(!is_float($data['perquisite'])){
+                $result = array('code' => 4000, 'description' => 'Perquisite must be float value.');
+                return new JsonResponse($result, 400);
+            }
+        }else{
+            $data['perquisite'] = 0.00;
+        }
+        
+        if(array_key_exists('restaurant_note', $data)){
+            if(!is_int($data['restaurant_note'])){
+                $result = array('code' => 4000, 'description' => 'restaurant_note must be integer.');
+                return new JsonResponse($result, 400);
+            }
+            if($data['restaurant_note'] < 1 || $data['restaurant_note'] > 10){
+                $result = array('code' => 4000, 'description' => 'restaurant_note must between 1 and 10.');
+                return new JsonResponse($result, 400);
+            }
+        }else{
+            $data['restaurant_note'] = 1;
+        }
+        
+        if(array_key_exists('deliver_note', $data)){
+            if(!is_int($data['deliver_note'])){
+                $result = array('code' => 4000, 'description' => 'deliver_note must be integer.');
+                return new JsonResponse($result, 400);
+            }
+             if($data['deliver_note'] < 1 || $data['deliver_note'] > 10){
+                $result = array('code' => 4000, 'description' => 'deliver_note must between 1 and 10.');
+                return new JsonResponse($result, 400);
+            }
+        }else{
+            $data['deliver_note'] = 1;
+        }
+        
+        if(array_key_exists('comments', $data)){
+            if(!is_string($data['comments'])){
+                $result = array('code' => 4000, 'description' => 'comments must be string.');
+                return new JsonResponse($result, 400);
+            }
+        }else{
+            $data['comments'] = '';
+        }
+        
+        $note = new ShippingNote();
+        
+        $note->setCommand($order);
+        $note->setRestauNote($data['restaurant_note']);
+        $note->setDeliverNote($data['deliver_note']);
+        $note->setPerquisite($data['perquisite']);
+        $note->setComments($data['comments']);
+        $em->persist($note);
+        
+        $em->flush();
+
+        $result = array(
+            'code' => 200,
+            'data' => array(
+                'note_id' => $note->getId()
             )
         );
 

@@ -162,9 +162,16 @@ class User implements UserInterface, \Serializable
     private $connexionLogs;
 
     /**
+     * @ORM\OneToMany(targetEntity="App\Entity\ShippingLog", mappedBy="messenger", orphanRemoval=true)
+     */
+    private $shippingLogs;
+    
+    /**
      * @ORM\Column(type="string", length=255, nullable=true)
      */
     private $stripeId;
+
+    
 
     
 
@@ -761,6 +768,37 @@ class User implements UserInterface, \Serializable
         return $this->connexionLogs->matching($criteria);
     }
 
+    /**
+     * @return Collection|ShippingLog[]
+     */
+    public function getShippingLogs(): Collection
+    {
+        return $this->shippingLogs;
+    }
+
+    public function addShippingLog(ShippingLog $shippingLog): self
+    {
+        if (!$this->shippingLogs->contains($shippingLog)) {
+            $this->shippingLogs[] = $shippingLog;
+            $shippingLog->setMessenger($this);
+        }
+
+        return $this;
+    }
+
+    public function removeShippingLog(ShippingLog $shippingLog): self
+    {
+        if ($this->shippingLogs->contains($shippingLog)) {
+            $this->shippingLogs->removeElement($shippingLog);
+            // set the owning side to null (unless already changed)
+            if ($shippingLog->getMessenger() === $this) {
+                $shippingLog->setMessenger(null);
+            }
+        }
+
+        return $this;
+    }
+    
     public function getStripeId(): ?string
     {
         return $this->stripeId;
@@ -773,13 +811,31 @@ class User implements UserInterface, \Serializable
         return $this;
     }
 
-    public function removeShippingLog(ShippingLog $shippingLog): self
+    /**
+     * @return Collection|ShippingNote[]
+     */
+    public function getShippingNotes(): Collection
     {
-        if ($this->shippingLogs->contains($shippingLog)) {
-            $this->shippingLogs->removeElement($shippingLog);
+        return $this->shippingNotes;
+    }
+
+    public function addShippingNote(ShippingNote $shippingNote): self
+    {
+        if (!$this->shippingNotes->contains($shippingNote)) {
+            $this->shippingNotes[] = $shippingNote;
+            $shippingNote->setMessenger($this);
+        }
+
+        return $this;
+    }
+
+    public function removeShippingNote(ShippingNote $shippingNote): self
+    {
+        if ($this->shippingNotes->contains($shippingNote)) {
+            $this->shippingNotes->removeElement($shippingNote);
             // set the owning side to null (unless already changed)
-            if ($shippingLog->getMessenger() === $this) {
-                $shippingLog->setMessenger(null);
+            if ($shippingNote->getMessenger() === $this) {
+                $shippingNote->setMessenger(null);
             }
         }
 

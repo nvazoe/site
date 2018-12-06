@@ -429,6 +429,8 @@ easy_admin:
                     -
                         property: name
                         label: Nom
+            list:
+                actions: [-delete, -new, -edit]
         PaymentMode:
             class: App\Entity\PaymentMode
             label: Mode de paiement
@@ -487,9 +489,6 @@ easy_admin:
                     -
                         entity: Deliver
                         label: Livreurs
-                    -
-                        route: logged_delivers
-                        label: Livreurs connectés
                     -
                         entity: Admin
                         label: Restaurateurs
@@ -569,5 +568,9 @@ easy_admin:
                 label: Slideshow
                 icon: desktop
                 entity: SlideShow
+            -
+                label: Ratio de livraison
+                icon: truck
+                route: logged_delivers
                     
 

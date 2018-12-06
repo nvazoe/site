@@ -33,6 +33,8 @@ use App\Entity\OrderStatus;
 use App\Entity\DeliveryProposition;
 use App\Entity\ConnexionLog;
 use App\Entity\ShippingLog;
+use App\Entity\ShippingNote;
+use App\Entity\Configuration;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
@@ -345,6 +347,19 @@ class DeliversController extends Controller{
      * )
      * 
      * 
+     * @QueryParam(
+     *      name="status",
+     *      description="Order status ID",
+     *      strict=false
+     * )
+     * 
+     * @QueryParam(
+     *      name="restaurant",
+     *      description="restaurant ID",
+     *      strict=false
+     * )
+     * 
+     * 
      * @SWG\Tag(name="Delivers")
      */
     public function getOrdersDeliveredAction(Request $request, $id){
@@ -353,6 +368,8 @@ class DeliversController extends Controller{
         $limit = $request->query->get('limit')?$request->query->get('limit'):$request->request->get('limit');
         $page = $request->query->get('page')?$request->query->get('page'):$request->request->get('page');
         $status = $request->query->get('status')?$request->query->get('status'):$request->request->get('status');
+        $restaurant = $request->query->get('restaurant')?$request->query->get('restaurant'):$request->request->get('restaurant');
+        
         
         // Default values
         $limit = ($limit == null) ? 100 : $limit;
@@ -365,7 +382,7 @@ class DeliversController extends Controller{
         }
         
         $array = [];
-        $orders = $em->getRepository(User::class)->getOrders(null, $id, 4, $limit, $page, false);
+        $orders = $em->getRepository(User::class)->getOrders(null, $id, $status, $restaurant, $limit, $page, false);
         foreach ($orders as $k=>$l){
             $array[$k]["id"] = $l->getId();
             $array[$k]['amount'] = $l->getAmount();
@@ -383,6 +400,24 @@ class DeliversController extends Controller{
             $array[$k]['status']['name'] = $l->getOrderStatus()->getName();
             $array[$k]['restaurant']['id'] = $l->getRestaurant()->getId();
             $array[$k]['restaurant']['name'] = $l->getRestaurant()->getName();
+            $array[$k]["client"]["id"] = $l->getClient()->getId();
+            $array[$k]["client"]["username"] = $l->getClient()->getUsername();
+            $array[$k]["client"]["position"]["latitude"] = $l->getClient()->getLatitude();
+            $array[$k]["client"]["position"]["longitude"] = $l->getClient()->getLongitude();
+            $array[$k]['status']['id'] = $l->getOrderStatus()->getId();
+            $array[$k]['status']['name'] = $l->getOrderStatus()->getName();
+            $array[$k]['restaurant']['id'] = $l->getRestaurant()->getId();
+            $array[$k]['restaurant']['name'] = $l->getRestaurant()->getName();
+            $array[$k]['restaurant']['address'] = $l->getRestaurant()->getAddress();
+            $array[$k]['restaurant']['city'] = $l->getRestaurant()->getCity();
+            $array[$k]['restaurant']['postal_code'] = $l->getRestaurant()->getCp();
+            
+            $note = $em->getRepository(ShippingNote::class)->findOneBy(array('command' => $l));
+            if($note){
+                $array[$k]['deliver_note'] = ceil($note->getDeliverNote()/2);
+            }else{
+                $array[$k]['deliver_note'] = 0;
+            }
             
         }
         $result['code'] = 200;
@@ -473,11 +508,14 @@ class DeliversController extends Controller{
         if(!$ord){
             $result = array('code' => 400, 'description' => "Unexisting order");
             return new JsonResponse($result, 400);
-        }elseif($ord->getOrderStatus()->getId() != 6){
+        }elseif(!$ord->getMessenger()){
             $result = array('code' => 400, 'description' => "No deliver was assigned.");
             return new JsonResponse($result, 400);
         }elseif($ord->getMessenger()->getId() != intval($deliver)){
             $result = array('code' => 400, 'description' => "You are not allowed.");
+            return new JsonResponse($result, 400);
+        } elseif($em->getRepository(ShippingLog::class)->findOneBy(array('command'=>$order))) {
+            $result = array('code' => 400, 'description' => "Order already shipped.");
             return new JsonResponse($result, 400);
         }
         
@@ -489,31 +527,35 @@ class DeliversController extends Controller{
         $em->persist($shipLog);
         
         try{
-            if($ord->getPaymentMode()->getId() == 1){
-                $stripePublicKey = $em->getRepository(Configuration::class)->findOneByName('AZ_STRIPE_ACCOUNT_SECRET')->getValue();
-                // Set your secret key: remember to change this to your live secret key in production
-                // See your keys here: https://dashboard.stripe.com/account/apikeys
-                \Stripe\Stripe::setApiKey($stripePublicKey);
+            if($ord->getPaymentMode()){
+                if($ord->getPaymentMode()->getId() == 1){
+                    $stripePublicKey = $em->getRepository(Configuration::class)->findOneByName('AZ_STRIPE_ACCOUNT_SECRET')->getValue();
+                    // Set your secret key: remember to change this to your live secret key in production
+                    // See your keys here: https://dashboard.stripe.com/account/apikeys
+                    \Stripe\Stripe::setApiKey($stripePublicKey);
+
+                    $charge = \Stripe\Charge::create([
+                        'amount' => $total*100, // $15.00 this time
+                        'currency' => 'eur',
+                        'customer' => $ord->getClient()->getStripeId(), // Previously stored, then retrieved
+                        'metadata' => ['order_id' => $order->id],
+                        'destination' =>  [
+                            'account' => "{".$ord->getRestaurant()->getStripeAccountid()."}",
+                            'amount' => $ord->getRestauEarn()
+                        ],
+                        'source' => $ord->getClient()->getStripeid()
+                    ]);
+                    if($charge){
+                        //Update status order
+                        $ord->setOrderStatus($em->getRepository(OrderStatus::class)->find(4));
+                        $ord->setBalanceTransaction($charge->balance_transaction);
+                    }
+                }else{
+                    //Update status order
+                    $ord->setOrderStatus($em->getRepository(OrderStatus::class)->find(4));
+                }
                 
-                $charge = \Stripe\Charge::create([
-                    'amount' => $total*100, // $15.00 this time
-                    'currency' => 'eur',
-                    'customer' => $customer->id, // Previously stored, then retrieved
-                    'metadata' => ['order_id' => $order->id],
-                    'destination' =>  [
-                        'account' => "{".$ord->getRestaurant()->getStripeAccountid()."}",
-                        'amount' => $ord->getRestauEarn()
-                    ],
-                    'source' => $ord->getClient()->getStripeid()
-                ]);
             }
-            
-            if($charge){
-                //Update status order
-                $ord->setOrderStatus($em->getRepository(OrderStatus::class)->find(4));
-                $ord->setBalanceTransaction($charge->balance_transaction);
-            }
-            
         }catch(\Exception $e){
             echo $e->getMessage();
         }

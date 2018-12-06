@@ -347,6 +347,7 @@ class AdminController extends BaseAdminController {
         
         $order = $em->getRepository(Order::class)->find($id);
         $delivers = $em->getRepository(User::class)->findAllUserByRole('ROLE_DELIVER', false);
+        $status = $em->getRepository(OrderStatus::class)->findAll();
         
         $total = 0.00;
         $details = $order->getOrderDetails();
@@ -366,7 +367,7 @@ class AdminController extends BaseAdminController {
         //echo '<pre>'; die(var_dump($loc["results"][0]["geometry"]["location"])); echo '</pre>';
         $geo_order = $loc["results"][0]["geometry"]["location"];
         
-        return array('order' => $order, 'delivers' => $delivers, 'total' => $total, 'geo_order'=>$geo_order);
+        return array('order' => $order, 'delivers' => $delivers, 'total' => $total, 'geo_order'=>$geo_order, 'status'=>$status);
     }
     
     
@@ -397,7 +398,7 @@ class AdminController extends BaseAdminController {
     
     /**
      * @Method({"GET", "POST"})
-     * @Route("/order/assign-deliver", name="assign")
+     * @Route("/order/propose-delivery-service", name="assign")
      * @Template("/admin/invoice.html.twig")
      */
     public function assignDeliverAction(Request $request){
@@ -430,6 +431,94 @@ class AdminController extends BaseAdminController {
             $em->flush();
             
             $this->addFlash('success', "Propositions de livraison envoyées.");
+            
+            return $this->redirectToRoute('invoice', array('id'=>$order));
+        }
+    }
+    
+    
+    /**
+     * @Method({"GET", "POST"})
+     * @Route("/order/assign-deliver", name="assign_deliver")
+     * @Template("/admin/invoice.html.twig")
+     */
+    public function assignDeliver2Action(Request $request){
+        $em = $this->getDoctrine()->getManager();
+        $delivers = $em->getRepository(User::class)->findAllUserByRole('ROLE_DELIVER', false);
+        if($request->getMethod('post')){
+            $deliver = $request->get('deliver');
+            $order = $request->get('order');
+            
+            
+            $orderObj = $em->getRepository(Order::class)->find($order);
+            
+            $status = $em->getRepository(OrderStatus::class)->find(6);
+            $messenger = $em->getRepository(User::class)->find($deliver);
+            $orderObj->setMessenger($messenger);
+            $orderObj->setOrderStatus($status);
+            
+            $em->flush();
+            
+            
+            // send mail notification
+            
+            $this->addFlash('success', "Propositions de livraison envoyées.");
+            
+            return $this->redirectToRoute('invoice', array('id'=>$order));
+        }
+    }
+    
+    
+    /**
+     * @Method({"GET", "POST"})
+     * @Route("/order/change-status", name="change_status")
+     * @Template("/admin/invoice.html.twig")
+     */
+    public function changeOrderStatusAction(Request $request){
+        $em = $this->getDoctrine()->getManager();
+        
+        if($request->getMethod('post')){
+            $status = $request->get('status');
+            $order = $request->get('order');
+            $orderObj = $em->getRepository(Order::class)->find($order);
+            
+            if($status == 4){
+                try{
+                    if($ord->getPaymentMode()->getId() == 1){
+                        $stripePublicKey = $em->getRepository(Configuration::class)->findOneByName('AZ_STRIPE_ACCOUNT_SECRET')->getValue();
+                        // Set your secret key: remember to change this to your live secret key in production
+                        // See your keys here: https://dashboard.stripe.com/account/apikeys
+                        \Stripe\Stripe::setApiKey($stripePublicKey);
+
+                        $charge = \Stripe\Charge::create([
+                            'amount' => $orderObj->getAmount() * 100, // $15.00 this time
+                            'currency' => 'eur',
+                            'customer' => $orderObj->getClient()->getStripeId(), // Previously stored, then retrieved
+                            'metadata' => ['order_id' => $orderObj->id],
+                            'destination' =>  [
+                                'account' => "{".$orderObj->getRestaurant()->getStripeAccountid()."}",
+                                'amount' => $orderObj->getRestauEarn()
+                            ],
+                            'source' => $orderObj->getClient()->getStripeid()
+                        ]);
+                    }
+
+                    if($charge){
+                        //Update status order
+                        $orderObj->setOrderStatus($em->getRepository(OrderStatus::class)->find(4));
+                        $orderObj->setBalanceTransaction($charge->balance_transaction);
+                    }
+
+                }catch(\Exception $e){
+                    echo $e->getMessage();
+                }
+            }else{
+                $orderObj->setOrderStatus($em->getRepository(OrderStatus::class)->find($status));
+            }
+            
+            $em->flush();
+            
+            $this->addFlash('success', "Changement de status de la commande effectué.");
             
             return $this->redirectToRoute('invoice', array('id'=>$order));
         }
@@ -481,18 +570,19 @@ class AdminController extends BaseAdminController {
      */
     public function deliversConnectedInfos(Request $request){
         $em = $this->getDoctrine()->getManager();
-        
+        $period = $request->get('period', 1);
         $dels = $em->getRepository(User::class)->findAllUserByRole('ROLE_DELIVER', false);
         $arrayDels = [];
         foreach($dels as $k=>$v){
-            $logs = $em->getRepository(ShippingLog::class)->getDeliverActionBetweenAPeriod($v->getId(), time(), time()-60);
+            $logs = $em->getRepository(ShippingLog::class)->getDeliverActionBetweenAPeriod($v->getId(), time(), time()- (60*(int)$period));
             //$dels[$k]->logs = $logs;
             if(count($logs) <= 2){
+                $v->delCount = count($logs);
                 $arrayDels[] = $v;
             }
         }
         
-        return array('delivers' => $arrayDels);
+        return array('delivers' => $arrayDels, 'period' => $period);
     }
     
     
@@ -504,7 +594,7 @@ class AdminController extends BaseAdminController {
     public function ordersDashboard(Request $request){
         $em = $this->getDoctrine()->getManager();
         
-        $orders = $em->getRepository(Order::class)->getUserOrders($this->getUser()->getId(), 100, 1, array(1,6,7), false);
+        $orders = $em->getRepository(Order::class)->getUserOrders($this->getUser()->getId(), 100, 1, array(1,2,7), false);
         
         return array('orders' => $orders, 'totalRows' => ceil(count($orders)/3));
     }

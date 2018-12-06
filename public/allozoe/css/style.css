@@ -189,3 +189,9 @@ body > main > div.block-social-network > ul > li > a > img{
     margin: auto;
     padding-top: 6%;
 }
+
+i.fa {
+    position: relative;
+    bottom: 2px;
+    font-size: 16px;
+}

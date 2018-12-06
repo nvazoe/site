@@ -49,13 +49,14 @@ class ShippingLogRepository extends ServiceEntityRepository
     */
     
     public function getDeliverActionBetweenAPeriod($del, $time1, $time2){
-        
+        //die(var_dump('T1: '.$time1.' - T2 :'.$time2));
         $query = $this->createQueryBuilder('s');
         if($del)
             $query->andWhere ('s.messenger = :msgr')->setParameter ('msgr', $del);
         if($time1 && $time2)
-            $query->andWhere ('s.makeAt BETWEEN :t1 AND :t2')->setParameter ('t1', $time1)->setParameter ('t2', $time2);
+            $query->andWhere ('s.makeAt BETWEEN :t2 AND :t1')->setParameter ('t1', $time1)->setParameter ('t2', $time2);
         
+        //echo '<pre>'; die(var_dump($query->getDQL())); echo '<pre>';
         return $query->getQuery()->getResult();
     }
 }

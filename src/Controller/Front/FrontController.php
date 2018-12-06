@@ -130,6 +130,9 @@ class FrontController extends Controller{
         $menus = json_decode($request->get('menus'), true);
         $restauId = $request->get('restau');
         $delivery_type = $request->get('delivery-type');
+        $delivery_date = $request->get('delivery-date'); 
+        $date = date_create_from_format('l, d M', $delivery_date); //die(var_dump($date));
+        $delivery_hour = $request->get('delivery-hour');
         $delivery_note = $request->get('delivery-note');
         $delivery_address = $request->get('address');
         $delivery_phone = $request->get('phone');
@@ -203,6 +206,8 @@ class FrontController extends Controller{
             $order->setAddress($delivery_address);
             $order->setPhoneNumber($delivery_phone);
             $order->setcity($delivery_city);
+            $order->setDeliveryHour($delivery_hour);
+            $order->setDeliveryDate($date);
             $order->setcp($delivery_cp);
             $order->setDeliveryNote($delivery_note);
             $order->setDeliveryType($delivery_type);

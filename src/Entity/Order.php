@@ -164,6 +164,11 @@ class Order
      */
     private $commission;
 
+    /**
+     * @ORM\OneToOne(targetEntity="App\Entity\ShippingNote", mappedBy="command", cascade={"persist", "remove"})
+     */
+    private $shippingNote;
+
     public function __construct()
     {
         $this->orderDetails = new ArrayCollection();
@@ -596,6 +601,23 @@ class Order
     
     public function getRestauEarn(){
         return $this->getAmount() - $this->getAllozoeCommission();
+    }
+
+    public function getShippingNote(): ?ShippingNote
+    {
+        return $this->shippingNote;
+    }
+
+    public function setShippingNote(ShippingNote $shippingNote): self
+    {
+        $this->shippingNote = $shippingNote;
+
+        // set the owning side of the relation if necessary
+        if ($this !== $shippingNote->getCommand()) {
+            $shippingNote->setCommand($this);
+        }
+
+        return $this;
     }
 
 

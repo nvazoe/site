@@ -38,7 +38,14 @@
 {% endblock %}
 
 {% block body %}
-
+    <div class="padding-top-bottom">
+    <div class="container">
+            <ol class="breadcrumb">
+                <li><a href="{{path('homepage')}}">Accueil</a></li>
+                <li><a href="{{path('commander')}}">Restaurants</a></li>
+                <li class="active">{{restaurant.name}}</li>
+            </ol>
+        </div>
     <div class="container" id="restau" data-restau="{{restaurant.name}}" data-restau-id="{{restaurant.id}}">
         <div class="row">
             <div class="col-md-8">
@@ -136,7 +143,7 @@
                                         </div>
                                     </div>
                                     <div class="col-sm-8">
-                                        <button class="btn btn-success basket" data-unit-price="9" id="unit-price">Ajouter au panier <span class="amount-menu"></span><span>€</span></button>
+                                        <button class="btn btn-success basket" id="unit-price">Ajouter au panier <span class="amount-menu"></span><span>€</span></button>
                                     </div>
                                 </div>
                             </footer>
@@ -146,6 +153,7 @@
                 </div>
             </div>
         </div>
+    </div>
     </div>
 {% endblock %}
 

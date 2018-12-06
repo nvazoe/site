@@ -96,6 +96,11 @@ class UsersController extends Controller {
             return new JsonResponse($result, 400);
         }
         
+//        if($user_account->getConnectStatus() == 1){
+//            $result = array('code' => 4024, 'description' => "You're still log on.");
+//            return new JsonResponse($result, 400);
+//        }
+        
         $encoded = $this->container->get("security.password_encoder")->isPasswordValid($user_account, $pass);
         //var_dump($encoded, $pass, $user_account2->getPassword(), $user_account->getPassword());
         if($encoded != $user_account->getPassword()) {

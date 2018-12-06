@@ -19,27 +19,47 @@ $(document).ready(function () {
     $('#info div.actionqty.minus').click(function () {
         var qty = $('.qty').text();
         var amount = $('.amount-menu').text();
-        var unitPrice = $('button.basket').data('unit-price');
+        var unitPrice = parseFloat(amount)/parseInt(qty);
         if (parseInt(qty) > 1)
             $('.qty').text(parseInt(qty) - 1);
 
-        $('.amount-menu').text(parseFloat(unitPrice) * parseInt($('.qty').text()));
+        $('.amount-menu').text(unitPrice * parseInt($('.qty').text()));
     });
 
     $('#info div.actionqty.plus').click(function () {
         var qty = $('.qty').text();
         var amount = $('.amount-menu').text();
-        var unitPrice = $('button.basket').data('unit-price');
+        var unitPrice = parseFloat(amount)/parseInt(qty);
         $('.qty').text(parseInt(qty) + 1);
 
-        $('.amount-menu').text(parseFloat(unitPrice) * parseInt($('.qty').text()));
+        $('.amount-menu').text(unitPrice * parseInt($('.qty').text()));
     });
 
     $('button.basket').click(function () {
-
-        add_to_basket();
-        setup_cart(localStorage.cart);
-        $('#info').modal('hide');
+        // Validate options menu
+        var options = $('.blck-option');
+        var error = 0;
+        if(options.length > 0){
+            for(var i=0, c=options.length; i<c; i++){
+                if($(options[i]).data('options-require') == 1){
+                    var required = $(options[i]).data('max-allowed');
+                    var opts = $(options[i]).find('input:checked');
+                    
+                    if(required != opts.length){
+                        error = 1;
+                        console.log($(options[i]).find('.option-title > p'));
+                        $(options[i]).find('.option-title > p').css({color: 'red', "font-weigt": "700"});
+                    }
+                }
+            }
+        }
+        console.log(error);
+        if(!error){
+            add_to_basket();
+            setup_cart(localStorage.cart);
+            $('#info').modal('hide');
+        }
+        
 
     });
 
@@ -55,12 +75,12 @@ $(document).ready(function () {
             $('#menu-name').html(resp.data.name);
             $('#menu-name').data('menu', resp.data.id);
             $('#menu-description').html(resp.data.description);
-            $('#unit-price, .amount-menu').data('unit-price', resp.data.price);
+            $('#unit-price').attr('data-unit-price', resp.data.price);
             $('.amount-menu').text(resp.data.price);
             
             $('.qty').text(1);
             if (typeof resp.data.options !== 'undefined') {
-                var options = resp.data.options;
+                var options = resp.data.options; console.log(options);
                 var t = "";
                 t += options_html(options);
             }
@@ -79,6 +99,26 @@ $(document).ready(function () {
         var id = $(this).data('command');
         remove_from_cart(id);
         $(this).closest('.item').fadeOut(1000);
+    });
+    
+    
+    $('body').on('click', '.block-options .blck-option input', function(){
+        var subTotal = 0;
+        var qty = parseInt($('.qty').text());
+        var unitPrice = parseFloat($('#unit-price').data('unit-price'));
+        var inputChecked = $(".block-options .blck-option input:checked");
+        console.log(inputChecked.length);
+        if(inputChecked.length > 1){
+            console.log(inputChecked);
+            for(var i=0, c=inputChecked.length; i<c; i++){
+                subTotal += parseFloat($(inputChecked[i]).data('option-price'));
+            }
+            
+            $('.amount-menu').html(subTotal+unitPrice);
+        }else if(inputChecked.length == 1){
+            subTotal += parseFloat(inputChecked.data('option-price'));
+            $('.amount-menu').html((subTotal+unitPrice) * qty);
+        }
     });
 
 });
@@ -114,22 +154,32 @@ function options_html(dat) {
     var text = "";
 
     for (var k = 0, g = dat.length; k < g; k++) {
-        text += '<div class="blck-option">';
+        text += '<div class="blck-option"';
+        if (dat[k].item_required > 1)
+            text += ' data-max-allowed="'+dat[k].item_required+'"';
+        if (dat[k].type == "REQUIRED"){
+            text += ' data-options-require="1"';
+        }else{
+            text += ' data-options-require="0"';
+        }
+        text += '>';
         text += '<div class="option-title" data-option="' + dat[k].id + '"><h3>';
         text += dat[k].name;
         text += '</h3>';
-        if (dat[k].item_required > 0)
+        if (dat[k].item_required > 1)
             text += '<p>Choisissez ' + dat[k].item_required + '</p>';
-        
+        if (dat[k].type == "REQUIRED"){
+            text += '<span class="badge">Obligatoire</span>';
+        }
         text += '</div><form class="form-horizontal"><div class="form-group">';
         if(dat[k].item_required <= 1){
             for (var j = 0, c = dat[k].products.length; j < c; j++) {
-                text += '<div class="opt"><div class="col-sm-1"><input type="radio" name="options" data-option-name="' + dat[k].products[j].name + '" data-option-prd="' + dat[k].products[j].id + '" value="' + dat[k].products[j].id + '"></div><label class="col-sm-8">' + dat[k].products[j].name + '</label><label class="col-sm-3"><span class="price">' + dat[k].products[j].price + '</span> <span class="currency">€</span></label></div>';
+                text += '<div class="opt"><div class="col-sm-1"><input type="radio" name="options" data-option-name="' + dat[k].products[j].name + '" data-option-prd="' + dat[k].products[j].id + '" data-option-price="' + dat[k].products[j].price + '"></div><label class="col-sm-8">' + dat[k].products[j].name + '</label><label class="col-sm-3"><span class="price">' + dat[k].products[j].price + '</span> <span class="currency">€</span></label></div>';
             }
             text += '</div></form></div></div>';
         }else{
             for (var j = 0, c = dat[k].products.length; j < c; j++) {
-                text += '<div class="opt"><div class="col-sm-1"><input type="checkbox" name="options" data-option-name="' + dat[k].products[j].name + '" data-option-prd="' + dat[k].products[j].id + '" value="' + dat[k].products[j].id + '"></div><label class="col-sm-8">' + dat[k].products[j].name + '</label><label class="col-sm-3"><span class="price">' + dat[k].products[j].price + '</span> <span class="currency">€</span></label></div>';
+                text += '<div class="opt"><div class="col-sm-1"><input type="checkbox" name="options" data-option-name="' + dat[k].products[j].name + '" data-option-prd="' + dat[k].products[j].id + '" data-option-price="' + dat[k].products[j].price + '"></div><label class="col-sm-8">' + dat[k].products[j].name + '</label><label class="col-sm-3"><span class="price">' + dat[k].products[j].price + '</span> <span class="currency">€</span></label></div>';
             }
             text += '</div></form></div></div>';
         }
@@ -168,15 +218,18 @@ function add_to_basket() {
             //console.log('Les opt = '+ opts.length);
             if (opts.length > 0) {
                 var prods = [];
-                for (v = 0, w = opts.length; v < w; v++) {
-                    var v = {
+                for (var v = 0, w = opts.length; v < w; v++) {
+                    var vv = {
                         id: $(opts[v]).data('option-prd'),
                         prd_name: $(opts[v]).data('option-name')
                     };
-                    prods.push(v);
+                    prods.push(vv);
                 }
+                //alert(prods.length);
+                console.log(prods);
                 m.products = prods;
             }
+            
             menus.push(m);
         }
         if (typeof localStorage.cart !== 'undefined') {
@@ -212,7 +265,7 @@ function setup_cart($tring) {
             $amount_cart = parseFloat($amount_cart) + (parseFloat($cart[a].amount));
             $nb_art += parseInt($cart[a].quantity);
         }
-        console.log($nb_art);
+        //console.log($nb_art);
         localStorage.setItem('amount', $amount_cart.toFixed(2));
         localStorage.setItem('nb_article', $nb_art);
         // update de DOM

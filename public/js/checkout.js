@@ -80,6 +80,23 @@ $(document).ready(function(){
     });
     
     
+    // set delivery plan
+    $('body').on('click', '#setPlan', function(){
+        var deliv_date = $('select[name="delivery-date"]').val();
+        var deliv_hour = $('select[name="delivery-hour"]').val();
+        var plan = deliv_date+' '+deliv_hour;
+        
+        $('#getPlan').html(plan);
+        $('#classPage').html('<a href="#" data-toggle="modal" data-target="#myModal2">Maintenant</a>');
+    });
+    
+    
+    $('body').on('click', '#setPlan2', function(){
+        
+        $('#getPlan').html("Dès que possible.");
+        $('#classPage').html('<a href="#" data-toggle="modal" data-target="#myModal">Planifier</a>');
+    });
+    
 });
 
 function make_order_cb(stripe, card){
@@ -193,6 +210,20 @@ function stripeTokenHandler(token) {
     hiddenInputRestau.setAttribute('value', resto);
     form.appendChild(hiddenInputRestau);
     
+    
+    var hiddenInputDH = document.createElement('input');
+    hiddenInputDH.setAttribute('type', 'hidden');
+    hiddenInputDH.setAttribute('name', 'delivery-hour');
+    hiddenInputDH.setAttribute('value', $('select[name="delivery-hour"]').val());
+    form.appendChild(hiddenInputDH);
+    
+    
+    var hiddenInputDD = document.createElement('input');
+    hiddenInputDD.setAttribute('type', 'hidden');
+    hiddenInputDD.setAttribute('name', 'delivery-date');
+    hiddenInputDD.setAttribute('value', $('select[name="delivery-date"]').val());
+    form.appendChild(hiddenInputDD);
+    
     localStorage.clear();
     
     // Submit the form
@@ -283,6 +314,20 @@ function make_order_tkt(){
             hiddenInputRestau.setAttribute('name', 'restau');
             hiddenInputRestau.setAttribute('value', resto);
             form.appendChild(hiddenInputRestau);
+            
+            
+            var hiddenInputDH = document.createElement('input');
+            hiddenInputDH.setAttribute('type', 'hidden');
+            hiddenInputDH.setAttribute('name', 'delivery-hour');
+            hiddenInputDH.setAttribute('value', $('select[name="delivery-hour"]').val());
+            form.appendChild(hiddenInputDH);
+
+
+            var hiddenInputDD = document.createElement('input');
+            hiddenInputDD.setAttribute('type', 'hidden');
+            hiddenInputDD.setAttribute('name', 'delivery-date');
+            hiddenInputDD.setAttribute('value', $('select[name="delivery-date"]').val());
+            form.appendChild(hiddenInputDD);
             
             
             localStorage.clear();

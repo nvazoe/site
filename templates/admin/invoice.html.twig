@@ -47,44 +47,37 @@
                                 Salinas, CA 93905<br>
                                 <abbr title="Phone">P:</abbr> (831) 758-7200
                             </address>
-                            <form class="form-horizontal" action="{{path('assign')}}" method="post">
+                            
+                            <form class="form-horizontal" action="{{path('assign_deliver')}}" method="post">
                                 <input type="hidden" name="order" value="{{order.id}}" />
-                                {% if order.messenger %}
-                                    <div class="form-group">
-                                        <select name="deliver" class="form-control" onchange="this.form.submit();" >
-                                            <option>Livreur de la commande</option>
-                                            {% for d in delivers %}
-                                                <option value="{{d.id}}" {{ order.messenger ? order.messenger.id == d.id ? 'selected' : '' : '' }}>{{d.firstname}}</option>
-                                            {% endfor %}
-                                        </select>
-                                    </div>
-                                        
-                                        {% else %}
-                                            
-                                            {% for d in delivers %}
-                                                <div class="checkbox">
-                                                    <label><input type="checkbox" class="i-checks" name="delivers[]" value="{{d.id}}" 
-                                                        {%for prop in order.DeliveryPropositions %}
-                                                            {{ prop.deliver.id == d.id ? 'checked disabled' : ''}}
-                                                        {% endfor %}> {{d.firstname}} </label>
-                                                </div>
-                                            {% endfor %}
-
-                                            <div class="col-sm-8" style="margin-top:5px;">
-                                                <button class="btn btn-primary" type="submit">Alerter les livreurs</button>
-                                            </div>
-                                            
-                                {% endif %}
+                                <div class="form-group">
+                                <div class="col-sm-8">
+                                    <select name="deliver" class="form-control"  >
+                                        <option>Livreur de la commande</option>
+                                        {% for d in delivers %}
+                                            <option value="{{d.id}}" {{ order.messenger ? order.messenger.id == d.id ? 'selected' : '' : '' }}>{{d.firstname}}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div class="col-sm-4">
+                                    <button class="btn btn-primary">Changer le livreur</button>
+                                </div>
+                            </div>
                             </form>
-                            <form class="form-horizontal" action="{{path('assign')}}" method="post">
+                            <form class="form-horizontal" action="{{path('change_status')}}" method="post">
                                 <input type="hidden" name="order" value="{{order.id}}" />
                                     <div class="form-group">
-                                        <select name="deliver" class="form-control" onchange="this.form.submit();" >
-                                            <option>Statut de la commande</option>
-                                            {#{% for d in delivers %}
-                                                <option value="{{d.id}}" {{ order.messenger ? order.messenger.id == d.id ? 'selected' : '' : '' }}>{{d.firstname}}</option>
-                                            {% endfor %}#}
-                                        </select>
+                                        <div class="col-sm-8">
+                                            <select name="status" class="form-control"  >
+                                                <option>Statut de la commande</option>
+                                                {% for s in status %}
+                                                    <option value="{{s.id}}" {{ order.orderStatus ? order.orderStatus.id == s.id ? 'selected' : '' : '' }}>{{s.name}}</option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                        <div class="col-sm-4">
+                                            <button class="btn btn-primary">Changer le statut</button>
+                                        </div>
                                     </div>
                                         
                             </form>

@@ -51,7 +51,7 @@
                             </div>
                             <div class="col-md-6 col-sm-6">
                                 <div class="ref">N°{{ o.ref }}</div>
-                                <div class="round {% if o.orderstatus.id == 6 %}
+                                <div class="round {% if o.orderstatus.id == 2 %}
                                      bg-green 
                                 {%elseif o.orderstatus.id == 7 %}
                                     bg-yellow
@@ -60,8 +60,12 @@
                                     {%endif%}"></div>
                             </div>
                         </div>
+                                        <div class="row">
+                                            <div class="col-md-6 col-sm-6"><h3>{{ o.restaurant.name }}</h3></div>
+                                            <div class="col-md-6 col-sm-6">A livré le {{o.deliveryDate|date("l, d M")}} {{o.deliveryHour}}</div>
+                                        </div>
                         <div class="row">
-                            <h3>{{ o.restaurant.name }}</h3>
+                            
                             <div class="table-responsive m-t">
                                 <table class="table table-striped">
                                     <thead>
@@ -90,9 +94,9 @@
                             
                         </div>
                         <div class="row row-last">
-                            {% if o.orderstatus.id == 6 %}
+                            {% if o.orderstatus.id == 2 %}
                                 <div class="col-md-offset-3 col-md-6">
-                                    <div class="text-center"><button type="button" data-order="{{o.id}}" class="btn btn-success btn-sm">BOUTON <br> RÉCUPÉRÉE <br> PAR LIVREUR</button></div>
+                                    <div class="text-center"><button type="button" data-order="{{o.id}}" class="btn btn-success btn-sm ship">BOUTON <br> RÉCUPÉRÉE <br> PAR LIVREUR</button></div>
                                 </div>
                                 {%elseif o.orderstatus.id == 7 %}
                                     <div class="col-md-offset-3 col-md-6">
@@ -123,7 +127,7 @@
     <script src="{{ asset('toastr/toastr.min.js') }}"></script>
     <script>
         alertNewOrder();
-        setInterval(function(){alertNewOrder();}, 30000);
+        setInterval(function(){alertNewOrder();}, 2000);
         function alertNewOrder(){
             $.ajax({
                 url: $('body').data('base-url')+'admin/orders/infos',
@@ -139,7 +143,7 @@
                     if(resp.items.length){
                         
                         toastr.info('Vous avez '+ resp.items.length +' nouvelles commandes', 'Nouvelles commandes!');
-                        $('body').append('<embed src="'+$('body').data('base-url')+'sounds/unconvinced.mp3" autostart="false" width="0" height="0" id="sound1" enablejavascript="true">');
+                        $('body').append('<embed src="'+$('body').data('base-url')+'sounds/beep.mp3" autostart="false" width="0" height="0" id="sound1" enablejavascript="true">');
                         setTimeout(function(){
                             $('embed').remove();
                         }, 10000);
@@ -177,8 +181,31 @@
             
             //alert('Bonjour '+ data);
         });
+        
         // action valider button
         $('body').on('click','button.btn.btn-warning2.btn-sm.valider', function(){
+            var data = $(this).data('order');
+            $.ajax({
+                url: $('body').data('base-url')+'admin/orders/change-status',
+                type: 'get',
+                headers:{
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                crossDomain: true,
+                data: {status: 2, order: data}
+            }).done(function(resp){
+                console.log(resp);
+                $('button.btn.btn-warning2.btn-sm.valider[data-order='+data+']').closest('.panel-body').find('.print').fadeOut();
+                $('button.btn.btn-warning2.btn-sm.valider[data-order='+data+']').closest('.panel-body').find('.round').addClass('bg-green').removeClass('bg-yellow');
+                $('button.btn.btn-warning2.btn-sm.valider[data-order='+data+']').closest('.panel-body').find('.row-last > .col-md-6').fadeOut();
+                $('button.btn.btn-warning2.btn-sm.valider[data-order='+data+']').closest('.panel-body').find('.row-last').html('<div class="col-md-offset-3 col-md-6"><div class="text-center"><button type="button" data="'+data+'" class="btn btn-success btn-sm valider">BOUTON <br> RÉCUPÉRÉE <br> PAR LIVREUR</button></div></div>');
+            }).fail(function(){});
+            
+            //alert('Bonjour '+ data);
+        });
+        
+        $('body').on('click','button.btn.btn-success.btn-sm.ship', function(){
             var data = $(this).data('order');
             $.ajax({
                 url: $('body').data('base-url')+'admin/orders/change-status',
@@ -191,10 +218,7 @@
                 data: {status: 6, order: data}
             }).done(function(resp){
                 console.log(resp);
-                $('button.btn.btn-warning2.btn-sm.valider[data-order='+data+']').closest('.panel-body').find('.print').fadeOut();
-                $('button.btn.btn-warning2.btn-sm.valider[data-order='+data+']').closest('.panel-body').find('.round').addClass('bg-green').removeClass('bg-yellow');
-                $('button.btn.btn-warning2.btn-sm.valider[data-order='+data+']').closest('.panel-body').find('.row-last > .col-md-6').fadeOut();
-                $('button.btn.btn-warning2.btn-sm.valider[data-order='+data+']').closest('.panel-body').find('.row-last').html('<div class="col-md-offset-3 col-md-6"><div class="text-center"><button type="button" data="'+data+'" class="btn btn-success btn-sm valider">BOUTON <br> RÉCUPÉRÉE <br> PAR LIVREUR</button></div></div>');
+                $('button.btn.btn-success.btn-sm.ship[data-order='+data+']').closest('.col-lg-4').fadeOut();
             }).fail(function(){});
             
             //alert('Bonjour '+ data);

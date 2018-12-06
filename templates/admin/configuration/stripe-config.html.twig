@@ -23,19 +23,41 @@
                 </div>
                 <div class="hr-line-dashed"></div>
                 <div class="form-group"><label class="col-sm-3 control-label">AZ commission</label>
-                    <div class="col-sm-9"><input type="text" class="form-control" value="{{commission}}" name="data[commission]" placeholder="%"></div>
+                    <div class="col-sm-9">
+                        <div class="input-group">
+                            <input type="text" class="form-control" value="{{commission}}" name="data[commission]" placeholder="%">
+                            <span class="input-group-addon">%</span>
+                        </div>
+                    </div>
                 </div>
                 <div class="hr-line-dashed"></div>
                 <div class="form-group"><label class="col-sm-3 control-label">AZ Admin email</label>
-                    <div class="col-sm-9"><input type="email" class="form-control" value="{{admail}}" name="data[admail]" placeholder="@"></div>
+                    <div class="col-sm-9">
+                        <div class="input-group">
+                            <span class="input-group-addon">@</span>
+                            <input type="email" class="form-control" value="{{admail}}" name="data[admail]" required>
+                        </div>
+                    </div>
                 </div>
                 <div class="hr-line-dashed"></div>
                 <div class="form-group"><label class="col-sm-3 control-label">Rayon restaurant</label>
-                    <div class="col-sm-9"><input type="text" class="form-control" value="{{rayon_resto}}" name="data[rayon_restaurant]" placeholder="en KM"></div>
+                    <div class="col-sm-9">
+                        <div class="input-group">
+                            <input type="text" class="form-control" value="{{rayon_resto}}" name="data[rayon_restaurant]" placeholder="en KM">
+                            <span class="input-group-addon">KM</span>
+                        </div>
+                    </div>
                 </div>
                 <div class="hr-line-dashed"></div>
-                <div class="form-group"><label class="col-sm-3 control-label">Rayon livreur</label>
-                    <div class="col-sm-9"><input type="text" class="form-control" value="{{rayon_liv}}" name="data[rayon_livreur]" placeholder="en KM"></div>
+                <div class="form-group">
+                    <label class="col-sm-3 control-label">Rayon livreur</label>
+                    <div class="col-sm-9">
+                        <div class="input-group">
+                            <input type="text" class="form-control" value="{{rayon_liv}}" name="data[rayon_livreur]">
+                            <span class="input-group-addon">KM</span>
+                        </div>
+                        
+                    </div>
                 </div>
                 <div class="hr-line-dashed"></div>
                 <div class="form-group">
