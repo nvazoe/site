@@ -65,12 +65,12 @@ easy_admin:
         User:
             class: App\Entity\User
             label: "Utilisateurs"
-            #role: ROLE_SUPER_ADMIN
+            #role: ROLE_RESTAURANT
 #            permissions:
-#                list:  ['ROLE_SUPER_ADMIN', 'ROLE_EDITOR']
-#                create:  ['ROLE_SUPER_ADMIN']
-#                edit:  ['ROLE_SUPER_ADMIN', 'ROLE_EDITOR']
-#                delete:  ['ROLE_SUPER_ADMIN']
+#                list:  ['ROLE_RESTAURANT', 'ROLE_EDITOR']
+#                create:  ['ROLE_RESTAURANT']
+#                edit:  ['ROLE_RESTAURANT', 'ROLE_EDITOR']
+#                delete:  ['ROLE_RESTAURANT']
             form:
                 fields:
                     -
@@ -512,7 +512,7 @@ easy_admin:
                 entity: CategoryMenu
                 label: Catégories / Spécialités
                 icon: folder-open
-                role: ROLE_SUPER_ADMIN
+                role: ROLE_RESTAURANT
             -
                 label: Commandes
                 icon: first-order
@@ -541,12 +541,12 @@ easy_admin:
                 entity: OrderStatus
                 label: Status de Commande
                 icon: smile-o
-                role: ROLE_SUPER_ADMIN
+                role: ROLE_RESTAURANT
             -
                 entity: PaymentMode
                 label: Mode de paiement
                 icon: money
-                role: ROLE_SUPER_ADMIN
+                role: ROLE_RESTAURANT
 #            -
 #                entity: Ticket
 #                label: Tickets restau
