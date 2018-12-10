@@ -45,7 +45,7 @@ $(document).ready(function () {
                     var required = $(options[i]).data('max-allowed');
                     var opts = $(options[i]).find('input:checked');
                     
-                    if(required != opts.length){
+                    if((typeof required != 'undefined') && required != opts.length){
                         error = 1;
                         console.log($(options[i]).find('.option-title > p'));
                         $(options[i]).find('.option-title > p').css({color: 'red', "font-weigt": "700"});
@@ -113,12 +113,10 @@ $(document).ready(function () {
             for(var i=0, c=inputChecked.length; i<c; i++){
                 subTotal += parseFloat($(inputChecked[i]).data('option-price'));
             }
-            
-            $('.amount-menu').html(subTotal+unitPrice);
         }else if(inputChecked.length == 1){
             subTotal += parseFloat(inputChecked.data('option-price'));
-            $('.amount-menu').html((subTotal+unitPrice) * qty);
         }
+        $('.amount-menu').html((subTotal+unitPrice) * qty);
     });
 
 });

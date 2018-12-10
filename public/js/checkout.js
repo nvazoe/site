@@ -9,7 +9,7 @@ $(document).ready(function(){
     toastr.options.closeButton = true;
     
     // Create a Stripe client.
-    var stripe = Stripe('pk_test_hUvysW5ZouHgLBqNi8zADyfX');
+    var stripe = Stripe(config.stripe_pk);
     // Create an instance of Elements.
     var elements = stripe.elements();
 
@@ -132,6 +132,10 @@ function make_order_cb(stripe, card){
                 email:{
                     required: true,
                     email: true
+                },
+                firstname:{
+                    required: true,
+                    minlength: 2
                 }
             },
             messages:{

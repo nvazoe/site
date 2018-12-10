@@ -22,11 +22,6 @@ class OrderDetailsMenuProduct
      */
     private $orderDetails;
 
-    /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Menu", inversedBy="orderDetailsMenuProducts")
-     * @ORM\JoinColumn(nullable=false)
-     */
-    private $menu;
 
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Product", inversedBy="orderDetailsMenuProducts")

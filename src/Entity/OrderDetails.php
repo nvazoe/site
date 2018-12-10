@@ -24,11 +24,7 @@ class OrderDetails
      */
     private $command;
 
-    /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Menu")
-     * @ORM\JoinColumn(nullable=false)
-     */
-    private $menu;
+    
 
     /**
      * @ORM\Column(type="float")

@@ -63,10 +63,7 @@ class Menu
      */
     private $image;
 
-    /**
-     * @ORM\OneToMany(targetEntity="App\Entity\OrderDetailsMenuProduct", mappedBy="menu")
-     */
-    private $orderDetailsMenuProducts;
+    
 
     /**
      * @ORM\OneToMany(targetEntity="App\Entity\MenuNote", mappedBy="menu")
@@ -78,6 +75,8 @@ class Menu
      * @var File
      */
     private $imageFile;
+
+    
 
     public function __construct()
     {
@@ -288,5 +287,17 @@ class Menu
     public function getImageFile()
     {
         return $this->imageFile;
+    }
+
+    public function getDeleteStatus(): ?bool
+    {
+        return $this->deleteStatus;
+    }
+
+    public function setDeleteStatus(bool $deleteStatus): self
+    {
+        $this->deleteStatus = $deleteStatus;
+
+        return $this;
     }
 }

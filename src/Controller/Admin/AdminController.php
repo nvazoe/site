@@ -166,6 +166,21 @@ class AdminController extends BaseAdminController {
     }
     
     
+    public function createRestaurantEntityFormBuilder($entity, $view){
+        $formBuilder = parent::createEntityFormBuilder($entity, $view);
+        $users = $this->em->getRepository(User::class)->findAllUserByRole('ROLE_ADMIN', false);
+        
+        $formBuilder->add('owner', ChoiceType::class, array(
+            'choices' => $users,
+            'choice_label' => function($user, $key, $value){
+                return $user->getFirstname();
+            },
+        ));
+        
+        return $formBuilder;
+    }
+    
+    
     /**
      * @Method({"GET", "POST"})
      * @Route("/add-menu/{id_menu}", name="add_menu")
@@ -639,10 +654,14 @@ class AdminController extends BaseAdminController {
     {
         
         //$idowner = isset($_GET['id'])?$_GET['id']:false;
-        $idowner = $this->getUser()->getId();
-        if($idowner){
-            $dqlFilter = 'entity.owner = '.$idowner;
+        if ( !$this->get('security.authorization_checker')->isGranted('ROLE_SUPER_ADMIN')){
+            $idowner = $this->getUser()->getId();
+            if($idowner){
+                $dqlFilter = 'entity.owner = '.$idowner;
+            }
+			//die('tests');
         }
+        
 
         return parent::createListQueryBuilder($entityClass, $sortDirection, $sortField, $dqlFilter);
     }
@@ -653,10 +672,14 @@ class AdminController extends BaseAdminController {
         $restaurants = $this->getUser()->getRestaurants();
         $qb = parent::createListQueryBuilder($dqlFilter, $sortDirection, $sortField);
         $ids = [];
-        foreach ($restaurants as $k=>$v){
-            $ids[] = $v->getId();
+        if ( !$this->get('security.authorization_checker')->isGranted('ROLE_SUPER_ADMIN')){
+            foreach ($restaurants as $k=>$v){
+                $ids[] = $v->getId();
+            }
+            $qb->andWhere('entity.restaurant IN (:ids)')->setParameter('ids', $ids);
+            //$qb->andWhere('entity.deleteStatus = :del')->setParameter('del', 0);
         }
-        $qb->andWhere('entity.restaurant IN (:ids)')->setParameter('ids', $ids);
+        
         
 
         return $qb;
@@ -669,10 +692,13 @@ class AdminController extends BaseAdminController {
         $restaurants = $this->getUser()->getRestaurants();
         $qb = parent::createListQueryBuilder($dqlFilter, $sortDirection, $sortField);
         $ids = [];
-        foreach ($restaurants as $k=>$v){
-            $ids[] = $v->getId();
+        if ( !$this->get('security.authorization_checker')->isGranted('ROLE_SUPER_ADMIN')){
+            foreach ($restaurants as $k=>$v){
+                $ids[] = $v->getId();
+            }
+            $qb->andWhere('entity.restaurant IN (:ids)')->setParameter('ids', $ids);
         }
-        $qb->andWhere('entity.restaurant IN (:ids)')->setParameter('ids', $ids);
+        
 
         return $qb;
     }
@@ -684,10 +710,13 @@ class AdminController extends BaseAdminController {
         $qb = parent::createListQueryBuilder($dqlFilter, $sortDirection, $sortField);
         $qb->andWhere('entity.orderStatus = 1');
         $ids = [];
-        foreach ($restaurants as $k=>$v){
-            $ids[] = $v->getId();
+        if ( !$this->get('security.authorization_checker')->isGranted('ROLE_SUPER_ADMIN')){
+            foreach ($restaurants as $k=>$v){
+                $ids[] = $v->getId();
+            }
+            $qb->andWhere('entity.restaurant IN (:ids)')->setParameter('ids', $ids);
         }
-        $qb->andWhere('entity.restaurant IN (:ids)')->setParameter('ids', $ids);
+        
         return $qb;
     }
     
@@ -698,10 +727,13 @@ class AdminController extends BaseAdminController {
         $qb = parent::createListQueryBuilder($dqlFilter, $sortDirection, $sortField);
         $qb->andWhere('entity.orderStatus = 2');
         $ids = [];
-        foreach ($restaurants as $k=>$v){
-            $ids[] = $v->getId();
+        if ( !$this->get('security.authorization_checker')->isGranted('ROLE_SUPER_ADMIN')){
+            foreach ($restaurants as $k=>$v){
+                $ids[] = $v->getId();
+            }
+            $qb->andWhere('entity.restaurant IN (:ids)')->setParameter('ids', $ids);
         }
-        $qb->andWhere('entity.restaurant IN (:ids)')->setParameter('ids', $ids);
+        
         return $qb;
         
 
@@ -715,10 +747,13 @@ class AdminController extends BaseAdminController {
         $qb = parent::createListQueryBuilder($dqlFilter, $sortDirection, $sortField);
         $qb->andWhere('entity.orderStatus = 6');
         $ids = [];
-        foreach ($restaurants as $k=>$v){
-            $ids[] = $v->getId();
+        if ( !$this->get('security.authorization_checker')->isGranted('ROLE_SUPER_ADMIN')){
+            foreach ($restaurants as $k=>$v){
+                $ids[] = $v->getId();
+            }
+            $qb->andWhere('entity.restaurant IN (:ids)')->setParameter('ids', $ids);
         }
-        $qb->andWhere('entity.restaurant IN (:ids)')->setParameter('ids', $ids);
+        
         return $qb;
     }
     
@@ -730,10 +765,13 @@ class AdminController extends BaseAdminController {
         $qb = parent::createListQueryBuilder($dqlFilter, $sortDirection, $sortField);
         $qb->andWhere('entity.orderStatus = 4');
         $ids = [];
-        foreach ($restaurants as $k=>$v){
-            $ids[] = $v->getId();
+        if ( !$this->get('security.authorization_checker')->isGranted('ROLE_SUPER_ADMIN')){
+            foreach ($restaurants as $k=>$v){
+                $ids[] = $v->getId();
+            }
+            $qb->andWhere('entity.restaurant IN (:ids)')->setParameter('ids', $ids);
         }
-        $qb->andWhere('entity.restaurant IN (:ids)')->setParameter('ids', $ids);
+        
         return $qb;
     }
     
@@ -743,11 +781,14 @@ class AdminController extends BaseAdminController {
         $restaurants = $this->getUser()->getRestaurants();
         $qb = parent::createListQueryBuilder($dqlFilter, $sortDirection, $sortField);
         $ids = [];
-        foreach ($restaurants as $k=>$v){
-            $ids[] = $v->getId();
-        }
-        $qb->andWhere('entity.restaurant IN (:ids)')->setParameter('ids', $ids);
+        if ( !$this->get('security.authorization_checker')->isGranted('ROLE_SUPER_ADMIN')){
+            foreach ($restaurants as $k=>$v){
+                $ids[] = $v->getId();
+            }
+            $qb->andWhere('entity.restaurant IN (:ids)')->setParameter('ids', $ids);
 
+        }
+        
         return $qb;
     }
     
@@ -758,10 +799,16 @@ class AdminController extends BaseAdminController {
         $restaurants = $this->getUser()->getRestaurants();
         $qb = parent::createListQueryBuilder($dqlFilter, $sortDirection, $sortField);
         $ids = [];
-        foreach ($restaurants as $k=>$v){
-            $ids[] = $v->getId();
+        if ( !$this->get('security.authorization_checker')->isGranted('ROLE_SUPER_ADMIN')){
+            if ( $this->get('security.authorization_checker')->isGranted('ROLE_ADMIN')){
+                foreach ($restaurants as $k=>$v){
+                    $ids[] = $v->getId();
+                }
+                $qb->andWhere('entity.restaurant IN (:ids)')->setParameter('ids', $ids);
+            }
         }
-        $qb->andWhere('entity.restaurant IN (:ids)')->setParameter('ids', $ids);
+        
+        
 
         return $qb;
     }
@@ -802,6 +849,7 @@ class AdminController extends BaseAdminController {
             $ids[] = $v->getId();
         }
         $qb->andWhere('entity.restaurant IN (:ids)')->setParameter('ids', $ids);
+        //$qb->andWhere('entity.deleteStatus = :del')->setParameter('del', 0);
         return  $qb;
     }
     

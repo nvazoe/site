@@ -103,7 +103,7 @@ class FrontController extends Controller{
      */ 
     public function commanderAction(Request $request){
         $em = $this->getDoctrine()->getManager();
-        $restaurants = $em->getRepository(Restaurant::class)->findAll();
+        $restaurants = $em->getRepository(Restaurant::class)->findBy(array('status'=>1));
         
         return array('restaurants' => $restaurants);
     }
@@ -130,6 +130,7 @@ class FrontController extends Controller{
         $menus = json_decode($request->get('menus'), true);
         $restauId = $request->get('restau');
         $delivery_type = $request->get('delivery-type');
+        $name = $request->get('firstname');
         $delivery_date = $request->get('delivery-date'); 
         $date = date_create_from_format('l, d M', $delivery_date); //die(var_dump($date));
         $delivery_hour = $request->get('delivery-hour');
@@ -144,10 +145,21 @@ class FrontController extends Controller{
         $delivers = $em->getRepository(User::class)->findAllUserByRole('ROLE_DELIVER', false);
         
         $azCommission = $em->getRepository(Configuration::class)->findOneByName('AZ_STRIPE_COMMISSION')->getValue();
+        $adminEmail = $em->getRepository(Configuration::class)->findOneByName('AZ_ADMIN_EMAIL')->getValue();
         
         try{
             $user = $em->getRepository(User::Class)->findOneByEmail($email);
-        
+            
+            $stripePublicKey = $em->getRepository(Configuration::class)->findOneByName('AZ_STRIPE_ACCOUNT_SECRET')->getValue();
+            // Set your secret key: remember to change this to your live secret key in production
+            // See your keys here: https://dashboard.stripe.com/account/apikeys
+            \Stripe\Stripe::setApiKey($stripePublicKey);
+            // Create a Customer:
+            $customer = \Stripe\Customer::create([
+                'source' => $token,
+                'email' => $email,
+                'description' => $name
+            ]);
         
             //echo '<pre>'; die(var_dump($customer)); echo '</pre>';
 
@@ -155,26 +167,17 @@ class FrontController extends Controller{
             if(!$user){
                 $user = new User();
                 $user->setEmail($email);
-                $user->setFirstname('Client');
+                $user->setFirstname($name);
                 $user->setRoles(['ROLE_USER']);
                 $user->setConnectStatus(0);
                 $user->setPassword($encoder->encodePassword($user, "pass"));
                 
 
                 if($pymde == 1){
-                    $stripePublicKey = $em->getRepository(Configuration::class)->findOneByName('AZ_STRIPE_ACCOUNT_SECRET')->getValue();
-                    // Set your secret key: remember to change this to your live secret key in production
-                    // See your keys here: https://dashboard.stripe.com/account/apikeys
-                    \Stripe\Stripe::setApiKey($stripePublicKey);
-                    // Create a Customer:
-                    $customer = \Stripe\Customer::create([
-                        'source' => $token,
-                        'email' => $email,
-                        'description' => "Nom du cient"
-                    ]);
+                    
 
                     // Created Card 
-                    $carte = $customer->sources->create(['source'=>"tok_visa"]);
+                    $carte = $customer->sources->data[0];
 
                     //echo '<pre>'; die(var_dump($carte)); echo '</pre>';
 
@@ -184,14 +187,37 @@ class FrontController extends Controller{
                     $card->setYearExp($carte->exp_year);
                     $card->setCardNumber($carte->last4);
                     $card->setStripeId($carte->id);
-                    $card->setOwnerName('Nom du client');
+                    $card->setOwnerName($name);
                     
                     $user->setStripeId($customer->id);
                     
                     $em->persist($user);
                     $em->persist($card);
+                    
+                    
                 }
 
+            }else{
+                
+                if($pymde == 1){
+                    $carte = $customer->sources->data[0];
+                    $cardChecked = $em->getRepository(BankCard::class)->findOneBy(array('stripeId'=>$carte->id));
+                    if(!$cardChecked){
+                        $card = new BankCard();
+                        $card->setUser($user);
+                        $card->setMonthExp($carte->exp_month);
+                        $card->setYearExp($carte->exp_year);
+                        $card->setCardNumber($carte->last4);
+                        $card->setStripeId($carte->id);
+                        $card->setOwnerName($name);
+
+                        $user->setStripeId($customer->id);
+
+                        $em->persist($user);
+                        $em->persist($card);
+                    }
+                }
+                
             }
 
 
@@ -280,7 +306,7 @@ class FrontController extends Controller{
 
                 // Send mail to delivers
                 $message2 = (new \Swift_Message('Nouvelle commande à livrer'))
-                    ->setFrom('contact@ubereat.com')
+                    ->setFrom($adminEmail)
                     ->setTo($dl->getEmail())
                     ->setBody(
                         $this->renderView(

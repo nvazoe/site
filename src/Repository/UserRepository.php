@@ -97,6 +97,7 @@ class UserRepository extends ServiceEntityRepository
             $query = $query->andWhere ('o.restaurant = :restau')->setParameter ('restau', $restaurant);
         if($count)
             return $query->select('COUNT(o)')->getQuery()->getSingleScalarResult();
+        $query->orderBy('o.id', 'asc');
         if($limit)
             $query = $query->setFirstResult( ($page-1)*$limit )->setMaxResults( $limit );
         

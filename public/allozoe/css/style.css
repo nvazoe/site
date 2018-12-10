@@ -195,3 +195,11 @@ i.fa {
     bottom: 2px;
     font-size: 16px;
 }
+
+
+@media(max-width: 768px){
+    .footer-2{
+        margin-top: 25px;
+        padding-left: unset;
+    }
+}

@@ -110,4 +110,8 @@ class ShippingNote
 
         return $this;
     }
+    
+    public function __toString(){
+        return $this->getCommand()->getClient()->getFirstname();
+    }
 }

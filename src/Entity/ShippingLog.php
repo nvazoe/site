@@ -85,5 +85,10 @@ class ShippingLog
 
         return $this;
     }
+    
+    
+    public function __toString(){
+        return $this->getMessenger()->getFirstname();
+    }
 
 }

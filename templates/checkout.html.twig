@@ -77,6 +77,9 @@
                                             <input type="email" class="form-control" name="email" placeholder="Votre email">
                                         </div>
                                         <div class="form-group col-sm-12">
+                                            <input type="text" class="form-control" name="firstname" placeholder="Votre nom">
+                                        </div>
+                                        <div class="form-group col-sm-12">
                                             <input type="tel" class="form-control" name="phone" placeholder="Téléphone contact pour livraison">
                                         </div>
                                         <div class="form-group col-sm-12">
@@ -119,6 +122,18 @@
                                 </form>
                             </div>
                             <div class="form-card hidden" id="form-card">
+                                {#<div class="list-cards">
+                                    <div class="container">
+                                        <div class="row">
+                                            <div class="form-group col-sm-12">
+                                                <input class="col-xs-1" name="ticket-value" value="1" type="radio" /><label class="col-xs-8">************1234</label>
+                                            </div>  
+                                            <div class="form-group col-sm-12">
+                                                <input class="col-xs-1" name="ticket-value" value="1" type="radio" /><label class="col-xs-8">************1234</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>#}
                                 <div class="form-row">
                                     <label for="card-element">
                                         Credit or debit card
@@ -287,4 +302,5 @@
                 <script src="https://js.stripe.com/v3/"></script>
                 <script src="{{ asset('js/order-sys.js') }}"></script>
                 <script src="{{ asset('js/checkout.js') }}"></script>
+                
             {% endblock %}

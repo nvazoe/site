@@ -294,7 +294,7 @@ easy_admin:
         Menu:
             class: App\Entity\Menu
             label: "Menus"
-            disabled_actions: ['delete']
+            #disabled_actions: ['delete']
             list:
                 actions: ['show', 'edit']
 #            form:

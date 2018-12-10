@@ -178,11 +178,11 @@ class OrdersController extends Controller {
             // Get details
             $menus = $order->getOrderDetails();
             foreach ($menus as $key => $val) {
-                $result['data']['menus']["$key"]['id'] = $val->getMenu()->getId();
+                $result['data']['menus']["$key"]['id'] = $val->getId();
                 $result['data']['menus']["$key"]['name'] = $val->getMenuName();
                 $result['data']['menus']["$key"]['price'] = floatval($val->getPrice());
                 $result['data']['menus']["$key"]['quantity'] = $val->getQuantity();
-                $result['data']['menus']["$key"]['image'] = $this->generateUrl('homepage', array(), UrlGeneratorInterface::ABSOLUTE_URL) . 'images/menu/' . $val->getMenu()->getImage();
+                $result['data']['menus']["$key"]['image'] = $this->generateUrl('homepage', array(), UrlGeneratorInterface::ABSOLUTE_URL) . 'images/fire-130x130.png';
                 // Get products of menu
                 $products = $val->getOrderDetailsMenuProducts();
                 foreach ($products as $k => $v) {

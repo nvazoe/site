@@ -528,6 +528,7 @@ class DeliversController extends Controller{
         
         try{
             if($ord->getPaymentMode()){
+                
                 if($ord->getPaymentMode()->getId() == 1){
                     $stripePublicKey = $em->getRepository(Configuration::class)->findOneByName('AZ_STRIPE_ACCOUNT_SECRET')->getValue();
                     // Set your secret key: remember to change this to your live secret key in production
@@ -535,20 +536,20 @@ class DeliversController extends Controller{
                     \Stripe\Stripe::setApiKey($stripePublicKey);
 
                     $charge = \Stripe\Charge::create([
-                        'amount' => $total*100, // $15.00 this time
+                        'amount' => $ord->getAmount()*100, // $15.00 this time
                         'currency' => 'eur',
                         'customer' => $ord->getClient()->getStripeId(), // Previously stored, then retrieved
-                        'metadata' => ['order_id' => $order->id],
-                        'destination' =>  [
-                            'account' => "{".$ord->getRestaurant()->getStripeAccountid()."}",
-                            'amount' => $ord->getRestauEarn()
-                        ],
-                        'source' => $ord->getClient()->getStripeid()
+                        'metadata' => ['order_id' => $ord->getId()],
+//                        'destination' =>  [
+//                            'account' => $ord->getRestaurant()->getStripeAccountid(),
+//                            'amount' => $ord->getRestauEarn()
+//                        ]
                     ]);
+                    //echo '<pre>'; die(var_dump($charge)); echo '</pre>';
                     if($charge){
                         //Update status order
                         $ord->setOrderStatus($em->getRepository(OrderStatus::class)->find(4));
-                        $ord->setBalanceTransaction($charge->balance_transaction);
+                        $ord->setBalanceTransaction($charge->id);
                     }
                 }else{
                     //Update status order
@@ -595,8 +596,8 @@ class DeliversController extends Controller{
         if(!$ord){
             $result = array('code' => 400, 'description' => "Unexisting order");
             return new JsonResponse($result, 400);
-        }elseif(!in_array($ord->getOrderStatus()->getId(), [2, 5])){
-            $result = array('code' => 400, 'description' => "Deliver already assigned.");
+        }elseif($ord->getMessenger()){
+            $result = array('code' => 400, 'description' => "A Deliver already manage the order.");
             return new JsonResponse($result, 400);
         }
         
