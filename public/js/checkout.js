@@ -10,6 +10,7 @@ $(document).ready(function(){
     
     // Create a Stripe client.
     var stripe = Stripe(config.stripe_pk);
+    console.log(config.stripe_pk);
     // Create an instance of Elements.
     var elements = stripe.elements();
 
@@ -175,7 +176,7 @@ function make_order_cb(stripe, card){
                   errorElement.textContent = result.error.message;
                 } else {
                   
-                  
+                  console.log(result.token);
                   stripeTokenHandler(result.token);
                 }
               });

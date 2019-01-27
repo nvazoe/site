@@ -9,7 +9,6 @@ easy_admin:
             class: App\Entity\Restaurant
             label: "Restaurants"
             list:
-                actions: ['-delete']
                 fields:
                     -
                         property: id
@@ -27,6 +26,7 @@ easy_admin:
                         property: status
                         label: Statut
                         type: toggle
+            
             form:
                 fields:
                     -
@@ -62,15 +62,17 @@ easy_admin:
                     -
                         property: status
                         label: Status
+            new:
+                role: ROLE_SUPER_ADMIN
         User:
             class: App\Entity\User
             label: "Utilisateurs"
-            #role: ROLE_RESTAURANT
+            #role: ROLE_SUPER_ADMIN
 #            permissions:
-#                list:  ['ROLE_RESTAURANT', 'ROLE_EDITOR']
-#                create:  ['ROLE_RESTAURANT']
-#                edit:  ['ROLE_RESTAURANT', 'ROLE_EDITOR']
-#                delete:  ['ROLE_RESTAURANT']
+#                list:  ['ROLE_SUPER_ADMIN', 'ROLE_EDITOR']
+#                create:  ['ROLE_SUPER_ADMIN']
+#                edit:  ['ROLE_SUPER_ADMIN', 'ROLE_EDITOR']
+#                delete:  ['ROLE_SUPER_ADMIN']
             form:
                 fields:
                     -
@@ -148,6 +150,29 @@ easy_admin:
             class: App\Entity\User
             list:
                 dql_filter: "entity.roles LIKE '%%ROLE_CLIENT%%'"
+                fields:
+                    -
+                        property: id
+                        label: ID
+                    -
+                        property: username
+                        label: Username
+                    -
+                        property: firstname
+                        label: Prénom
+                    -
+                        property: lastname
+                        label: Nom
+                    -
+                        property: email
+                        label: Email
+                    -
+                        property: phoneNumber
+                        label: Téléphone
+                    -
+                        property: state
+                        label: Statut
+                        type: toggle
             form:
                 fields:
                     -
@@ -186,10 +211,34 @@ easy_admin:
                         type: password
                         type_options:
                             required: false
+                
         Deliver:
             class: App\Entity\User
             list:
                 dql_filter: "entity.roles LIKE '%%ROLE_DELIVER%%'"
+                fields:
+                    -
+                        property: id
+                        label: ID
+                    -
+                        property: username
+                        label: Username
+                    -
+                        property: firstname
+                        label: Prénom
+                    -
+                        property: lastname
+                        label: Nom
+                    -
+                        property: email
+                        label: Email
+                    -
+                        property: phoneNumber
+                        label: Téléphone
+                    -
+                        property: state
+                        label: Statut
+                        type: toggle
             form:
                 fields:
                     -
@@ -233,6 +282,29 @@ easy_admin:
             class: App\Entity\User
             list:
                 dql_filter: "entity.roles LIKE '%%ROLE_ADMIN%%'"
+                fields:
+                    -
+                        property: id
+                        label: ID
+                    -
+                        property: username
+                        label: Username
+                    -
+                        property: firstname
+                        label: Prénom
+                    -
+                        property: lastname
+                        label: Nom
+                    -
+                        property: email
+                        label: Email
+                    -
+                        property: phoneNumber
+                        label: Téléphone
+                    -
+                        property: state
+                        label: Statut
+                        type: toggle
             form:
                 fields:
                     -
@@ -288,6 +360,26 @@ easy_admin:
                         label: Image
             list:
                 title: Catégories / Spécialités
+                fields:
+                    -
+                        property: id
+                        label: ID
+                    -
+                        property: name
+                        label: Nom
+                    -
+                        property: description
+                        label: Description
+                    -
+                        property: menus
+                        label: Menus
+                    -
+                        property: restaurantSpecialities
+                        label: Restaurant/Spécialité
+                    -
+                        property: image
+                        type: image
+                        base_path: /images/category
         TypeMenu:
             class: App\Entity\TypeMenu
             label: "Type de menu"
@@ -296,7 +388,36 @@ easy_admin:
             label: "Menus"
             #disabled_actions: ['delete']
             list:
-                actions: ['show', 'edit']
+                actions:
+                    -
+                        name: add_menu
+                        type: route
+                        label: Modifer
+                    -
+                        '-edit'
+                fields:
+                    -
+                        property: id
+                        label: ID
+                    -
+                        property: name
+                        label: Nom
+                    -
+                        property: price
+                        label: Prix
+                    -
+                        property: image
+                        type: image
+                        base_path: /images/menu
+                    -
+                        property: restaurant
+                        label: Restaurant
+                    -
+                        property: categoryMenu
+                        label: Catégorie
+                    -
+                        property: position
+                        label: Position
 #            form:
 #                fields:
 #                    -
@@ -325,6 +446,9 @@ easy_admin:
                     -
                         property: name
                         label: Nom
+                    -
+                        property: description
+                        label: Description
                     -
                         property: price
                         label: Prix
@@ -369,19 +493,74 @@ easy_admin:
             class: App\Entity\Order
             label: "Commandes"
             list:
-                actions: [-delete, -new]
+                actions: 
+                    -
+                        name: invoice
+                        type: route
+                        label: Voir
+                    -
+                        '-new'
+                    -
+                        '-edit'
+                    -
+                        '-delete'
         ShippingOrder:
             class: App\Entity\Order
             label: En cours de livraison
             list:
-                actions: [-delete, -new]
+                actions: 
+                    -
+                        name: invoice
+                        type: route
+                        label: Voir
+                    -
+                        '-new'
+                    -
+                        '-edit'
+                    -
+                        '-delete'
                 dql_filter: "entity.orderStatus = 6"
                 title: Commandes en cours de livraison
+                fields:
+                    -
+                        property: id
+                        label: ID
+                    -
+                        property: ref
+                        label: Reférence
+                    -
+                        property: amount
+                        label: Montant
+                    -
+                        property: date_created
+                        label: "Date commande"
+                    -
+                        property: address
+                        label: "Adresse de livraison"
+                    -
+                        property: city
+                        label: Ville
+                    -
+                        property: phoneNumber
+                        label: Téléphone client
+                    -
+                        property: ModePaiement
+                        label: Mode paiement
         ShippedOrder:
             class: App\Entity\Order
             label: Terminée
             list:
-                actions: [-delete, -new]
+                actions: 
+                    -
+                        name: invoice
+                        type: route
+                        label: Voir
+                    -
+                        '-new'
+                    -
+                        '-edit'
+                    -
+                        '-delete'
                 dql_filter: "entity.orderStatus = 4"
                 title: Commandes livrées
                 fields:
@@ -406,24 +585,98 @@ easy_admin:
                     -
                         property: RestauEarn
                         label: Revenu restaurant
+                    -
+                        property: ModePaiement
+                        label: Mode paiement
                     
         NewOrder:
             class: App\Entity\Order
             label: Nouvelles commandes
             list:
-                actions: [-delete, -new]
+                actions: 
+                    -
+                        name: invoice
+                        type: route
+                        label: Voir
+                    -
+                        '-new'
+                    -
+                        '-edit'
+                    -
+                        '-delete'
                 dql_filter: "entity.orderStatus = 1"
                 title: Nouvelles commandes
+                fields:
+                    -
+                        property: id
+                        label: ID
+                    -
+                        property: ref
+                        label: Reférence
+                    -
+                        property: amount
+                        label: Montant
+                    -
+                        property: date_created
+                        label: "Date commande"
+                    -
+                        property: address
+                        label: "Adresse de livraison"
+                    -
+                        property: city
+                        label: Ville
+                    -
+                        property: phoneNumber
+                        label: Téléphone client
+                    -
+                        property: ModePaiement
+                        label: Mode paiement
         ApprovedOrder:
             class: App\Entity\Order
             label: Commandes validées
             list:
-                actions: [-delete, -new]
+                actions: 
+                    -
+                        name: invoice
+                        type: route
+                        label: Voir
+                    -
+                        '-new'
+                    -
+                        '-edit'
+                    -
+                        '-delete'
                 dql_filter: "entity.orderStatus = 2"
                 title: En attente de livreur
+                fields:
+                    -
+                        property: id
+                        label: ID
+                    -
+                        property: ref
+                        label: Reférence
+                    -
+                        property: amount
+                        label: Montant
+                    -
+                        property: date_created
+                        label: "Date commande"
+                    -
+                        property: address
+                        label: "Adresse de livraison"
+                    -
+                        property: city
+                        label: Ville
+                    -
+                        property: phoneNumber
+                        label: Téléphone client
+                    -
+                        property: ModePaiement
+                        label: Mode paiement
         OrderStatus:
             class: App\Entity\OrderStatus
             label: "Statut de commande"
+            role: ROLE_SUPER_ADMIN
             form:
                 fields:
                     -
@@ -434,6 +687,7 @@ easy_admin:
         PaymentMode:
             class: App\Entity\PaymentMode
             label: Mode de paiement
+            role: ROLE_SUPER_ADMIN
             form:
                 fields:
                     -
@@ -470,10 +724,10 @@ easy_admin:
             
     design:
         form_theme: '%env(APP_TEMPLATE_ADMIN)%%env(DS)%easy_admin%env(DS)%form%env(DS)%bootstrap_3_horizontal_layout.html.twig'
-        templates:
-            layout: '%env(APP_TEMPLATE_ADMIN)%%env(DS)%easy_admin%env(DS)%main.html.twig'
-            menu: '%env(APP_TEMPLATE_ADMIN)%%env(DS)%easy_admin%env(DS)%menu.html.twig'
-            list: '%env(APP_TEMPLATE_ADMIN)%%env(DS)%easy_admin%env(DS)%list.html.twig'
+#        templates:
+#            layout: '%env(APP_TEMPLATE_ADMIN)%%env(DS)%easy_admin%env(DS)%main.html.twig'
+#            menu: '%env(APP_TEMPLATE_ADMIN)%%env(DS)%easy_admin%env(DS)%menu.html.twig'
+#            list: '%env(APP_TEMPLATE_ADMIN)%%env(DS)%easy_admin%env(DS)%list.html.twig'
         menu:
             -
                 label: Utilisateurs
@@ -516,7 +770,6 @@ easy_admin:
             -
                 label: Commandes
                 icon: first-order
-                role: ROLE_RESTAURANT
                 children:
                     -
                         route: dashboard_o
@@ -541,21 +794,15 @@ easy_admin:
                 entity: OrderStatus
                 label: Status de Commande
                 icon: smile-o
-                role: ROLE_RESTAURANT
+                role: ROLE_SUPER_ADMIN
             -
-                entity: PaymentMode
+                
                 label: Mode de paiement
                 icon: money
-                role: ROLE_RESTAURANT
-#            -
-#                entity: Ticket
-#                label: Tickets restau
-#                icon: drivers-license
-#                role: ROLE_RESTAURANT
+                entity: PaymentMode
             -
                 label: Cartes
                 icon: map
-                role: ROLE_RESTAURANT
                 children:
                     -
                         route: map_delivers
@@ -564,13 +811,11 @@ easy_admin:
                 label: Configurations
                 icon: cog
                 route: stripe_config
-            -
-                label: Slideshow
-                icon: desktop
-                entity: SlideShow
+                role: ROLE_SUPER_ADMIN
             -
                 label: Ratio de livraison
+                role: ROLE_SUPER_ADMIN
                 icon: truck
                 route: logged_delivers
+                
                     
-

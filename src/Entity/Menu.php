@@ -7,6 +7,7 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Vich\UploaderBundle\Mapping\Annotation as Vich;
 use Symfony\Component\HttpFoundation\File\File;
+use Doctrine\Common\Collections\Criteria;
 
 /**
  * @ORM\Entity(repositoryClass="App\Repository\MenuRepository")
@@ -76,6 +77,11 @@ class Menu
      */
     private $imageFile;
 
+    /**
+     * @ORM\Column(type="integer", nullable=true)
+     */
+    private $position;
+
     
 
     public function __construct()
@@ -131,8 +137,11 @@ class Menu
      */
     public function getMenuMenuOptions(): Collection
     {
-        return $this->menuMenuOptions;
+        $criteria = Criteria::create()->orderBy(['position'=>'asc']);
+        return $this->menuMenuOptions->matching($criteria);
     }
+    
+    
 
     public function addMenuMenuOption(MenuMenuOption $menuMenuOption): self
     {
@@ -297,6 +306,18 @@ class Menu
     public function setDeleteStatus(bool $deleteStatus): self
     {
         $this->deleteStatus = $deleteStatus;
+
+        return $this;
+    }
+
+    public function getPosition(): ?int
+    {
+        return $this->position;
+    }
+
+    public function setPosition(?int $position): self
+    {
+        $this->position = $position;
 
         return $this;
     }

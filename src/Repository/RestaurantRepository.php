@@ -6,6 +6,8 @@ use App\Entity\Restaurant;
 use App\Entity\Order;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Symfony\Bridge\Doctrine\RegistryInterface;
+use Doctrine\ORM\Query\ResultSetMapping;
+use Doctrine\ORM\Query\ResultSetMappingBuilder;
 
 /**
  * @method Restaurant|null find($id, $lockMode = null, $lockVersion = null)
@@ -24,25 +26,42 @@ class RestaurantRepository extends ServiceEntityRepository {
 //     */
 
 
-    public function getRestaurants($longitude, $latitude, $status, $limit, $page, $count = false) {
+    public function getRestaurants($longitude, $latitude, $status, $limit, $page, $count = false, $distance = 30) {
         
-        $longitude = $latitude = null;
+        if(is_null($latitude))
+            $latitude = 48.864716;
+        if(is_null($longitude))
+            $longitude = 2.349014;
+        //$longitude = $latitude = null;
+        $rsm = new ResultSetMapping();
+        $rsm = new ResultSetMappingBuilder($this->_em);
+        $rsm->addRootEntityFromClassMetadata('App\Entity\Restaurant', 'r');
         
-        $query = $this->createQueryBuilder('r');
+        $query = $this->_em->createNativeQuery('SELECT r.*, ( 6371 * acos( cos( radians('.$latitude.') ) * cos( radians( latidude ) ) * cos( radians( longitude ) - radians('.$longitude.') ) + sin( radians('.$latitude.') ) * sin( radians( latidude ) ) ) ) AS distance '
+            . 'FROM restaurant r '
+            .' WHERE 1 '
+            .($status ? ' AND r.status = '.$status : '')
+            . ' HAVING distance <= '.$distance
+            .' ORDER BY distance asc '
+            .($limit ? ' LIMIT '.(($page - 1) * $limit).", $limit" : '')
+            , $rsm
+        );
         
-        if($longitude)
-            $query = $query->andWhere ('r.longitude = :val1')->setParameter ('val1', $longitude);
-        if($latitude)
-            $query = $query->andWhere ('r.latidude = :val2')->setParameter ('val2', $latitude);
-        if($status)
-            $query = $query->andWhere ('r.status = :val3')->setParameter ('val3', $status);
-        if($count)
-            return $query->select('COUNT(r)')->getQuery()->getSingleScalarResult();
-        if($limit)
-            $query = $query->setFirstResult(($page - 1) * $limit)->setMaxResults($limit);
-        
-        
-        return $query->getQuery()->getResult();
+        //$query->addSelect('( 6371 * acos( cos( radians('.$latitude.') ) * cos( radians( latitude ) ) * cos( radians( longitude ) - radians('.$longitude.') ) + sin( radians('.$latitude.') ) * sin( radians( latitude ) ) ) ) AS distance');
+
+        if($count) {
+            $query = $this->_em->createNativeQuery('SELECT r.*, ( 6371 * acos( cos( radians('.$latitude.') ) * cos( radians( latidude ) ) * cos( radians( longitude ) - radians('.$longitude.') ) + sin( radians('.$latitude.') ) * sin( radians( latidude ) ) ) ) AS distance '
+                . 'FROM restaurant r '
+                .' WHERE 1 '
+                .($status ? ' AND r.status = '.$status : '')
+                . ' HAVING distance <= '.$distance
+                .' ORDER BY distance asc '
+                , $rsm
+            );
+            return count($query->getResult());
+        }
+            
+        return $query->getResult();
     }
 
     /*

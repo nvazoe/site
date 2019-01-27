@@ -33,6 +33,11 @@ class MenuOptionProducts
      */
     private $attribut;
 
+    /**
+     * @ORM\Column(type="integer", nullable=true)
+     */
+    private $position;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -74,6 +79,18 @@ class MenuOptionProducts
     public function setAttribut(string $attribut): self
     {
         $this->attribut = $attribut;
+
+        return $this;
+    }
+
+    public function getPosition(): ?int
+    {
+        return $this->position;
+    }
+
+    public function setPosition(?int $position): self
+    {
+        $this->position = $position;
 
         return $this;
     }

@@ -27,7 +27,9 @@ use Symfony\Component\Cache\Adapter\FilesystemAdapter;
 use App\Entity\User;
 use App\Entity\Restaurant;
 use App\Entity\RestaurantNote;
+use App\Entity\ShippingNote;
 use App\Entity\Menu;
+use App\Entity\Configuration;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 /**
@@ -81,12 +83,14 @@ class RestaurantsController extends Controller {
         $longitude = $request->query->get('longitude')?$request->query->get('longitude'):$request->request->get('longitude');
         $latitude = $request->query->get('latitude')?$request->query->get('latitude'):$request->request->get('latitude');
         $status = $request->query->get('status')?$request->query->get('status'):$request->request->get('status');
+        $distance = $em->getRepository(Configuration::class)->findOneByName('RESTAURANT_RANGE')->getValue();
         
         // Default values
         $limit = ($limit == null) ? 100 : $limit;
         $page = ($page == null) ? 1 : $page;
+        $status = ($status == null) ? 1 : $status;
         
-        $listrestau = $em->getRepository(Restaurant::class)->getRestaurants($longitude, $latitude, $status, intval($limit), intval($page), false);
+        $listrestau = $em->getRepository(Restaurant::class)->getRestaurants($longitude, $latitude, $status, intval($limit), intval($page), false, $distance);
         $array = [];
         foreach ($listrestau as $k => $l){
             $array[$k]["id"] = $l->getId();
@@ -96,24 +100,14 @@ class RestaurantsController extends Controller {
             $array[$k]['status'] = $l->getStatus();
             $array[$k]['city'] = $l->getCity();
             $array[$k]['address'] = $l->getAddress();
+            $array[$k]['note'] = $l->getNote();
             if($l->getImage()){
                 $array[$k]['image'] = $this->generateUrl('homepage', array(), UrlGeneratorInterface::ABSOLUTE_URL).'images/restaurant/'.$l->getImage();
             }else{
                 $array[$k]['image'] = null;
             }
             
-            $notes = $l->getRestaurantNotes();
-            if(count($notes)){
-                $t = 0;
-                foreach ($notes as $u){
-                    $t += $u->getNote();
-                }
-                $array[$k]['notes']['avg'] = ceil($t/count($notes));
-                $array[$k]['notes']['avis'] = count($notes);
-            }else{
-                $array[$k]['notes']['avg'] = 0;
-                $array[$k]['notes']['avis'] = 0;
-            }
+            
         }
         $result['code'] = 200;
         if(count($array) > 0){
@@ -141,6 +135,19 @@ class RestaurantsController extends Controller {
         $em = $this->getDoctrine()->getManager();
         $restau = $em->getRepository(Restaurant::class)->find(intval($id));
         
+        $infosShip = $em->getRepository(ShippingNote::class)->getShippingByRestaurant($restau);
+        $avg = 0;
+        if(count($infosShip)){
+            $som = 0;
+            $total = count($infosShip);
+            foreach ($infosShip as $ind){
+                $som += (int)$ind->getRestauNote();
+            }
+            $avg = ceil(($som/$total)/2);
+        }else{
+            $total = 0;
+        }
+        
         if(!is_null($restau)){
             $result['code'] = 200;
             $result['data']['id'] = $restau->getId();
@@ -151,18 +158,8 @@ class RestaurantsController extends Controller {
             $result['data']['city'] = $restau->getCity();
             $result['data']['address'] = $restau->getAddress();
             $result['data']['image'] = $this->generateUrl('homepage', array(), UrlGeneratorInterface::ABSOLUTE_URL).'images/restaurant/'.$restau->getImage();
-            $notes = $restau->getRestaurantNotes();
-            if(count($notes)){
-                $t = 0;
-                foreach ($notes as $k){
-                    $t += $k->getNote();
-                }
-                $result['data']['notes']['avg'] = ceil($t/count($notes));
-                $result['data']['notes']['avis'] = count($notes);
-            }else{
-                $result['data']['notes']['avg'] = 0;
-                $result['data']['notes']['avis'] = 0;
-            }
+            $result['data']['note'] = $restau->getNote();;
+            
         }else{
             $result['code'] = 400;
             $result['description'] = "Ce restaurant n'existe pas.";
@@ -236,7 +233,7 @@ class RestaurantsController extends Controller {
                 }else{
                 $array[$k]['image'] = null;
                 }
-            $array[$k]["category"] = $l->getCategoryMenu()->getName();
+            $array[$k]["category"] = $l->getCategoryMenu() ? $l->getCategoryMenu()->getName() :  '';
             $array[$k]["restaurant"] = $l->getRestaurant()->getName();
             }
         $result['code'] = 200;

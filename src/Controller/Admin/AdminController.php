@@ -51,14 +51,20 @@ class AdminController extends BaseAdminController {
     
     public function prePersistUserEntity($entity) {
         $entity->setConnectStatus(0);
+        $entity->setState(1);
         $entity->setRoles([$entity->getRoles()]);
         $entity->setPassword($this->container->get("security.password_encoder")->encodePassword($entity, $entity->getPassword()));
     }
     
     public function preUpdateUserEntity($entity) {
+        $entity->setUsername($entity->getEmail());
         if (!is_null($entity->getPassword())) {
-            //  update password 
-            $entity->setPassword($this->container->get("security.password_encoder")->encodePassword($entity, $entity->getPassword()));
+            //  update password
+            $original = $this->em->getUnitOfWork()->getOriginalEntityData($entity);
+            $password = $original['password'];
+            if( $password != $entity->getPassword()) {
+                $entity->setPassword($this->container->get("security.password_encoder")->encodePassword($entity, $entity->getPassword()));
+            }
         } else {
             $original = $this->em->getUnitOfWork()->getOriginalEntityData($entity);
             $password = $original['password'];
@@ -67,9 +73,14 @@ class AdminController extends BaseAdminController {
     }
     
     public function preUpdateDeliverEntity($entity) {
+        $entity->setUsername($entity->getEmail());
         if (!is_null($entity->getPassword())) {
-            //  update password 
-            $entity->setPassword($this->container->get("security.password_encoder")->encodePassword($entity, $entity->getPassword()));
+            //  update password
+            $original = $this->em->getUnitOfWork()->getOriginalEntityData($entity);
+            $password = $original['password'];
+            if( $password != $entity->getPassword()) {
+                $entity->setPassword($this->container->get("security.password_encoder")->encodePassword($entity, $entity->getPassword()));
+            }
         } else {
             $original = $this->em->getUnitOfWork()->getOriginalEntityData($entity);
             $password = $original['password'];
@@ -78,9 +89,14 @@ class AdminController extends BaseAdminController {
     }
     
     public function preUpdateAdminEntity($entity) {
+        $entity->setUsername($entity->getEmail());
         if (!is_null($entity->getPassword())) {
-            //  update password 
-            $entity->setPassword($this->container->get("security.password_encoder")->encodePassword($entity, $entity->getPassword()));
+            //  update password
+            $original = $this->em->getUnitOfWork()->getOriginalEntityData($entity);
+            $password = $original['password'];
+            if( $password != $entity->getPassword()) {
+                $entity->setPassword($this->container->get("security.password_encoder")->encodePassword($entity, $entity->getPassword()));
+            }
         } else {
             $original = $this->em->getUnitOfWork()->getOriginalEntityData($entity);
             $password = $original['password'];
@@ -92,21 +108,25 @@ class AdminController extends BaseAdminController {
         //  set password
         $entity->setRoles(["ROLE_CLIENT"]);
         $entity->setConnectStatus(0);
+        $entity->setState(1);
         $entity->setPassword($this->container->get("security.password_encoder")->encodePassword($entity, $entity->getPassword()));
     }
     
     public function prePersistAdminEntity($entity) {
         //  set password
         $entity->setRoles(["ROLE_ADMIN"]);
+        $entity->setState(1);
         $entity->setConnectStatus(0);
         $entity->setPassword($this->container->get("security.password_encoder")->encodePassword($entity, $entity->getPassword()));
     }
     
     public function prePersistDeliverEntity($entity) {
-        //  set password
         $entity->setRoles(["ROLE_DELIVER"]);
+        $entity->setState(1);
         $entity->setConnectStatus(0);
         $entity->setPassword($this->container->get("security.password_encoder")->encodePassword($entity, $entity->getPassword()));
+        
+        
     }
     
     public function prePersistRestaurantEntity($entity) {
@@ -123,21 +143,40 @@ class AdminController extends BaseAdminController {
         
         
         // Create Stripe account ID
-        $stripePublicKey = $em->getRepository(Configuration::class)->findOneByName('AZ_STRIPE_ACCOUNT_SECRET')->getValue();
-        \Stripe\Stripe::setApiKey($stripePublicKey);
+//        $stripePublicKey = $em->getRepository(Configuration::class)->findOneByName('AZ_STRIPE_ACCOUNT_SECRET')->getValue();
+//        \Stripe\Stripe::setApiKey($stripePublicKey);
+//        
+//        $acct = \Stripe\Account::create([
+//            "country" => "US",
+//            "type" => "custom"
+//        ]);
+//        if($acct)
+//            $entity->setStripeAccountId($acct->id);
+    }
+    
+    
+    public function preUpdateRestaurantEntity($entity){
+        $em = $this->getDoctrine()->getManager();
         
-        $acct = \Stripe\Account::create([
-            "country" => "US",
-            "type" => "custom"
-        ]);
-        if($acct)
-            $entity->setStripeAccountId($acct->id);
+        $lieu = $entity->getAddress().', '.$entity->getCp().', '.$entity->getCity();
+        $url = "https://maps.google.com/maps/api/geocode/json?components=country:FR&key=AIzaSyAt0qBmUbppuFGzGCqhqREOdgwBq-vgJkA&address=".urlencode($lieu);
+        $location = file_get_contents($url);
+        $loc = json_decode($location, true);
+        //echo '<pre>'; die(var_dump($loc["results"][0]["geometry"]["location"])); echo '</pre>';
+        $geo_restau = $loc["results"][0]["geometry"]["location"];
+        $entity->setLongitude($geo_restau["lng"]);
+        $entity->setLatidude($geo_restau["lat"]);
     }
     
     public function preUpdateClientEntity($entity) {
+        $entity->setUsername($entity->getEmail());
         if (!is_null($entity->getPassword())) {
-            //  update password          
-            $entity->setPassword($this->container->get("security.password_encoder")->encodePassword($entity, $entity->getPassword()));
+            //  update password
+            $original = $this->em->getUnitOfWork()->getOriginalEntityData($entity);
+            $password = $original['password'];
+            if( $password != $entity->getPassword()) {
+                $entity->setPassword($this->container->get("security.password_encoder")->encodePassword($entity, $entity->getPassword()));
+            }
         } else {
             $original = $this->em->getUnitOfWork()->getOriginalEntityData($entity);
             $password = $original['password'];
@@ -181,37 +220,63 @@ class AdminController extends BaseAdminController {
     }
     
     
+    public function createProductEntityFormBuilder($entity, $view){
+        $formBuilder = parent::createEntityFormBuilder($entity, $view);
+        $restaurants = $this->getUser()->getRestaurants();
+        
+        if ( !$this->get('security.authorization_checker')->isGranted('ROLE_SUPER_ADMIN')){
+            $formBuilder->add('restaurant', ChoiceType::class, array(
+                'choices' => $restaurants,
+                'choice_label' => function($restaurant, $key, $value){
+                    return $restaurant->getName();
+                },
+            ));
+        }
+        
+        return $formBuilder;
+    }
+    
+    
     /**
      * @Method({"GET", "POST"})
-     * @Route("/add-menu/{id_menu}", name="add_menu")
+     * @Route("/add-menu/{id}", name="add_menu")
      * @Template("/admin/form-menu.html.twig")
      */ 
-    public function addMenu(Request $request, $id_menu=null){
+    public function addMenu(Request $request, $id=null){
         $em = $this->getDoctrine()->getManager();
-        
-        if(is_null($id_menu)){
-            $products = $em->getRepository(Product::class)->findAll();
-            $categories = $em->getRepository(CategoryMenu::class)->findAll();
+        $products = $em->getRepository(Product::class)->findAll();
+        $categories = $em->getRepository(CategoryMenu::class)->findAll();
+        if ( !$this->get('security.authorization_checker')->isGranted('ROLE_SUPER_ADMIN')){
             $restaurants = $this->getUser()->getRestaurants();
         }else{
-            $menu = new Menu($id_menu);
-            die($menu->getName());
+            $restaurants = $em->getRepository(Restaurant::class)->findAll();
+        }
+        if(is_null($id)){
+            
+            $menuObj = new Menu();
+            
+        }else{
+            $menuObj = $em->getRepository(Menu::class)->find($id);
         }
         
         
         if($request->isMethod('POST')){
+            if($id){
+                $menuOptions = $menuObj->getMenuMenuOptions();
+                foreach ($menuOptions as $mo){
+                    $menuObj->removeMenuMenuOption($mo);
+                }
+            }
             $menu = $request->get('dishmenu');
-            $options = $request->get('options');
+            $options = $request->get('options'); //echo '<pre>'; die(var_dump($options)); echo '</pre>';
+
             $photo = $request->files->get('dishmenu')['photo'];
-            
-//            echo '<pre>';
-//            var_dump($options);
-//            echo '</pre>'; die();
-            $dishmenu = new Menu();
-            $dishmenu->setName($menu['name']);
-            $dishmenu->setRestaurant($em->getRepository(Restaurant::class)->find($menu['restaurant']));
-            $dishmenu->setDescription($menu['description']);
-            $dishmenu->setPrice($menu['price']);
+            $menuObj->setName($menu['name']);
+            $menuObj->setRestaurant($em->getRepository(Restaurant::class)->find($menu['restaurant']));
+            $menuObj->setCategoryMenu($em->getRepository(CategoryMenu::class)->find($menu['categorie']));
+            $menuObj->setDescription($menu['description']);
+            $menuObj->setPrice(floatval($menu['price']));
+            $menuObj->setPosition((int)$menu['position']);
             //$dishmenu->setProduct($em->getRepository(Product::class)->find($data['product_id']));
             
             
@@ -227,39 +292,58 @@ class AdminController extends BaseAdminController {
 
                 $photo->move($dest_dir, $fileName);
 
-                $dishmenu->setImage($fileName);
+                $menuObj->setImage($fileName);
             }
             
-            $em->persist($dishmenu);
+            $em->persist($menuObj);
             
             if($options){
                 foreach ($options as $opt){
-                $option = new MenuOption();
-                $option->setName($opt['name']);
-                $option->setType($opt['type']);
-                $option->setItem($opt['item']);
-                
-                $em->persist($option);
-                
-                
-                // association produit - option
-                foreach ($opt['productoption'] as $prdOpt){
-                    $prdOption = new MenuOptionProducts();
-                    $prdOption->setMenuOption($option);
-                    $prdOption->setProduct($em->getRepository(Product::class)->find($prdOpt['id']));
-                    $prdOption->setAttribut($prdOpt['price']);
-                    
-                    $em->persist($prdOption);
-                    
+                    if(strlen($opt['name']) != 0){
+                        
+                        $option = new MenuOption();
+                        $option->setName($opt['name']);
+                        $option->setType($opt['type']);
+                        $option->setItem(intval($opt['item']));
+
+                        $em->persist($option);
+
+
+                        // association produit - option
+                        foreach ($opt['productoption'] as $prdOpt){
+                            
+                            if(isset($prdOpt['id'])){
+                                $prdOption = new MenuOptionProducts();
+                                $prdOption->setMenuOption($option);
+                                $prdObj = $em->getRepository(Product::class)->find($prdOpt['id']);
+                                if (isset($prdOpt['product'])) {
+                                    if(!$prdObj){
+                                        $prdObj = new Product();
+                                        $prdObj->setName($prdOpt['product']);
+                                        $prdObj->setPrice((float)$prdOpt['price']);
+                                        $prdObj->setStatus(1);
+                                        $prdObj->setRestaurant($em->getRepository(Restaurant::class)->find($menu['restaurant']));
+                                        $em->persist($prdObj);
+                                    }
+                                    $prdOption->setProduct($prdObj);
+                                    $prdOption->setAttribut((float)$prdOpt['price']);
+                                    $prdOption->setPosition((int)$prdOpt['position']);
+                                }
+
+                                $em->persist($prdOption);
+                            }
+
+                        }
+
+                        // association menu - option
+                        $menuoption = new MenuMenuOption();
+                        $menuoption->setMenu($menuObj);
+                        $menuoption->setMenuOption($option);
+                        $menuoption->setPosition((int)$opt['position']);
+
+                        $em->persist($menuoption);
+                    }
                 }
-                // association menu - option
-                $menuoption = new MenuMenuOption();
-                $menuoption->setMenu($dishmenu);
-                $menuoption->setMenuOption($option);
-                
-                $em->persist($menuoption);
-                
-            }
             }
             
             $em->flush();
@@ -275,7 +359,8 @@ class AdminController extends BaseAdminController {
         return array(
             'products' => $products,
             'categories' => $categories,
-            'restaurants' => $restaurants
+            'restaurants' => $restaurants,
+            'menu' => $menuObj
         );
     }
     
@@ -299,7 +384,12 @@ class AdminController extends BaseAdminController {
         $em = $this->getDoctrine()->getManager();
         $product = $request->get('product');
         $user = $this->getUser()->getid();
-        $products = $em->getRepository(Product::class)->findByNameField($product, $user);
+        if ( !$this->get('security.authorization_checker')->isGranted('ROLE_SUPER_ADMIN')){
+            $products = $em->getRepository(Product::class)->findByNameField($product, $user);
+        }else{
+            $products = $em->getRepository(Product::class)->findByNameField($product);
+        }
+        
         
         $array = [];
         foreach ($products as $k => $p){
@@ -370,7 +460,7 @@ class AdminController extends BaseAdminController {
             $total += intval($dt->getQuantity()) * floatval($dt->getPrice());
             $dtt = $dt->getOrderDetailsMenuProducts();
             foreach ($dtt as $val){
-                $total += floatval($val->getPrice());
+                $total += floatval($val->getPrice()) * $dt->getQuantity();
             }
         }
         
@@ -497,27 +587,29 @@ class AdminController extends BaseAdminController {
             $order = $request->get('order');
             $orderObj = $em->getRepository(Order::class)->find($order);
             
-            if($status == 4){
+            if($status == 4 || $status == 5){
                 try{
-                    if($ord->getPaymentMode()->getId() == 1){
+                    if($orderObj->getPaymentMode()->getId() == 1){
+                        
                         $stripePublicKey = $em->getRepository(Configuration::class)->findOneByName('AZ_STRIPE_ACCOUNT_SECRET')->getValue();
                         // Set your secret key: remember to change this to your live secret key in production
                         // See your keys here: https://dashboard.stripe.com/account/apikeys
                         \Stripe\Stripe::setApiKey($stripePublicKey);
+                        
+                        // UPDATE CUSTOMER DEFAULT SOURCE
+                        $cu = \Stripe\Customer::retrieve($orderObj->getClient()->getStripeId());
+                        $cu->default_source = $orderObj->getPayment()->getStripeId();
+                        $cu->save();
 
                         $charge = \Stripe\Charge::create([
                             'amount' => $orderObj->getAmount() * 100, // $15.00 this time
                             'currency' => 'eur',
                             'customer' => $orderObj->getClient()->getStripeId(), // Previously stored, then retrieved
-                            'metadata' => ['order_id' => $orderObj->id],
-                            'destination' =>  [
-                                'account' => "{".$orderObj->getRestaurant()->getStripeAccountid()."}",
-                                'amount' => $orderObj->getRestauEarn()
-                            ],
-                            'source' => $orderObj->getClient()->getStripeid()
+                            'metadata' => ['order_id' => $orderObj->getId()],
+                            
                         ]);
                     }
-
+                    //die(var_dump($charge));
                     if($charge){
                         //Update status order
                         $orderObj->setOrderStatus($em->getRepository(OrderStatus::class)->find(4));
@@ -587,18 +679,13 @@ class AdminController extends BaseAdminController {
         $em = $this->getDoctrine()->getManager();
         $period = $request->get('period', 1);
         $dels = $em->getRepository(User::class)->findAllUserByRole('ROLE_DELIVER', false);
-        $arrayDels = [];
-        foreach($dels as $k=>$v){
-            $logs = $em->getRepository(ShippingLog::class)->getDeliverActionBetweenAPeriod($v->getId(), time(), time()- (60*(int)$period));
-            //$dels[$k]->logs = $logs;
-            if(count($logs) <= 2){
-                $v->delCount = count($logs);
-                $arrayDels[] = $v;
-            }
-        }
         
-        return array('delivers' => $arrayDels, 'period' => $period);
+        
+        return array('delivers' => $dels, 'period' => $period);
     }
+    
+    
+    
     
     
     /**
@@ -609,7 +696,12 @@ class AdminController extends BaseAdminController {
     public function ordersDashboard(Request $request){
         $em = $this->getDoctrine()->getManager();
         
-        $orders = $em->getRepository(Order::class)->getUserOrders($this->getUser()->getId(), 100, 1, array(1,2,7), false);
+        if ( !$this->get('security.authorization_checker')->isGranted('ROLE_SUPER_ADMIN')){
+            $orders = $em->getRepository(Order::class)->getUserOrders($this->getUser()->getId(), 100, 1, array(1,2,7), false);
+        }else{
+            $orders = $em->getRepository(Order::class)->getUserOrders(null, 100, 1, array(1,2,7), false);
+        }
+        
         
         return array('orders' => $orders, 'totalRows' => ceil(count($orders)/3));
     }
@@ -621,7 +713,12 @@ class AdminController extends BaseAdminController {
     public function jsonGetorders(Request $request){
         $em = $this->getDoctrine()->getManager();
         $status = $request->get('status');
-        $orders = $em->getRepository(Order::class)->getUserOrders($this->getUser()->getId(), 100, 1, $status, false);
+        
+        if ( !$this->get('security.authorization_checker')->isGranted('ROLE_SUPER_ADMIN')){
+            $orders = $em->getRepository(Order::class)->getUserOrders($this->getUser()->getId(), 100, 1, 1, false);
+        }else{
+            $orders = $em->getRepository(Order::class)->getUserOrders(null, 100, 1, 1, false);
+        }
         $items = [];
         foreach($orders as $key=>$val){
             $items[$key] = $val->getId();
@@ -671,6 +768,7 @@ class AdminController extends BaseAdminController {
         
         $restaurants = $this->getUser()->getRestaurants();
         $qb = parent::createListQueryBuilder($dqlFilter, $sortDirection, $sortField);
+        
         $ids = [];
         if ( !$this->get('security.authorization_checker')->isGranted('ROLE_SUPER_ADMIN')){
             foreach ($restaurants as $k=>$v){
@@ -678,6 +776,8 @@ class AdminController extends BaseAdminController {
             }
             $qb->andWhere('entity.restaurant IN (:ids)')->setParameter('ids', $ids);
             //$qb->andWhere('entity.deleteStatus = :del')->setParameter('del', 0);
+            $qb->groupBy('entity.restaurant');
+            $qb->orderBy('entity.position', 'asc');
         }
         
         
@@ -874,4 +974,34 @@ class AdminController extends BaseAdminController {
     }
     
     
+    /**
+     * @Method({"GET", "POST"})
+     * @Route("/add-restau/{id_restau}", name="add_restau")
+     * @Template("/admin/form-add-restau.html.twig")
+     */ 
+    public function addRestau(Request $request, $id_restau=null){
+        
+        
+        return array();
+    }
+    
+    
+    /**
+     * @Method({"GET", "POST"})
+     * @Route("/voyage", name="trip")
+     * @Template("/admin/voyage.html.twig")
+     */ 
+    public function displayTrip(Request $request){
+        
+        
+        return array();
+    }
+    
+    public function preUpdateCategoryMenuEntity($entity){
+        $entity->setUpdateAt(new \DateTime());
+    }
+    
+    public function prePersistCategoryMenuEntity($entity){
+        $entity->setUpdateAt(new \DateTime());
+    }
 }

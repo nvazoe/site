@@ -27,16 +27,9 @@ class UserFixtures extends Fixture
             $user->setPassword($this->passwordEncoder->encodePassword($user, $password));
             $user->setEmail($email);
             $user->setRoles($role);
-            
-//            $group = new Group();
-//            $group->setName('Nom du Role '.$role[0]);
-//            $group->setRoles($role);
-//           
-//            $user->addGroup($group);
+
             
             $manager->persist($user);
-//            $manager->persist($group);
-//            $this->addReference($username, $user);
         }
         
         $manager->flush();

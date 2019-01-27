@@ -52,6 +52,11 @@ class CategoryMenu
      */
     private $imageFile;
 
+    /**
+     * @ORM\Column(type="datetime")
+     */
+    private $updateAt;
+
     public function __construct()
     {
         $this->menus = new ArrayCollection();
@@ -182,5 +187,17 @@ class CategoryMenu
     public function getImageFile()
     {
         return $this->imageFile;
+    }
+
+    public function getUpdateAt(): ?\DateTimeInterface
+    {
+        return $this->updateAt;
+    }
+
+    public function setUpdateAt(\DateTimeInterface $updateAt): self
+    {
+        $this->updateAt = $updateAt;
+
+        return $this;
     }
 }

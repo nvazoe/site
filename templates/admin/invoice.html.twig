@@ -10,7 +10,11 @@
       #map {
         height: 500px;
       }
-      
+      @media print{
+          .change-deliver{
+              display: none;
+          }
+      }
     </style>
     <link rel="stylesheet" href="{{ asset('styles/style.css') }}">
 {% endblock %}
@@ -30,7 +34,7 @@
                             <div class="text-right">
                                 {#<button class="btn btn-default btn-sm"><i class="fa fa-pencil"></i> Edit </button>
                                 <button class="btn btn-default btn-sm"><i class="fa fa-check "></i> Save </button>#}
-                                <button class="btn btn-primary btn-sm"><i class="fa fa-print"></i> Imprimer</button>
+                                <a href="#" class="btn btn-primary btn-sm print" onclick="onBuild();"><i class="fa fa-print"></i> Imprimer ticket</a>
                             </div>
 
                         </div>
@@ -43,12 +47,12 @@
 
                             <address>
                                 <strong>{{ order.restaurant.name }}</strong><br>
-                                {{ order.restaurant.address }}<br>
-                                Salinas, CA 93905<br>
-                                <abbr title="Phone">P:</abbr> (831) 758-7200
+                                {{ order.restaurant.cp }}, {{ order.restaurant.address }} {{ order.restaurant.city }}<br>
+                                
+                                <abbr title="Phone">P:</abbr> {{ order.restaurant.owner.phoneNumber }}
                             </address>
                             
-                            <form class="form-horizontal" action="{{path('assign_deliver')}}" method="post">
+                            <form class="form-horizontal change-deliver" action="{{path('assign_deliver')}}" method="post">
                                 <input type="hidden" name="order" value="{{order.id}}" />
                                 <div class="form-group">
                                 <div class="col-sm-8">
@@ -86,13 +90,12 @@
                             <span>To:</span>
                             <address>
                                 <strong>{{ order.client.lastname }} {{ order.client.firstname }}</strong><br>
-                                60 Mortensen Avenue<br>
-                                Salinas, CA 123343<br>
-                                <abbr title="Phone">P:</abbr> {{ order.client.phoneNumber }}
+                                {{ order.cp }}, {{ order.address }} {{ order.city }}<br>
+                                <abbr title="Phone">P:</abbr> {{ order.phoneNumber }}
                             </address>
                             <p>
-                                <span><strong>Invoice Date:</strong> {{ order.dateCreated|date('D, d M Y') }}</span><br/>
-                                {#<span><strong>Due Date:</strong> May 24, 2016</span>#}
+                                <span><strong>Invoice Date:</strong> {{ order.dateCreated|date('D, d M Y') }}</span><br/><br/><br/>
+                                <span>Paiement par <strong>{{ order.ModePaiement }}</span>
                             </p>
                         </div>
                     </div>
@@ -124,7 +127,7 @@
                                         {{ord.quantity}}
                                         <ul class="list-unstyled">
                                         {% for dt in ord.OrderDetailsMenuProducts %}
-                                            <li>1</li>
+                                            <li>{{ord.quantity}}</li>
                                         {%endfor%}
                                         </ul>
                                     </td>
@@ -140,7 +143,7 @@
                                         {{ord.price * ord.quantity}}
                                         <ul class="list-unstyled">
                                             {% for dt in ord.OrderDetailsMenuProducts %}
-                                                <li>{{dt.price}}</li>
+                                                <li>{{dt.price * ord.quantity}}</li>
                                             {%endfor%}
                                         </ul>
                                     </td>
@@ -173,9 +176,8 @@
 
                     <div class="row">
                         <div class="col-md-6">
-                            <div class="m-t"><strong>Comments</strong>
-                                It is a long established fact that a reader will be distracted by the readable content of a page
-                                when looking at its layout. The point of using Lorem Ipsum is that it has a more-or-less
+                            <div class="m-t"><strong>Commentaire :</strong>
+                                {{order.DeliveryNote}}
                             </div>
                         </div>
                     </div>
@@ -193,6 +195,7 @@
 
 {% block body_javascript %}
     {{ parent() }}
+    <script type='text/javascript' src={{ asset('StarWebPrint/js/StarWebPrintDisplayBuilder.js') }}></script>
     <script>
       var map;
       var france = {lat: 48.864716, lng: 2.349014};
@@ -326,7 +329,10 @@
                         
                         var orig = new google.maps.LatLng(livr.lat, livr.lng);
                         var dest = new google.maps.LatLng(order.lat, order.lng);
-                        calculateAndDisplayRoute(directionsService, directionsDisplay, orig, dest);
+                        console.log(orig);
+                        console.log(dest);
+                        if(!orig.isEmpty() & !dest.isEmpty())
+                            calculateAndDisplayRoute(directionsService, directionsDisplay, orig, dest);
                         
                         setTimeout(function(){
                              mLivr.setMap(null);
@@ -427,9 +433,26 @@
         });
       }
     </script>
-    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDlHJyOaa1i7sl_VvSJ-MR3w5uAT3M_UgQ&callback=initMap"
-    async defer></script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDlHJyOaa1i7sl_VvSJ-MR3w5uAT3M_UgQ&callback=initMap" async defer></script>
     
     {# icheck #}
     <script scr="{{ asset('iCheck/icheck.min.js') }}"></script>
+    <script>
+        function onBuild(){
+            var builder = new StarWebPrintDisplayBuilder();
+            
+            var request = builder.createTextElement({
+                codepage: 'cp437',
+                international: 'france',
+                characterspace: 2,
+                emphasis: true,
+                invert: false,
+                linespace: 32,
+                width: 6,
+                height: 6,
+                font: 'font_b',
+                data: 'bonjour'
+            });
+        }
+    </script>
 {% endblock body_javascript %}

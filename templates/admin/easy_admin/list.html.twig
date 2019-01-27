@@ -94,12 +94,19 @@
                                         </a>
                                     </div>
                                     {% else %}
-                                    <div class="button-action">
-                                        <a class="btn-xs {{ _action.css_class|default('') }}" href="{{ path('easyadmin', _request_parameters|merge({ action: _action.name })) }}" target="{{ _action.target }}">
-                                            {% if _action.icon %}<i class="fa fa-{{ _action.icon }}"></i>{% endif %}
-                                            {{ _action.label is defined and not _action.label is empty ? _action.label|trans(_trans_parameters) }}
-                                        </a>
-                                    </div> 
+                                    {% set currentEntity = _entity_config.name %}
+									{% set currentEntityConfig = easyadmin_config('entities.' ~ currentEntity) %}
+
+									{% if currentEntityConfig.new is defined and currentEntityConfig.new.role is defined and not is_granted(currentEntityConfig.new.role) %}
+										{#{{ dump('new to remove') }}#}
+									{% else %}
+										<div class="button-action">
+											<a class="{{ _action.css_class|default('') }}" href="{{ path('easyadmin', _request_parameters|merge({ action: _action.name })) }}" target="{{ _action.target }}">
+												{% if _action.icon %}<i class="fa fa-{{ _action.icon }}"></i>{% endif %}
+												{{ _action.label is defined and not _action.label is empty ? _action.label|trans(_trans_parameters) }}
+											</a>
+										</div>
+									{% endif %}
                                 {% endif %}
 
                             {% endblock new_action %}
@@ -115,76 +122,102 @@
                         <table class="table table-bordered table-striped">
                             <thead>
                                 {% block table_head %}
-                                    <tr>
-                                        {% for field, metadata in fields %}
-                                            {% set isSortingField = metadata.property == app.request.get('sortField')|split('.')|first %}
-                                            {% set nextSortDirection = isSortingField ? (app.request.get('sortDirection') == 'DESC' ? 'ASC' : 'DESC') : 'DESC' %}
-                                            {% set _column_label = (metadata.label ?: field|humanize)|trans(_trans_parameters) %}
-                                            {% set _column_icon = isSortingField ? (nextSortDirection == 'DESC' ? 'fa-caret-up' : 'fa-caret-down') : 'fa-sort' %}
+                                    {% set currentEntity = _entity_config.name %}
+									{% set currentEntityConfig = easyadmin_config('entities.' ~ currentEntity) %}
+									{% set allowedActions = [] %}
 
-                                            <th data-property-name="{{ metadata.property }}" class="{{ isSortingField ? 'sorted' }} {{ metadata.virtual ? 'virtual' }} {{ metadata.dataType|lower }} {{ metadata.css_class }}" {{ easyadmin_config('design.rtl') ? 'dir="rtl"' }}>
-                                                {% if metadata.sortable %}
-                                                    <a href="{{ path('easyadmin', _request_parameters|merge({ page: 1, sortField: metadata.property, sortDirection: nextSortDirection })) }}">
-                                                        <i class="fa {{ _column_icon }}"></i>
-                                                        {{ _column_label|raw }}
-                                                    </a>
-                                                {% else %}
-                                                    <span>{{ _column_label|raw }}</span>
-                                                {% endif %}
-                                            </th>
-                                        {% endfor %}
+									{% for action in _list_item_actions %}
+										{% set actionName = action.name %}
 
-                                        {% if _list_item_actions|length > 0 %}
-                                            <th  {{ easyadmin_config('design.rtl') ? 'dir="rtl"' }}>
-                                                <span>{{ 'list.row_actions'|trans(_trans_parameters, 'EasyAdminBundle') }}</span>
-                                            </th>
-                                        {% endif %}
-                                    </tr>
+										{# config for the current action of the current entity in yml and custom role and not allowed#}
+										{% if currentEntityConfig[actionName] is defined and currentEntityConfig[actionName].role is defined and not is_granted(currentEntityConfig[actionName].role) %}
+											{#{{ dump(actionName ~ ' to remove') }}#}
+										{% else %}
+											{% set allowedActions = allowedActions|merge({(''~actionName): _list_item_actions[actionName]}) %}
+										{% endif %}
+
+									{% endfor %}
+
+									<tr>
+										{% for field, metadata in fields %}
+											{% set isSortingField = metadata.property == app.request.get('sortField')|split('.')|first %}
+											{% set nextSortDirection = isSortingField ? (app.request.get('sortDirection') == 'DESC' ? 'ASC' : 'DESC') : 'DESC' %}
+											{% set _column_label = (metadata.label ?: field|humanize)|trans(_trans_parameters) %}
+											{% set _column_icon = isSortingField ? (nextSortDirection == 'DESC' ? 'fa-caret-up' : 'fa-caret-down') : 'fa-sort' %}
+
+											<th data-property-name="{{ metadata.property }}" class="{{ isSortingField ? 'sorted' }} {{ metadata.virtual ? 'virtual' }} {{ metadata.dataType|lower }} {{ metadata.css_class }}">
+												{% if metadata.sortable %}
+													<a href="{{ path('easyadmin', _request_parameters|merge({ sortField: metadata.property, sortDirection: nextSortDirection })) }}">
+														<i class="fa {{ _column_icon }}"></i>
+														{{ _column_label|raw }}
+													</a>
+												{% else %}
+													<span>{{ _column_label|raw }}</span>
+												{% endif %}
+											</th>
+										{% endfor %}
+
+										{% if allowedActions|length > 0 %}
+											<th>
+												<span>{{ 'list.row_actions'|trans(_trans_parameters, 'EasyAdminBundle') }}</span>
+											</th>
+										{% endif %}
+									</tr>
                                 {% endblock table_head %}
                             </thead>
 
                             <tbody>
                                 {% block table_body %}
-                                    {% for item in paginator.currentPageResults %}
-                                        {# the empty string concatenation is needed when the primary key is an object (e.g. an Uuid object) #}
-                                        {% set _item_id = '' ~ attribute(item, _entity_config.primary_key_field_name) %}
-                                        <tr data-id="{{ _item_id }}">
-                                            {% for field, metadata in fields %}
-                                                {% set isSortingField = metadata.property == app.request.get('sortField') %}
-                                                {% set _column_label =  (metadata.label ?: field|humanize)|trans(_trans_parameters)  %}
+                                    {% set currentEntity = _entity_config.name %}
+									{% set currentEntityConfig = easyadmin_config('entities.' ~ currentEntity) %}
+									{% set allowedActions = [] %}
 
-                                                <td data-label="{{ _column_label }}" class="{{ isSortingField ? 'sorted' }} {{ metadata.dataType|lower }} {{ metadata.css_class }}" {{ easyadmin_config('design.rtl') ? 'dir="rtl"' }}>
-                                                    {{ easyadmin_render_field_for_list_view(_entity_config.name, item, metadata) }}
-                                                </td>
-                                            {% endfor %}
+									{% for action in _list_item_actions %}
+										{% set actionName = action.name %}
 
-                                            {% if _list_item_actions|length > 0 %}
-                                                {% set _column_label =  'list.row_actions'|trans(_trans_parameters, 'EasyAdminBundle') %}
-                                                
-                                                        <td data-label="{{ _column_label }}" class="actions">
-                                                    {% block item_actions %}
-                                                        {{ include('@EasyAdmin/default/includes/_actions.html.twig', {
-                                            actions: _list_item_actions,
-                                            request_parameters: _request_parameters,
-                                            translation_domain: _entity_config.translation_domain,
-                                            trans_parameters: _trans_parameters,
-                                            item_id: _item_id
-                                        }, with_context = false) }}
-                                                    {% endblock item_actions %}
-                                                    {% if _entity_config.name in ['Order', 'NewOrder', 'ShippingOrder', 'ShippedOrder', 'ApprovedOrder'] %}
-                                                        <a href="{{path('invoice', {'id': _item_id})}}">Voir</a>
-                                                    {% endif %}
-                                                </td>
-                                                
-                                            {% endif %}
-                                        </tr>
-                                    {% else %}
-                                        <tr>
-                                            <td class="no-results" colspan="{{ _list_item_actions|length > 0 ? fields|length + 1 : fields|length }}">
-                                                {{ 'search.no_results'|trans(_trans_parameters, 'EasyAdminBundle') }}
-                                            </td>
-                                        </tr>
-                                    {% endfor %}
+										{# config for the current action of the current entity in yml and custom role and not allowed#}
+										{% if currentEntityConfig[actionName] is defined and currentEntityConfig[actionName].role is defined and not is_granted(currentEntityConfig[actionName].role) %}
+											{#{{ dump(actionName ~ ' to remove') }}#}
+										{% else %}
+											{% set allowedActions = allowedActions|merge({(''~actionName): _list_item_actions[actionName]}) %}
+										{% endif %}
+
+									{% endfor %}
+
+									{% for item in paginator.currentPageResults %}
+										{% set _item_id = attribute(item, _entity_config.primary_key_field_name) %}
+										<tr data-id="{{ _item_id }}">
+											{% for field, metadata in fields %}
+												{% set isSortingField = metadata.property == app.request.get('sortField') %}
+												{% set _column_label =  (metadata.label ?: field|humanize)|trans(_trans_parameters)  %}
+
+												<td data-label="{{ _column_label }}" class="{{ isSortingField ? 'sorted' }} {{ metadata.dataType|lower }} {{ metadata.css_class }}">
+													{{ easyadmin_render_field_for_list_view(_entity_config.name, item, metadata) }}
+												</td>
+											{% endfor %}
+
+											{% if allowedActions|length > 0 %}
+												{% set _column_label =  'list.row_actions'|trans(_trans_parameters, 'EasyAdminBundle') %}
+												<td data-label="{{ _column_label }}" class="actions">
+													{% block item_actions %}
+														{{ include('@EasyAdmin/default/includes/_actions.html.twig', {
+															actions: allowedActions,
+															request_parameters: _request_parameters,
+															translation_domain: _entity_config.translation_domain,
+															trans_parameters: _trans_parameters,
+															item_id: _item_id
+														}, with_context = false) }}
+													{% endblock item_actions %}
+												</td>
+											{% endif %}
+										</tr>
+									{% else %}
+										<tr>
+											<td class="no-results" colspan="{{ _list_item_actions|length > 0 ? fields|length + 1 : fields|length }}">
+												{{ 'search.no_results'|trans(_trans_parameters, 'EasyAdminBundle') }}
+											</td>
+										</tr>
+									{% endfor %}
                                 {% endblock table_body %}
                             </tbody>
                         </table>

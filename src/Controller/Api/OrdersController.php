@@ -101,6 +101,7 @@ class OrdersController extends Controller {
             $array[$k]['reference'] = $l->getRef();
             $array[$k]['date'] = $l->getDateCreated()->format('d-m-Y');
             $array[$k]['hour'] = $l->getDateCreated()->format('H:i');
+            $array[$k]['delivery_type'] = $l->getDeliveryType();
             $array[$k]["client"]["id"] = $l->getClient()->getId();
             $array[$k]["client"]["username"] = $l->getClient()->getUsername();
             $array[$k]["client"]["position"]["latitude"] = $l->getClient()->getLatitude();
@@ -152,10 +153,12 @@ class OrdersController extends Controller {
             $result['data']['delivery_note'] = $order->getDeliveryNote();
             $result['data']['delivery_hour'] = $order->getDeliveryHour();
             $result['data']['delivery_date'] = $order->getDeliveryDate();
+            $result['data']['delivery_type'] = $order->getDeliveryType();
             $result['data']['restaurant']['id'] = $order->getRestaurant()->getId();
             $result['data']['restaurant']['name'] = $order->getRestaurant()->getName();
             $result['data']['restaurant']['city'] = $order->getRestaurant()->getCity();
             $result['data']['restaurant']['address'] = $order->getRestaurant()->getAddress();
+            $result['data']['restaurant']['note'] = $order->getRestauNote();
             $result['data']['restaurant']['position']['latitude'] = $order->getRestaurant()->getLatidude();
             $result['data']['restaurant']['position']['longitude'] = $order->getRestaurant()->getLongitude();
             $result['data']['status']['id'] = $order->getOrderStatus()->getId();
@@ -173,6 +176,7 @@ class OrdersController extends Controller {
                 $result['data']['deliver']['latitude'] = $order->getMessenger() ? $order->getMessenger()->getLatitude() : null;
                 $result['data']['deliver']['longitude'] = $order->getMessenger() ? $order->getMessenger()->getLongitude() : null;
                 $result['data']['deliver']['phone'] = $order->getMessenger() ? $order->getMessenger()->getPhoneNumber() : null;
+                $result['data']['deliver']['note'] = $order->getDeliverNote();
             }
 
             // Get details
@@ -270,13 +274,20 @@ class OrdersController extends Controller {
         $menus = array_key_exists('menus', $data) ? $data['menus'] : [];
         $card = array_key_exists('creditcard', $data) ? $data['creditcard'] : [];
         $ticket = array_key_exists('ticket', $data) ? $data['ticket'] : [];
+        //$token = array_key_exists('token_stripe', $data) ? $data['token_stripe'] : null;
 
         $restau = $em->getRepository(Restaurant::class)->find($restaurant);
         $cl = $em->getRepository(User::class)->find($client);
         $pymde = $em->getRepository(PaymentMode::class)->find($payment);
-        $reference = substr(strtoupper(md5(random_bytes(6))), 0, 6);
+        $reference = substr(strtoupper(md5(random_bytes(6))), 0, 12);
+        while ($em->getRepository(Order::class)->findOneBy(array('ref'=> $reference))){
+            $reference = substr(strtoupper(md5(random_bytes(6))), 0, 12);
+        }
+        
         $delivers = $em->getRepository(User::class)->findAllUserByRole('ROLE_DELIVER', false);
         $azCommission = $em->getRepository(Configuration::class)->findOneByName('AZ_STRIPE_COMMISSION')->getValue();
+        $emailAdmin = $em->getRepository(Configuration::class)->findOneByName('AZ_ADMIN_EMAIL')->getValue();
+        $stripePublicKey = $em->getRepository(Configuration::class)->findOneByName('AZ_STRIPE_ACCOUNT_SECRET')->getValue();
 
         // End validation
         $order = new Order();
@@ -293,37 +304,52 @@ class OrdersController extends Controller {
         $order->setPaymentMode($pymde);
         $order->setOrderStatus($em->getRepository(OrderStatus::class)->find(1));
         $order->setCommission(intval($azCommission) / 100);
-
-
-//        if ($card['id'] > 0) {
-//            $b = $card['id'];
-//            $bc = $em->getRepository(BankCard::class)->find($b);
-//            $order->setPayment($bc);
-//        } elseif ($card['id'] == 0) {
-//            $name = $card['name'];
-//            $card_nber = $card['card_number'];
-//            $security = $card['security'];
-//            $month = $card['month'];
-//            $year = $card['year'];
-//
-//            $bc = new BankCard();
-//            $bc->setOwnerName($name);
-//            $bc->setUser($cl);
-//            $bc->setMonthExp($month);
-//            $bc->setYearExp($year);
-//            $bc->setSecurityCode($security);
-//            $bc->setCardNumber($card_nber);
-//
-//            $em->persist($bc);
-//
-//            $order->setPayment($bc);
-//        }
         
         
-        if($payment == 2){
+        
+        
+        if($payment == 1){
+            if ($card['id'] > 0) {
+                $b = $card['id'];
+                $card = $em->getRepository(BankCard::class)->find($b);
+                $order->setPayment($card);
+            } elseif ($card['id'] == 0) {
+                $token = $card['token_stripe'];
+                \Stripe\Stripe::setApiKey($stripePublicKey);
+
+                if(strlen($cl->getStripeId()) > 0){
+                    $customer = \Stripe\Customer::retrieve($cl->getStripeId());
+                    $carte = $customer->sources->create(["source" => $token]);
+                    // Save new card
+                }else{
+                // Create a Customer:
+                    $customer = \Stripe\Customer::create([
+                        'source' => $token,
+                        'email' => $cl->getEmail(),
+                        'description' => $cl->getFirstname()
+                    ]);
+                    $carte = $customer->sources->data[0];
+
+                }
+                
+                $card = new BankCard();
+                $card->setUser($cl);
+                $card->setMonthExp($carte->exp_month);
+                $card->setYearExp($carte->exp_year);
+                $card->setCardNumber($carte->last4);
+                $card->setStripeId($carte->id);
+                $card->setOwnerName($cl->getFirstname());
+                $card->setDeleteStatus(0);
+                $cl->setStripeId($customer->id);
+                $em->persist($cl);
+                $em->persist($card);
+
+                $order->setPayment($card);
+            }
+        } elseif ($payment == 2){
             $tkt = new Ticket();
             $tkt->setClient($cl);
-            $tkt->setCode($ticket['code']);
+            $tkt->setCode("CODE");
             $tkt->setRestaurant($restau);
             $tkt->setDateCreated(new \DateTime());
             $tkt->setValue($ticket['value']);
@@ -333,15 +359,7 @@ class OrdersController extends Controller {
             $order->setTicket($tkt);
         }
         
-
         $em->persist($order);
-        
-        
-        if(array_key_exists('id', $ticket)){
-            $tk = $em->getRepository(Ticket::class)->find($ticket['id']);
-            if($tk)
-                $order->setTicket($tk);
-        }
 
         foreach ($menus as $m) {
             $ordDt = new OrderDetails();
@@ -367,8 +385,9 @@ class OrdersController extends Controller {
                             $ordDtPrd->setProduct($prd->getProduct());
                             $ordDtPrd->setPrice($prd->getAttribut());
                             $total += $ordDtPrd->getPrice() * (int) $m['quantity'];
+                            $em->persist($ordDtPrd);
                         }
-                        $em->persist($ordDtPrd);
+                        
                     }
                     
                     
@@ -390,27 +409,19 @@ class OrdersController extends Controller {
             $em->persist($delProposition);
             
             // Send mail to delivers
-            $message2 = (new \Swift_Message('Nouvelle commande à livrer'))
-                ->setFrom('contact@ubereat.com')
-                ->setTo($dl->getEmail())
-                ->setBody(
-                    $this->renderView(
-                        // templates/emails/registration.html.twig
-                        'emails/new-order-to-deliver.html.twig', array('name' => $dl->getFirstname(), 'order' => $order)
-                    ), 'text/html'
-                )
-                ->setCharset('utf-8')
-            /*
-             * If you also want to include a plaintext version of the message
-              ->addPart(
-              $this->renderView(
-              'emails/registration.txt.twig',
-              array('name' => $name)
-              ),
-              'text/plain'
-              )
-             */
-            ;
+            $message2 = (new \Swift_Message('Nouvelle commande Ã  livrer'))
+                ->setFrom($emailAdmin)
+                ->setTo($dl->getEmail());
+            $htmlBody = $this->renderView(
+                'emails/new-order-to-deliver.html.twig', array('name' => $dl->getFirstname(), 'order' => $order)
+            );
+            
+            $context['titre'] = 'Nouvelle commande Ã  livrer';
+            $context['contenu_mail'] = $htmlBody;
+            $message2->setBody(
+                $this->renderView('mail/default.html.twig', $context),
+                'text/html'
+            );
 
             $mailer->send($message2);
         }
@@ -419,53 +430,37 @@ class OrdersController extends Controller {
 
         // Send mail to restaurant
         $message = (new \Swift_Message('Nouvelle commande'))
-            ->setFrom('contact@ubereat.com')
-            ->setTo($restau->getOwner()->getEmail())
-            ->setBody(
-                $this->renderView(
-                    // templates/emails/registration.html.twig
-                    'emails/new-order-restaurant.html.twig', array('name' => $restau->getOwner()->getFirstname(), 'restau' => $restau->getName(), 'order' => $order)
-                ), 'text/html'
-            )
-            ->setCharset('utf-8')
-        /*
-         * If you also want to include a plaintext version of the message
-          ->addPart(
-          $this->renderView(
-          'emails/registration.txt.twig',
-          array('name' => $name)
-          ),
-          'text/plain'
-          )
-         */
-        ;
-
+            ->setFrom($emailAdmin)
+            ->setTo($restau->getOwner()->getEmail());
+        $htmlBody2 = $this->renderView(
+                'emails/new-order-restaurant.html.twig', array('name' => $restau->getOwner()->getFirstname(), 'restau' => $restau->getName(), 'order' => $order)
+            );
+            
+            $context['titre'] = 'Nouvelle commande';
+            $context['contenu_mail'] = $htmlBody2;
+            $message->setBody(
+                $this->renderView('mail/default.html.twig', $context),
+                'text/html'
+            );
         $mailer->send($message);
 
 
 
         // Send mail to client
         $message1 = (new \Swift_Message('Nouvelle commande'))
-            ->setFrom('contact@ubereat.com')
-            ->setTo($cl->getEmail())
-            ->setBody(
-                $this->renderView(
-                    // templates/emails/registration.html.twig
-                    'emails/new-order-client.html.twig', array('name' => $cl->getFirstname(), 'order' => $order)
-                ), 'text/html'
-            )
-            ->setCharset('utf-8')
-        /*
-         * If you also want to include a plaintext version of the message
-          ->addPart(
-          $this->renderView(
-          'emails/registration.txt.twig',
-          array('name' => $name)
-          ),
-          'text/plain'
-          )
-         */
-        ;
+            ->setFrom($emailAdmin)
+            ->setTo($cl->getEmail());
+        $htmlBody3 = $this->renderView(
+                'emails/new-order-client.html.twig', array('name' => $cl->getFirstname(), 'order' => $order)
+            );
+            
+            $context['titre'] = 'Nouvelle commande';
+            $context['contenu_mail'] = $htmlBody3;
+            $message1->setBody(
+                $this->renderView('mail/default.html.twig', $context),
+                'text/html'
+            );
+        
 
         $mailer->send($message1);
 
@@ -475,16 +470,14 @@ class OrdersController extends Controller {
         $result['data']['reference'] = $order->getRef();
         $result['data']['amount'] = $order->getAmount();
         $result['data']['status'] = $order->getOrderStatus()->getname();
-        if(isset($bc)){
-            $result['data']['card_id'] = $bc->getID();
-        }else{
-            $result['data']['card_id'] = null;
-        }
-        
-        if(isset($tkt)){
+        if($payment == 1){
+            $result['data']['card']['id'] = $card->getID();
+            $result['data']['card']['cardnumber'] = $card->getCardNumber();
+            $result['data']['card']['month'] = $card->getMonthExp();
+            $result['data']['card']['year'] = $card->getYearExp();
+            $result['data']['card']['ownername'] = $card->getOwnerName();
+        }elseif($payment == 2){
             $result['data']['ticket_id'] = $tkt->getID();
-        }else{
-            $result['data']['ticket_id'] = null;
         }
 
         return new JsonResponse($result, $result['code']);
@@ -858,70 +851,7 @@ class OrdersController extends Controller {
                 }
 
 
-                if ($params['creditcard']['id'] == 0) {
-
-                    if (array_key_exists('card_number', $params['creditcard'])) {
-                        if (!is_string($params['creditcard']['card_number'])) {
-                            $result = array('code' => 4000, 'description' => 'Card number must be string');
-                            echo json_encode($result, JSON_UNESCAPED_SLASHES, 400);
-                            return false;
-                        }
-                    } else {
-
-                        $result = array('code' => 4000, 'description' => 'Card number is required.');
-                        echo json_encode($result, JSON_UNESCAPED_SLASHES, 400);
-                        return false;
-                    }
-
-                    if (array_key_exists('name', $params['creditcard'])) {
-                        if (!is_string($params['creditcard']['name'])) {
-                            $result = array('code' => 4000, 'description' => 'Name must be string');
-                            echo json_encode($result, JSON_UNESCAPED_SLASHES, 400);
-                            return false;
-                        }
-                    } else {
-                        $result = array('code' => 4000, 'description' => 'name is required.');
-                        echo json_encode($result, JSON_UNESCAPED_SLASHES, 400);
-                        return false;
-                    }
-
-                    if (array_key_exists('year', $params['creditcard'])) {
-                        if (!is_string($params['creditcard']['year'])) {
-                            $result = array('code' => 4000, 'description' => 'year must be string');
-                            echo json_encode($result, JSON_UNESCAPED_SLASHES, 400);
-                            return false;
-                        }
-                    } else {
-                        $result = array('code' => 4000, 'description' => 'year is required.');
-                        echo json_encode($result, JSON_UNESCAPED_SLASHES, 400);
-                        return false;
-                    }
-
-                    if (array_key_exists('month', $params['creditcard'])) {
-                        if (!is_string($params['creditcard']['month'])) {
-                            $result = array('code' => 4000, 'description' => 'month must be string');
-                            echo json_encode($result, JSON_UNESCAPED_SLASHES, 400);
-                            return false;
-                        }
-                    } else {
-                        $result = array('code' => 4000, 'description' => 'month is required.');
-                        echo json_encode($result, JSON_UNESCAPED_SLASHES, 400);
-                        return false;
-                    }
-
-
-                    if (array_key_exists('security', $params['creditcard'])) {
-                        if (!is_string($params['creditcard']['security'])) {
-                            $result = array('code' => 4000, 'description' => 'security must be string');
-                            echo json_encode($result, JSON_UNESCAPED_SLASHES, 400);
-                            return false;
-                        }
-                    } else {
-                        $result = array('code' => 4000, 'description' => 'security is required.');
-                        echo json_encode($result, JSON_UNESCAPED_SLASHES, 400);
-                        return false;
-                    }
-                }
+                
             } else {
                 $result = array('code' => 4000, 'description' => 'ID\'s card is required.');
                 echo json_encode($result, JSON_UNESCAPED_SLASHES, 400);
@@ -936,17 +866,7 @@ class OrdersController extends Controller {
         
         if($params['payment_mode'] == 2){
             if(array_key_exists('ticket', $params)){
-                if(array_key_exists('code', $params['ticket'])){
-                    if(!is_string($params['ticket']['code'])){
-                        $result = array('code' => 4000, 'description' => 'code ticket must be string.');
-                        echo json_encode($result, JSON_UNESCAPED_SLASHES, 400);
-                        return false;
-                    }
-                }else{
-                    $result = array('code' => 4000, 'description' => 'code ticket parameter is required.');
-                    echo json_encode($result, JSON_UNESCAPED_SLASHES, 400);
-                    return false;
-                }
+                
                 
                 if(array_key_exists('value', $params['ticket'])){
                     

@@ -28,6 +28,8 @@ use App\Entity\MenuOption;
 use App\Entity\OrderDetailsMenuProduct;
 use App\Entity\MenuOptionProducts;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
+use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
+use Exception;
 
 /**
  * Description of FrontController
@@ -46,6 +48,18 @@ class FrontController extends Controller{
         $restaurants = $em->getRepository(Restaurant::class)->findAll();
         
         return array('restaurants' => $restaurants);
+    }
+    
+    
+    /**
+     * @Method({"GET"})
+     * @Route("/mention-legale", name="mention_legale")
+     * @Template("/mention-legal.html.twig")
+     */ 
+    public function mentionLegalAction(Request $request){
+        $em = $this->getDoctrine()->getManager();
+        
+        return array();
     }
     
     /**
@@ -68,14 +82,19 @@ class FrontController extends Controller{
             // Send mail to admin
             $message2 = (new \Swift_Message($subject))
                 ->setFrom($email, $nom.' '.$prenom)
-                ->setTo($emailAdmin)
-                ->setBody(
-                    $this->renderView(
-                        // templates/emails/registration.html.twig
-                        'emails/mail-from-client.html.twig', array('message' => $message, 'tel' => $tel)
-                    ), 'text/html'
-                )
-                ->setCharset('utf-8')
+                ->setTo($emailAdmin);
+            $htmlBody = $this->renderView(
+                'emails/mail-from-client.html.twig', array('message' => $message, 'tel' => $tel)
+            );
+            
+            $context['titre'] = $subject;
+            $context['contenu_mail'] = $htmlBody;
+            $message2->setBody(
+                $this->renderView('mail/default.html.twig', $context),
+                'text/html'
+            );
+            $message2->setCharset('utf-8');
+            
             /*
              * If you also want to include a plaintext version of the message
               ->addPart(
@@ -91,7 +110,7 @@ class FrontController extends Controller{
             $mailer->send($message2);
             
             $this->addFlash('success', 'Votre message a été envoyé.');
-            return $this->redirectToRoute('homepage');
+            //return $this->redirectToRoute('homepage');
         }
     }
     
@@ -103,9 +122,16 @@ class FrontController extends Controller{
      */ 
     public function commanderAction(Request $request){
         $em = $this->getDoctrine()->getManager();
-        $restaurants = $em->getRepository(Restaurant::class)->findBy(array('status'=>1));
+        $distance = $em->getRepository(Configuration::class)->findOneByName('RESTAURANT_RANGE')->getValue();
+        $longitude = $request->get('lng');
+        $latitude = $request->get('lat');
+        $lieu = $request->get('lieu');
+        $limit = $request->get('limit', 100);
+        $page = $request->get('page', 1);
+        //$restaurants = $em->getRepository(Restaurant::class)->findBy(array('status'=>1));
+        $restaurants = $em->getRepository(Restaurant::class)->getRestaurants($longitude, $latitude, 1, intval($limit), intval($page), false, $distance);
         
-        return array('restaurants' => $restaurants);
+        return array('restaurants' => $restaurants, 'lieu' => $lieu, 'base' => $this->generateUrl('commander', array(), UrlGeneratorInterface::ABSOLUTE_URL));
     }
     
     
@@ -148,18 +174,37 @@ class FrontController extends Controller{
         $adminEmail = $em->getRepository(Configuration::class)->findOneByName('AZ_ADMIN_EMAIL')->getValue();
         
         try{
-            $user = $em->getRepository(User::Class)->findOneByEmail($email);
-            
             $stripePublicKey = $em->getRepository(Configuration::class)->findOneByName('AZ_STRIPE_ACCOUNT_SECRET')->getValue();
             // Set your secret key: remember to change this to your live secret key in production
             // See your keys here: https://dashboard.stripe.com/account/apikeys
             \Stripe\Stripe::setApiKey($stripePublicKey);
-            // Create a Customer:
-            $customer = \Stripe\Customer::create([
-                'source' => $token,
-                'email' => $email,
-                'description' => $name
-            ]);
+            $user = $em->getRepository(User::Class)->findOneByEmail($email);
+            
+            if($pymde == 1){
+                if($user && strlen($user->getStripeId()) > 0){
+                     $customer = \Stripe\Customer::retrieve($user->getStripeId());
+                     
+                    if( isset($customer->deleted)){
+                        $customer = \Stripe\Customer::create([
+                            'source' => $token,
+                            'email' => $email,
+                            'description' => $name
+                        ]);
+                        $carte = $customer->sources->data[0];
+                    }else{
+                        $carte = $customer->sources->create(["source" => $token]);
+                    }
+                     // Save new card
+                 }else{
+                 // Create a Customer:
+                     $customer = \Stripe\Customer::create([
+                         'source' => $token,
+                         'email' => $email,
+                         'description' => $name
+                     ]);
+                     $carte = $customer->sources->data[0];
+                 }
+            }
         
             //echo '<pre>'; die(var_dump($customer)); echo '</pre>';
 
@@ -168,19 +213,14 @@ class FrontController extends Controller{
                 $user = new User();
                 $user->setEmail($email);
                 $user->setFirstname($name);
-                $user->setRoles(['ROLE_USER']);
+                $user->setRoles(["ROLE_CLIENT"]);
                 $user->setConnectStatus(0);
+                $user->setState(1);
                 $user->setPassword($encoder->encodePassword($user, "pass"));
                 
-
+                $em->persist($user);
+                $em->flush();
                 if($pymde == 1){
-                    
-
-                    // Created Card 
-                    $carte = $customer->sources->data[0];
-
-                    //echo '<pre>'; die(var_dump($carte)); echo '</pre>';
-
                     $card = new BankCard();
                     $card->setUser($user);
                     $card->setMonthExp($carte->exp_month);
@@ -188,10 +228,11 @@ class FrontController extends Controller{
                     $card->setCardNumber($carte->last4);
                     $card->setStripeId($carte->id);
                     $card->setOwnerName($name);
+                    $card->setDeleteStatus(0);
                     
                     $user->setStripeId($customer->id);
                     
-                    $em->persist($user);
+                    
                     $em->persist($card);
                     
                     
@@ -200,7 +241,6 @@ class FrontController extends Controller{
             }else{
                 
                 if($pymde == 1){
-                    $carte = $customer->sources->data[0];
                     $cardChecked = $em->getRepository(BankCard::class)->findOneBy(array('stripeId'=>$carte->id));
                     if(!$cardChecked){
                         $card = new BankCard();
@@ -210,25 +250,29 @@ class FrontController extends Controller{
                         $card->setCardNumber($carte->last4);
                         $card->setStripeId($carte->id);
                         $card->setOwnerName($name);
+                        $card->setDeleteStatus(0);
 
                         $user->setStripeId($customer->id);
 
-                        $em->persist($user);
+//                        $em->persist($user);
                         $em->persist($card);
                     }
                 }
                 
             }
 
-
-
-            $reference = substr(strtoupper(md5(random_bytes(6))), 0, 6);
+            
+            $reference = substr(strtoupper(md5(random_bytes(6))), 0, 12);
+            while ($em->getRepository(Order::class)->findOneBy(array('ref'=> $reference))){
+                $reference = substr(strtoupper(md5(random_bytes(6))), 0, 12);
+            }
 
             // save order params
             $order = new Order();
             $order->setClient($user);
             $order->setRef($reference);
-            $order->setRestaurant($em->getRepository(Restaurant::class)->find($restauId));
+            $restau = $em->getRepository(Restaurant::class)->find($restauId);
+            $order->setRestaurant($restau);
             $order->setAddress($delivery_address);
             $order->setPhoneNumber($delivery_phone);
             $order->setcity($delivery_city);
@@ -241,6 +285,9 @@ class FrontController extends Controller{
 
             $order->setPaymentMode($em->getRepository(PaymentMode::class)->find($pymde));
             $order->setOrderStatus($em->getRepository(OrderStatus::class)->find(1));
+            
+            if($pymde == 1)
+                $order->setPayment($card);
 
             if($pymde == 2){
                 $tkt = new Ticket();
@@ -259,7 +306,10 @@ class FrontController extends Controller{
             $em->persist($order);
 
             // Save order details
-            foreach ($menus as $m) {
+            
+            if(count($menus)){
+                //die(var_dump($menus));
+                foreach ($menus as $m) {
                 $ordDt = new OrderDetails();
                 $menu = $em->getRepository(Menu::class)->find($m['id']);
                 $ordDt->setCommand($order);
@@ -276,21 +326,62 @@ class FrontController extends Controller{
                         if(isset($o['products'])){
                             foreach ($o['products'] as $op) {
                                 $prd = $em->getRepository(MenuOptionProducts::class)->find($op['id']);
-
                                 $ordDtPrd = new OrderDetailsMenuProduct();
                                 $ordDtPrd->setOrderDetails($ordDt);
                                 $ordDtPrd->setMenu($menu);
                                 $ordDtPrd->setProduct($prd->getProduct());
                                 $ordDtPrd->setPrice($prd->getAttribut());
                                 $total += $ordDtPrd->getPrice() * (int) $m['quantity'];
+                                $em->persist($ordDtPrd);
                             }
-                            $em->persist($ordDtPrd);
+                            
                         }
 
 
                     }
                 }
             }
+            }
+            
+            
+            
+            // Send mail to restaurant
+        $message = (new \Swift_Message('Nouvelle commande'))
+            ->setFrom($adminEmail)
+            ->setTo($restau->getOwner()->getEmail());
+        
+        $htmlBody1 = $this->renderView(
+                'emails/new-order-restaurant.html.twig', array('name' => $restau->getOwner()->getFirstname(), 'restau' => $restau->getName(), 'order' => $order)
+            );
+            $context['titre'] = "Nouvelle commande";
+            $context['contenu_mail'] = $htmlBody1;
+            $message->setBody(
+                $this->renderView('mail/default.html.twig', $context), 'text/html'
+            );
+            $message->setCharset('utf-8');
+
+
+            $mailer->send($message);
+
+
+
+            // Send mail to client
+        $message1 = (new \Swift_Message('Nouvelle commande'))
+            ->setFrom($adminEmail)
+            ->setTo($user->getEmail());
+        $htmlBody2 = $this->renderView(
+                'emails/new-order-client.html.twig', array('name' => $user->getFirstname(), 'order' => $order)
+            );
+            
+            $context['titre'] = "Nouvelle commande";
+            $context['contenu_mail'] = $htmlBody2;
+            $message1->setBody(
+                $this->renderView('mail/default.html.twig', $context), 'text/html'
+            );
+            $message1->setCharset('utf-8');
+
+        $mailer->send($message1);
+
 
 
             //propositions to dlivers
@@ -307,26 +398,17 @@ class FrontController extends Controller{
                 // Send mail to delivers
                 $message2 = (new \Swift_Message('Nouvelle commande à livrer'))
                     ->setFrom($adminEmail)
-                    ->setTo($dl->getEmail())
-                    ->setBody(
-                        $this->renderView(
-                            // templates/emails/registration.html.twig
-                            'emails/new-order-to-deliver.html.twig', array('name' => $dl->getFirstname(), 'order' => $order)
-                        ), 'text/html'
-                    )
-                    ->setCharset('utf-8')
-                /*
-                 * If you also want to include a plaintext version of the message
-                  ->addPart(
-                  $this->renderView(
-                  'emails/registration.txt.twig',
-                  array('name' => $name)
-                  ),
-                  'text/plain'
-                  )
-                 */
-                ;
-
+                    ->setTo($dl->getEmail());
+                $htmlBody3 = $this->renderView(
+                    'emails/new-order-to-deliver.html.twig', array('name' => $dl->getFirstname(), 'order' => $order)
+                );
+                    
+                $context['titre'] = "Nouvelle commande";
+                $context['contenu_mail'] = $htmlBody3;
+                $message2->setBody(
+                    $this->renderView('mail/default.html.twig', $context), 'text/html'
+                );
+                $message2->setCharset('utf-8');
                 $mailer->send($message2);
             }
 
@@ -353,6 +435,56 @@ class FrontController extends Controller{
         }catch(\Exception $e){
             $this->addFlash('danger', $e->getMessage());
             return $this->redirectToRoute('checkout');
+        }
+    }
+    
+    
+    /**
+     * @Method({"GET"})
+     * @Route("/activate-account", name="activate_account")
+     */ 
+    public function activateAccountAction(Request $request){
+        $em = $this->getDoctrine()->getManager();
+        
+        $code = $request->get('code');
+        $findUser = $em->getRepository(User::class)->findOneBy(array('generatedCode' => $code));
+        if(!$findUser){
+            $this->addFlash('danger', "Ce compte a déjà été activé.");
+            return $this->redirectToRoute('homepage');
+        }
+        $findUser->setgeneratedCode('');
+        $findUser->setState(1);
+        
+        $em->flush();
+        $this->addFlash('success', "Votre compte a été activé.");
+        return $this->redirectToRoute('homepage');
+    }
+    
+    /**
+     * @Method({"GET", "POST"})
+     * @Route("/test-stripe", name="test_stript")
+     */
+    public function testStripeAction(Request $request){
+        $em = $this->getDoctrine()->getManager();
+        $stripePublicKey = $em->getRepository(Configuration::class)->findOneByName('AZ_STRIPE_ACCOUNT_SECRET')->getValue();
+        // Set your secret key: remember to change this to your live secret key in production
+        // See your keys here: https://dashboard.stripe.com/account/apikeys
+        \Stripe\Stripe::setApiKey($stripePublicKey);
+        $user = $em->getRepository(User::Class)->findOneByEmail($email);
+        
+        $customer = \Stripe\Customer::retrieve("cus_EC9OCf6D6JrP9R");
+        if(isset($customer->deleted)){
+            die(var_dump($customer->deleted));
+        }else{
+            die(var_dump($customer));
+        }
+            
+        die(var_dump($customer));
+        try{
+            $carte = $customer->sources->create(["source" => 'tok_visa']);
+            die(var_dump($carte));
+        }catch(Exception $e ){
+            die($e->getMessage());
         }
     }
 

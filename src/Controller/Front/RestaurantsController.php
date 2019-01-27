@@ -17,6 +17,7 @@ use App\Entity\Menu;
 use App\Entity\Restaurant;
 use App\Entity\RestaurantSpeciality;
 use App\Entity\CategoryMenu;
+use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 /**
  * Description of RestaurantsController
@@ -41,7 +42,8 @@ class RestaurantsController extends Controller {
         
         return array(
             'restaurant' => $em->getRepository(Restaurant::class)->find($id),
-            'categories' => $categoriesmenu
+            'categories' => $categoriesmenu,
+            'base' => $this->generateUrl('commander', array(), UrlGeneratorInterface::ABSOLUTE_URL)
             );
     }
     
@@ -55,7 +57,7 @@ class RestaurantsController extends Controller {
         $restaurants = $em->getRepository(Restaurant::class)->findAll();
         $categoriesmenu = $em->getRepository(CategoryMenu::class)->findAll();
         
-        return array('restaurants' => $restaurants, 'categories' => $categoriesmenu);
+        return array('restaurants' => $restaurants, 'categories' => $categoriesmenu, 'base' => $this->generateUrl('commander', array(), UrlGeneratorInterface::ABSOLUTE_URL));
     }
     
     
@@ -79,5 +81,7 @@ class RestaurantsController extends Controller {
      * @Route("/checkout", name="checkout")
      * @Template("/checkout.html.twig")
      */
-    public function checkoutAction(Request $request){}
+    public function checkoutAction(Request $request){
+        return array('base' => $this->generateUrl('commander', array(), UrlGeneratorInterface::ABSOLUTE_URL));
+    }
 }

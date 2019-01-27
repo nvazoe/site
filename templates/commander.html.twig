@@ -10,21 +10,37 @@
                 <li class="active">Restaurants</li>
             </ol>
         </div>
+        
         <div class="container">
+            <div class="find-place">
+                <form>
+                    <input  class="form-control" id="user_input_autocomplete_address" placeholder="Veuillez entrez une adresse pour afficher les restaurants proches de vous" value="{{lieu}}">
+                    <input type="hidden" id="latitude" name="latitude" disabled>
+                    <input type="hidden" id="longitude" name="longitude" disabled>
+                </form>
+            </div>
+        </div>
+        
+        <div class="container" style="margin-top:15px;">
             <div class="row">
-                {% for restau in restaurants %}
-                    <div class="col-md-4">
-                        <a href="{{ path('restau', {'id': restau.id}) }}">
-                            <div class="thumbnail">
-                                <div style="background-image: url({% if not restau.image %}{{ asset('images/menu/dish.jpg')}}{%else%}{{ asset('images/restaurant/')}}{{restau.image}}{%endif%}); height:200px; background-size:cover;"></div>
-                                <div class="caption">
-                                    <h4><a href="{{ path('restau', {'id': restau.id}) }}">{{restau.name}} {% if restau.address %}({{restau.address}} {{restau.city}}){%endif%}</a></h4>
-                                    {#<p>{{ restau.description }}</p>#}
+                {% if restaurants %}
+                    {% for restau in restaurants %}
+                        <div class="col-md-4">
+                            <a href="{{ path('restau', {'id': restau.id}) }}">
+                                <div class="thumbnail">
+                                    <div style="background-image: url({% if not restau.image %}{{ asset('images/menu/dish.jpg')}}{%else%}{{ asset('images/restaurant/')}}{{restau.image}}{%endif%}); height:200px; background-size:cover;"></div>
+                                    <div class="caption">
+                                        <h4><a href="{{ path('restau', {'id': restau.id}) }}">{{restau.name}} {% if restau.address %}({{restau.address}} {{restau.city}}){%endif%}</a></h4>
+                                        <p class="restau-rating-stars"><i class="fa fa-star"></i>&nbsp; {{ restau.note.stars }} ({{ restau.note.avis }} avis)</p>
+                                    </div>
                                 </div>
-                            </div>
-                        </a>
-                    </div>
-                {% endfor %}
+                            </a>
+                        </div>
+                    {% endfor %}
+                    {%else%}
+                        <div class="col-md-12 text-center">Aucun restaurant trouvé près de chez vous</div>
+                {% endif %}
+                
             </div>
         </div>
     </div>

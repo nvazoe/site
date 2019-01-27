@@ -33,14 +33,14 @@
                         <div class="form-group">
                             <label class="col-sm-2 control-label required" for="dishmenu_name">Nom</label>
                             <div class="col-sm-10">
-                                <input type="text" class="form-control" name="dishmenu[name]" id="dishmenu_name">
+                                <input type="text" class="form-control" name="dishmenu[name]" id="dishmenu_name" value="{{menu.name}}">
                             </div>
                         </div>
                         
                         <div class="form-group">
                             <label class="col-sm-2 control-label required" for="dishmenu_description">Description</label>
                             <div class="col-sm-10">
-                                <textarea  class="form-control" name="dishmenu[description]" id="dishmenu_description"></textarea>
+                                <textarea  class="form-control" name="dishmenu[description]" id="dishmenu_description">{{menu.description}}</textarea>
                             </div>
                         </div>
                         
@@ -49,7 +49,7 @@
                             <div class="col-sm-10">
                                 <select id="dishmenu_restaurant" name="dishmenu[restaurant]" data-widget="select2" class="form-control">
                                     {% for rest in restaurants %}
-                                    <option value="{{ rest.id }}">{{ rest.name }} ({{rest.address}}, {{rest.cp}} {{rest.city}})</option>
+                                    <option value="{{ rest.id }}" {{ menu.restaurant ? menu.restaurant.id == rest.id ? 'selected="selected"' : '' : '' }}>{{ rest.name }} ({{rest.address}}, {{rest.cp}} {{rest.city}})</option>
                                     {% endfor %}
                                 </select>
                             </div>
@@ -57,20 +57,148 @@
                         <div class="form-group">
                             <label class="col-sm-2 control-label required" for="dishmenu_price">Prix</label>
                             <div class="col-sm-10">
-                                <input type="text" name="dishmenu[price]" class="form-control" placeholder="€"/>
+                                <input type="text" name="dishmenu[price]" class="form-control" placeholder="€" value="{{menu.price}}"/>
                             </div>
                         </div>
-                        
+                        <div class="form-group">
+                            <label class="col-sm-2 control-label required" for="dishmenu_categorie">Catégorie</label>
+                            <div class="col-sm-10">
+                                <select id="dishmenu_categorie" name="dishmenu[categorie]" data-widget="select2" class="form-control">
+                                    {% for rest in categories %}
+                                    <option value="{{ rest.id }}" {{ menu.categorymenu ? menu.categorymenu.id == rest.id ? 'selected="selected"' : '' : '' }}>{{ rest.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
                         <div class="form-group">
                             <label class="col-sm-2 control-label required" for="dishmenu_photo">Photo</label>
                             <div class="col-sm-10">
                                 <input type="file" name="dishmenu[photo]" />
+                                {% if menu %}{% endif %}
                             </div>
                         </div>
+                            
+                            <br><br>
+                        <div class="form-group">
+                            <label class="col-sm-2 control-label required" for="dishmenu_position">Position</label>
+                            <div class="col-sm-2">
+                                <input type="number" name="dishmenu[position]" class="form-control" placeholder="" value="{{menu.position}}" min="0"/>
+                            </div>
+                            <div class="col-sm-8 help-block">Position du menu dans le restaurant</div>
+                        </div>
+                        
+                         
+                        <br><br>
                         
                         {#{% for ca in categories %}#}
-                        <div class="global">
-                            <div class="row block" data-block="0">
+                        <div class="global">    
+                                        
+                        {% if menu.id %}
+                            {% if menu.menuMenuOptions|length >= 1 %}
+                                {% for op in menu.menuMenuOptions %}
+                                <div class="row block" data-block="{{loop.index0}}">
+                                <div class="col-md-4">
+                                    <div class="form-group">
+                                        <label class="col-sm-4 control-label required" for="">Option de menu</label>
+                                        <div class="col-sm-8">
+                                            <input type="text" name="options[{{loop.index0}}][name]" class="form-control" placeholder="Nom option" data-option="name" value="{{op.menuoption.name}}">
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-3">
+                                    <div class="form-group">
+                                        <label class="col-sm-4 control-label required" for="dishmenu_product">Type</label>
+                                        <div class="col-sm-8">
+                                            <select id="dishmenu_restaurant" name="options[{{loop.index0}}][type]"  class="form-control" data-option="type" >
+
+                                            <option value="NOT REQUIRED">Facultatif</option>
+                                            <<option value="REQUIRED">Obligatoire</option>
+                                        </select>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-2">
+                                    <div class="form-group">
+                                        <label class="col-sm-4 control-label required" for="">Choix</label>
+                                        <div class="col-sm-8">
+                                            <input type="number" name="options[{{loop.index0}}][item]" class="form-control" min="0" placeholder="" data-option="item" value="{{op.menuoption.item}}">
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                        
+                                <div class="col-md-2">
+                                    <div class="form-group">
+                                        <label class="col-sm-4 control-label required" for="">Position</label>
+                                        <div class="col-sm-8">
+                                            <input type="number" name="options[{{loop.index0}}][position]" class="form-control" min="0" placeholder="" data-option="position"  min="0" value="{{op.position}}">
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-1">
+                                    <a class="btn btn-default {{loop.index0 == 0 ? 'duplicate' : 'substract'}}">
+                                        <i class="fa {{loop.index0 == 0 ? 'fa-plus' : 'fa-minus'}}"></i>
+                                    </a>
+                                </div>
+                                    
+                                <div class="global-1">
+                                    <div class="col-md-10 col-md-offset-2 input-block">
+                                            <label class="col-sm-2 control-label required" for="productoption">Produits</label>
+                                            <div class="col-sm-3 ui-widget">
+                                                <input type="text" name="options[0][productoption][0][product]" class="form-control search-prd" placeholder="Chercher un produit" id="search-prd">
+                                                
+                                            </div>
+                                            <label class="col-sm-1 control-label required" for="dishmenu_product_price_product_discountpercent">Prix</label>
+                                            <div class="col-sm-2">
+                                                <input type="text" name="options[0][productoption][0][price]" id="scr-price" placeholder="€" class="form-control scr-price" data-option-product="price">
+                                            </div>
+                                            <label class="col-sm-2 control-label required" for="">Position</label>
+                                            <div class="col-sm-1">
+                                                <input type="text" name="" id="" class="form-control scr-position" value="" data-option-product="position">
+                                            </div>
+                                            <div class="col-sm-1">
+                                                <a class="btn btn-default duplicate-1">
+                                                    <i class="fa fa-plus"></i>
+                                                </a>
+                                            </div>
+                                        </div>
+                                    {% for prd in op.menuoption.yes %}
+                                        <div class="col-md-10 col-md-offset-2 input-block-n">
+                                            
+                                            <input type="hidden" name="options[{{loop.parent.loop.index0}}][productoption][{{loop.index0}}][price]" class="prd-price" data-option-product="price" value="{{prd.product.price}}">
+                                            <input type="hidden" name="options[{{loop.parent.loop.index0}}][productoption][{{loop.index0}}][product]" class="prd-name" data-option-product="product" value="{{prd.product.name}}">
+                                            <input type="hidden" name="options[{{loop.parent.loop.index0}}][productoption][{{loop.index0}}][id]" class="prd-id" data-option-product="id" value="{{prd.product.id}}">
+                                            <input type="hidden"  class="prd-position" value="{{prd.position}}">
+                                            <label class="col-sm-2 control-label required" for="productoption">Produits</label>
+                                            <div class="col-sm-3 ui-widget">
+                                                <input type="text" name="" class="form-control search-prd" value="{{prd.product.name}}" disabled="disabled">
+                                                
+                                            </div>
+                                            <label class="col-sm-1 control-label required" for="dishmenu_product_price_product_discountpercent">Prix</label>
+                                            <div class="col-sm-2">
+                                                <input type="text" name="" id="scr-price" placeholder="€" class="form-control" value="{{prd.product.price}}" data-option-product="price" disabled="disabled">
+                                            </div>
+                                            <label class="col-sm-2 control-label required" for="">Position</label>
+                                            <div class="col-sm-1">
+                                                <input type="text" name="options[{{loop.parent.loop.index0}}][productoption][{{loop.index0}}][position]" id="" class="form-control prd-position" value="{{prd.position}}" data-option-product="position">
+                                            </div>
+                                            <div class="col-sm-1">
+                                                <a class="btn btn-default substract-1">
+                                                    <i class="fa fa-minus"></i>
+                                                </a>
+                                            </div>
+                                        </div>
+                                    {% endfor %}
+                                    
+                                </div>
+                                
+                            </div>
+                            {% endfor %}
+                                {%else%}
+                                    <div class="row block" data-block="0">
                                 <div class="col-md-4">
                                     <div class="form-group">
                                         <label class="col-sm-4 control-label required" for="">Option de menu</label>
@@ -80,24 +208,111 @@
                                     </div>
                                 </div>
                                 
-                                <div class="col-md-4">
+                                <div class="col-md-3">
                                     <div class="form-group">
-                                        <label class="col-sm-4 control-label required" for="dishmenu_product">Choix</label>
+                                        <label class="col-sm-4 control-label required" for="dishmenu_product">Type</label>
                                         <div class="col-sm-8">
                                             <select id="dishmenu_restaurant" name="options[0][type]"  class="form-control" data-option="type" >
 
-                                            <option value="facultatif">Facultatif</option>
-                                            <<option value="obligatoire">Obligatoire</option>
+                                            <option value="NOT REQUIRED">Facultatif</option>
+                                            <<option value="REQUIRED">Obligatoire</option>
                                         </select>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-2">
+                                    <div class="form-group">
+                                        <label class="col-sm-4 control-label required" for="">Choix</label>
+                                        <div class="col-sm-8">
+                                            <input type="number" name="options[0][item]" class="form-control" min="0" placeholder="" data-option="item">
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-2">
+                                    <div class="form-group">
+                                        <label class="col-sm-4 control-label required" for="">Position</label>
+                                        <div class="col-sm-8">
+                                            <input type="number" name="options[0][position]" class="form-control" min="0" placeholder="" data-option="position">
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-1">
+                                    <a class="btn btn-default duplicate">
+                                        <i class="fa fa-plus"></i>
+                                    </a>
+                                </div>
+                                    
+                                <div class="global-1">
+                                    <div class="col-md-10 col-md-offset-2 input-block">
+                                        <label class="col-sm-2 control-label required" for="productoption">Produits</label>
+                                        <div class="col-sm-3 ui-widget">
+                                            <input type="text" name="options[0][productoption][0][product]" class="form-control search-prd" placeholder="Chercher un produit" id="search-prd">
+                                            {#<select id="dishmenu_restaurant" name="options[0][productoption][0][product]" data-widget="select2" class="form-control" data-option-product="product">
+                                                {% for prd in products %}
+                                                <option value="{{ prd.id }}">{{ prd.name }}</option>
+                                                {% endfor %}
+                                            </select>#}
+                                        </div>
+                                        <label class="col-sm-1 control-label required" for="dishmenu_product_price_product_discountpercent">Prix</label>
+                                        <div class="col-sm-2">
+                                            <input type="text" name="options[0][productoption][0][price]" id="scr-price" placeholder="€" class="form-control scr-price" value="0" data-option-product="price">
+                                        </div>
+                                        <label class="col-sm-2 control-label required" for="">Position</label>
+                                        <div class="col-sm-1">
+                                            <input type="text" name="" id="" class="form-control scr-position" value="" data-option-product="position">
+                                        </div>
+                                        <div class="col-sm-1">
+                                            <a class="btn btn-default duplicate-1">
+                                                <i class="fa fa-plus"></i>
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                            </div>
+                            {% endif%}
+                                    {%else%}
+                                        <div class="row block" data-block="0">
+                                <div class="col-md-4">
+                                    <div class="form-group">
+                                        <label class="col-sm-4 control-label required" for="">Option de menu</label>
+                                        <div class="col-sm-8">
+                                            <input type="text" name="options[0][name]" class="form-control" placeholder="Nom option" data-option="name">
                                         </div>
                                     </div>
                                 </div>
                                 
                                 <div class="col-md-3">
                                     <div class="form-group">
-                                        <label class="col-sm-4 control-label required" for="">Nombre de choix</label>
+                                        <label class="col-sm-4 control-label required" for="dishmenu_product">Type</label>
                                         <div class="col-sm-8">
-                                            <input type="number" name="options[0][item]" class="form-control" min="0" placeholder="" data-option="item">
+                                            <select id="dishmenu_restaurant" name="options[0][type]"  class="form-control" data-option="type" >
+
+                                            <option value="NOT REQUIRED">Facultatif</option>
+                                            <<option value="REQUIRED">Obligatoire</option>
+                                        </select>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-2">
+                                    <div class="form-group">
+                                        <label class="col-sm-4 control-label required" for="">Choix</label>
+                                        <div class="col-sm-8">
+                                                <input type="number" name="options[0][item]" class="form-control" min="0" placeholder="" data-option="item" min="0">
+                                        </div>
+                                    </div>
+                                </div>
+                                            
+                                            
+                                <div class="col-md-2">
+                                    <div class="form-group">
+                                        <label class="col-sm-4 control-label required" for="">Position</label>
+                                        <div class="col-sm-8">
+                                            <input type="number" name="options[0][position]" class="form-control" min="0" placeholder="" data-option="position"  min="0">
                                         </div>
                                     </div>
                                 </div>
@@ -110,21 +325,20 @@
                                 </div>
                                     
                                 <div class="global-1">
-                                    <div class="col-md-8 col-md-offset-4 input-block">
+                                    <div class="col-md-10 col-md-offset-2 input-block">
                                         <label class="col-sm-2 control-label required" for="productoption">Produits</label>
                                         <div class="col-sm-3 ui-widget">
-                                            <input type="text" name="options[0][productoption][0][product]" class="form-control" placeholder="Chercher un produit" data-option="item" id="search-prd">
-                                            {#<select id="dishmenu_restaurant" name="options[0][productoption][0][product]" data-widget="select2" class="form-control" data-option-product="product">
-                                                {% for prd in products %}
-                                                <option value="{{ prd.id }}">{{ prd.name }}</option>
-                                                {% endfor %}
-                                            </select>#}
+                                            <input type="text" name="options[0][productoption][0][product]" class="form-control search-prd" placeholder="Chercher un produit" id="search-prd">
                                         </div>
-                                        <label class="col-sm-2 control-label required" for="dishmenu_product_price_product_discountpercent">Prix</label>
-                                        <div class="col-sm-3">
-                                            <input type="text" name="options[0][productoption][0][price]" id="scr-price" placeholder="€" class="form-control" value="0" data-option-product="price">
+                                        <label class="col-sm-1 control-label required" for="dishmenu_product_price_product_discountpercent">Prix</label>
+                                        <div class="col-sm-2">
+                                            <input type="text" name="options[0][productoption][0][price]" id="scr-price" placeholder="€" class="form-control scr-price" value="0" data-option-product="price">
                                         </div>
-                                        <div class="col-sm-1 col-sm-offset-1">
+                                        <label class="col-sm-2 control-label required" for="">Position</label>
+                                        <div class="col-sm-1">
+                                            <input type="text" name="" id="" class="form-control scr-position" value="" data-option-product="position">
+                                        </div>
+                                        <div class="col-sm-1">
                                             <a class="btn btn-default duplicate-1">
                                                 <i class="fa fa-plus"></i>
                                             </a>
@@ -133,6 +347,7 @@
                                 </div>
                                 
                             </div>
+                        {%endif%}
                         </div> 
                             
                         {#{% endfor %}#}
@@ -140,7 +355,7 @@
                         
                         <div class="form-group">
                             <div class="col-sm-8 col-sm-offset-2">
-                                <a class="btn btn-default" href="?entity=DishMenu&action=list&menuIndex=3&submenuIndex=-1&sortField=id&sortDirection=DESC&page=1">Annuler</a>
+                                <a class="btn btn-default" href="{{path('admin')}}">Annuler</a>
                                 <button class="btn btn-primary" type="submit">Sauvegarder</button>
                             </div>
                         </div>
@@ -153,17 +368,24 @@
     </div>
                         
                         
-    <div class="col-md-8 col-md-offset-4 input-block-n clonable-1" style="display:none;">
+    <div class="col-md-10 col-md-offset-2 input-block-n clonable-1" style="display:none;">
         <input type="hidden" name="prd-id" class="prd-id" data-option-product="id">
+        <input type="hidden" name="prd-price" class="prd-price" data-option-product="price">
+        <input type="hidden" name="prd-name" class="prd-name" data-option-product="product">
+        <input type="hidden" name="prd-position" class="prd-position" >
         <label class="col-sm-2 control-label required" for="dishmenu_product">Produits</label>
         <div class="col-sm-3">
             <input type="text" name="options[0][productoption][0][product]" class="form-control prd-name" data-option-product="product" disabled="disabled">
         </div>
-        <label class="col-sm-2 control-label required" for="dishmenu_product_price_product_discountpercent">Prix</label>
-        <div class="col-sm-3">
+        <label class="col-sm-1 control-label required" for="dishmenu_product_price_product_discountpercent">Prix</label>
+        <div class="col-sm-2">
             <input type="number" name="dishmenu[product][][price_product_discountpercent]" id="" class="form-control prd-price"  data-option-product="price" disabled="disabled">
         </div>
-        <div class="col-sm-1 col-sm-offset-1">
+        <label class="col-sm-2 control-label required" for="">Position</label>
+        <div class="col-sm-1">
+            <input type="text" name="" id="" class="form-control prd-position" value="" data-option-product="position">
+        </div>
+        <div class="col-sm-1">
             <a class="btn btn-default substract-1">
                 <i class="fa fa-minus"></i>
             </a>
@@ -180,24 +402,34 @@
             </div>
         </div>
 
-        <div class="col-md-4">
+        <div class="col-md-3">
             <div class="form-group">
-                <label class="col-sm-4 control-label required" for="dishmenu_product">Choix</label>
+                <label class="col-sm-4 control-label required" for="dishmenu_product">Type</label>
                 <div class="col-sm-8">
                     <select id="dishmenu_restaurant" name="dishmenu[option][type]" data-widget="select2" class="form-control" data-option="type" >
 
-                    <option value="facultatif">Facultatif</option>
-                    <<option value="obligatoire">Obligatoire</option>
+                    <option value="NOT REQUIRED">Facultatif</option>
+                    <<option value="REQUIRED">Obligatoire</option>
                 </select>
                 </div>
             </div>
         </div>
 
-        <div class="col-md-3">
+        <div class="col-md-2">
             <div class="form-group">
-                <label class="col-sm-4 control-label required" for="">Nombre de choix</label>
+                <label class="col-sm-4 control-label required" for="">Choix</label>
                 <div class="col-sm-8">
-                    <input type="number" name="dishmenu[option][item]" class="form-control" placeholder="Si checkbox choisi" data-option="item" min="0">
+                    <input type="number" name="dishmenu[option][item]" class="form-control" placeholder="" data-option="item" min="0">
+                </div>
+            </div>
+        </div>
+        
+        
+        <div class="col-md-2">
+            <div class="form-group">
+                <label class="col-sm-4 control-label required" for="">Position</label>
+                <div class="col-sm-8">
+                    <input type="number" name="dishmenu[option][position]" class="form-control" placeholder="" data-option="position" min="0" >
                 </div>
             </div>
         </div>
@@ -210,20 +442,20 @@
         </div>
 
         <div class="global-1">
-            <div class="col-md-8 col-md-offset-4 input-block">
+            <div class="col-md-10 col-md-offset-2 input-block">
                 <label class="col-sm-2 control-label required" for="productoption">Produits</label>
                 <div class="col-sm-3">
-                    <select id="dishmenu_restaurant" name="dishmenu[option][productoption][product]" data-widget="select2" class="form-control" data-option-product="product" >
-                        {% for prd in products %}
-                        <option value="{{ prd.id }}">{{ prd.name }}</option>
-                        {% endfor %}
-                    </select>
+                    <input type="text" name="options[0][productoption][0][product]" class="form-control search-prd" placeholder="Chercher un produit" id="search-prd">
                 </div>
-                <label class="col-sm-2 control-label required" for="dishmenu_product_price_product_discountpercent">Prix</label>
-                <div class="col-sm-3">
-                    <input type="text" name="dishmenu[option][productoption][price]" id="" placeholder="%" class="form-control" value="0" data-option-product="price">
+                <label class="col-sm-1 control-label required" for="dishmenu_product_price_product_discountpercent">Prix</label>
+                <div class="col-sm-2">
+                    <input type="text" name="dishmenu[option][productoption][price]" id="" placeholder="%" class="form-control scr-price" value="0" data-option-product="price">
                 </div>
-                <div class="col-sm-1 col-sm-offset-1">
+                <label class="col-sm-2 control-label required" for="">Position</label>
+                <div class="col-sm-1">
+                    <input type="text" name="" id="" class="form-control scr-position" value="" data-option-product="position">
+                </div>
+                <div class="col-sm-1">
                     <a class="btn btn-default duplicate-1">
                         <i class="fa fa-plus"></i>
                     </a>

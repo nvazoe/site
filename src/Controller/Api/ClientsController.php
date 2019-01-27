@@ -15,6 +15,7 @@ use Symfony\Component\HttpFoundation\Response;
 use FOS\RestBundle\Controller\Annotations\Post;
 use FOS\RestBundle\Controller\Annotations\Get;
 use FOS\RestBundle\Controller\Annotations\Put;
+use FOS\RestBundle\Controller\Annotations\Delete;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Exception\HttpException;
@@ -28,10 +29,16 @@ use Symfony\Component\Cache\Adapter\FilesystemAdapter;
 use App\Entity\User;
 use App\Entity\Restaurant;
 use App\Entity\Menu;
+use App\Entity\Configuration;
 use App\Entity\BankCard;
 use App\Entity\Ticket;
 use App\Entity\ShippingNote;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
+use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
+use App\Util\TokenGenerator;
+use Exception;
+use Psr\Log\LoggerInterface;
+use App\Entity\ConnexionLog;
 
 /**
  * Description of ClientsController
@@ -120,6 +127,7 @@ class ClientsController extends Controller {
                 $result['data']['firstname'] = $client->getFirstname();
                 $result['data']['lastname'] = $client->getLastname();
                 $result['data']['email'] = $client->getEmail();
+                $result['data']['phone'] = $client->getPhonenumber();
             }
         }else{
             $result['code'] = 400;
@@ -198,6 +206,7 @@ class ClientsController extends Controller {
         $phone = $request->query->get('phone_number')?$request->query->get('phone_number'):$request->request->get('phone_number');
         $password = $request->query->get('password')?$request->query->get('password'):$request->request->get('password');
         $email = $request->query->get('email')?$request->query->get('email'):$request->request->get('email');
+        $emailAdmin = $em->getRepository(Configuration::class)->findOneByName('AZ_ADMIN_EMAIL')->getValue();
         
         /** Validate inputs email**/
         if(!is_null($email)){
@@ -253,6 +262,9 @@ class ClientsController extends Controller {
         {
             $code .= mt_rand(0,9);
         }
+        $tokenGenerator = new TokenGenerator();
+        $codeGenerate = $tokenGenerator->generateToken();
+        $url = $this->generateUrl('activate_account', array('code' => $codeGenerate), UrlGeneratorInterface::ABSOLUTE_URL);
             
         $del = new User();
         $del->setUsername($username);
@@ -262,38 +274,34 @@ class ClientsController extends Controller {
         $del->setLastname($lastname);
         $del->setPhoneNumber($phone);
         $del->setCode($code);
+        $del->setgeneratedCode($codeGenerate);
         $del->setEmail($email);
         $del->setState(0);
+        $del->setconnectStatus(0);
         $del->setPassword($encoder->encodePassword($del, $password));
         $del->setRoles(["ROLE_CLIENT"]);
         $em->persist($del);
         $em->flush();
         
         
+        
         /** Sending code by email **/
         $message = (new \Swift_Message('Validation de compte'))
-            ->setFrom('contact@ubereat.com')
-            ->setTo($email)
-            ->setBody(
-                $this->renderView(
-                    // templates/emails/registration.html.twig
-                    'emails/registration.html.twig',
-                    array('name' => $firstname, 'code' => $code)
-                ),
+            ->setFrom($emailAdmin)
+            ->setTo($email);
+            $htmlBody = $this->renderView(
+                'emails/registration.html.twig',
+                    array('name' => $firstname, 'code' => $code, 'link' => $url)
+            );
+            
+            $context['titre'] = 'Validation de compte';
+            $context['contenu_mail'] = $htmlBody;
+            $message->setBody(
+                $this->renderView('mail/default.html.twig', $context),
                 'text/html'
-            )
-            ->setCharset('utf-8')
-            /*
-             * If you also want to include a plaintext version of the message
-            ->addPart(
-                $this->renderView(
-                    'emails/registration.txt.twig',
-                    array('name' => $name)
-                ),
-                'text/plain'
-            )
-            */
-        ;
+            );
+            $message->setCharset('utf-8');
+            
 
         $mailer->send($message);
 
@@ -304,7 +312,6 @@ class ClientsController extends Controller {
         $result['data']['firstname'] = $del->getfirstname();
         $result['data']['email'] = $del->getEmail();
         $result['data']['phone_number'] = $del->getPhoneNumber();
-        $result['data']['verif_code'] = $code;
         
         return new JsonResponse($result, $result['code']);
     }
@@ -371,6 +378,7 @@ class ClientsController extends Controller {
             $array[$k]['reference'] = $l->getRef();
             $array[$k]['date'] = $l->getDateCreated()->format('d-m-Y');
             $array[$k]['hour'] = $l->getDateCreated()->format('H:i');
+            $array[$k]['delivery_type'] = $l->getDeliveryType();
             $array[$k]['status']['id'] = $l->getOrderStatus()->getId();
             $array[$k]['status']['name'] = $l->getOrderStatus()->getName();
             $array[$k]['restaurant']['id'] = $l->getRestaurant()->getId();
@@ -438,65 +446,7 @@ class ClientsController extends Controller {
      */
     public function postClientBankCard(Request $request, $id){
         $em = $this->getDoctrine()->getManager();
-        //$client = $request->query->get('client')?$request->query->get('client'):$request->request->get('client');
-        $name = $request->query->get('name')?$request->query->get('name'):$request->request->get('name');
-        $security = $request->query->get('security')?$request->query->get('security'):$request->request->get('security');
-        $month = $request->query->get('month')?$request->query->get('month'):$request->request->get('month');
-        $year = $request->query->get('year')?$request->query->get('year'):$request->request->get('year');
-        $card = $request->query->get('card_number')?$request->query->get('card_number'):$request->request->get('card_number');
-        
-        
-        // validate card  number
-        if($card){
-            if(!is_string($card)){
-                $result = array('code'=>4000, 'description' => 'Card number must be string');
-                return new JsonResponse($result, 400);
-            }
-        }else{
-            $result = array('code'=>4000, 'description' => 'Card number is required.');
-            return new JsonResponse($result, 400);
-        }
-        
-        if($name){
-            if(!is_string($name)){
-                $result = array('code'=>4000, 'description' => 'Name must be string');
-                return new JsonResponse($result, 400);
-            }
-        }else{
-            $result = array('code'=>4000, 'description' => 'name is required.');
-            return new JsonResponse($result, 400);
-        }
-        
-        if($year){
-            if(!is_string($year)){
-                $result = array('code'=>4000, 'description' => 'year must be string');
-                return new JsonResponse($result, 400);
-            }
-        }else{
-            $result = array('code'=>4000, 'description' => 'year is required.');
-            return new JsonResponse($result, 400);
-        }
-        
-        if($month){
-            if(!is_string($month)){
-                $result = array('code'=>4000, 'description' => 'month must be string');
-                return new JsonResponse($result, 400);
-            }
-        }else{
-            $result = array('code'=>4000, 'description' => 'month is required.');
-            return new JsonResponse($result, 400);
-        }
-        
-        
-        if($security){
-            if(!is_string($security)){
-                $result = array('code'=>4000, 'description' => 'security must be string');
-                return new JsonResponse($result, 400);
-            }
-        }else{
-            $result = array('code'=>4000, 'description' => 'security is required.');
-            return new JsonResponse($result, 400);
-        }
+        $token = $request->query->get('token_stripe')?$request->query->get('token_stripe'):$request->request->get('token_stripe');
         
         $cl = $em->getRepository(User::class)->find($id);
         if(!$cl){
@@ -504,21 +454,54 @@ class ClientsController extends Controller {
             return new JsonResponse($result, 400);
         }
         
-        $bc = new BankCard();
-        $bc->setOwnerName($name);
-        $bc->setUser($cl);
-        $bc->setMonthExp($month);
-        $bc->setYearExp($year);
-        $bc->setSecurityCode($security);
-        $bc->setCardNumber($card);
+        $stripePublicKey = $em->getRepository(Configuration::class)->findOneByName('AZ_STRIPE_ACCOUNT_SECRET')->getValue();
+        // Set your secret key: remember to change this to your live secret key in production
+        // See your keys here: https://dashboard.stripe.com/account/apikeys
+        \Stripe\Stripe::setApiKey($stripePublicKey);
         
-        $em->persist($bc);
-        $em->flush();
+        if(strlen($cl->getStripeId()) > 0){
+            $customer = \Stripe\Customer::retrieve($cl->getStripeId());
+            $carte = $customer->sources->create(["source" => $token]);
+            // Save new card
+        }else{
+        // Create a Customer:
+            $customer = \Stripe\Customer::create([
+                'source' => $token,
+                'email' => $cl->getEmail(),
+                'description' => $cl->getFirstname()
+            ]);
+            $carte = $customer->sources->data[0];
+            
+        }
         
-        $result['code'] = 201;
-        $result['bank_card_id'] = $bc->getId();
         
-        return new JsonResponse($result, 201);
+        if($customer){
+            $card = new BankCard();
+            $card->setUser($cl);
+            $card->setMonthExp($carte->exp_month);
+            $card->setYearExp($carte->exp_year);
+            $card->setCardNumber($carte->last4);
+            $card->setStripeId($carte->id);
+            $card->setOwnerName($cl->getFirstname());
+            $card->setDeleteStatus(0);
+            
+            $cl->setStripeId($customer->id);
+
+            $em->persist($cl);
+            $em->persist($card);
+
+            $em->flush();
+
+            $result['code'] = 201;
+            $result['card_id'] = $card->getid();
+            $result['card_number'] = $card->getCardNumber();
+
+            return new JsonResponse($result, 201);
+
+        }else {
+            $result['description'] = "Verfy or generate another token";
+            return new JsonResponse($result, 400);
+        }
     }
     
     
@@ -696,6 +679,7 @@ class ClientsController extends Controller {
         }
         
         // update state
+        $client->setCode('');
         $client->setState(1);
         $em->flush();
         
@@ -705,7 +689,7 @@ class ClientsController extends Controller {
         $array['data']['firstname'] = $client->getFirstname();
         $array['data']['lastname'] = $client->getLastname();
         $array['data']['email'] = $client->getEmail();
-        $array['data']['phone_number'] = $client->getPhoneNumber();
+        $array['data']['phone'] = $client->getPhoneNumber();
         $array['data']['address'] = $client->getAddress();
         $array['data']['longitude'] = $client->getLongitude();
         $array['data']['latitude'] = $client->getLatitude();
@@ -851,8 +835,8 @@ class ClientsController extends Controller {
      */
     public function deconnexionAction(Request $request, $id){
         $em = $this->getDoctrine()->getManager();
-        
-        $user = $em->getRepository(ConnexionLog::class)->getLastConnectRow($id);
+        $account = $em->getRepository(User::class)->find($id);
+        $user = $em->getRepository(ConnexionLog::class)->findOneBy(array('user'=>$account), array('id' => 'desc'), 1);
         if($user){
             if($user->getConnectStatus() == 0){
                 $result = array('code'=> 4022, 'description'=> "User not connected.");
@@ -862,14 +846,118 @@ class ClientsController extends Controller {
             $account = $em->getRepository(User::class)->find($id);
             $account->setConnectStatus(0);
             
-
             $user->setConnectStatus(0);
             $user->setendDatetime(time());
             
+        }else{
+            $account->setConnectStatus(0);
         }
         
         $em->flush();
         
         return new JsonResponse(array('code'=>200));
+    }
+    
+    
+    /**
+     * @Delete("/api/clients/{id}/bank-card/{id_card}")
+     * 
+     * *@SWG\Response(
+     *      response=200,
+     *      description="List bank card of a client."
+     * )
+     * 
+     * @SWG\Tag(name="Clients")
+     */
+    public function deleteClientCard(Request $request, $id, $id_card, LoggerInterface $logger){
+        $em = $this->getDoctrine()->getManager();
+        $stripePublicKey = $em->getRepository(Configuration::class)->findOneByName('AZ_STRIPE_ACCOUNT_SECRET')->getValue();
+        
+        \Stripe\Stripe::setApiKey($stripePublicKey);
+        
+        
+        
+        $client = $em->getRepository(User::class)->find($id);
+        if(!$client){
+            $result = array('code' => 400, 'description' => "Unexisting client");
+            return new JsonResponse($result, 400);
+        }
+        
+        if(strlen($client->getStripeId()) > 0){
+            $card_bd = $em->getRepository(BankCard::class)->find($id_card);
+            if($card_bd){
+                if($card_bd->getUser()->getId() != $id){
+                    $result = array('code' => 401, 'description' => "Not granted to delete this card.");
+                    return new JsonResponse($result, 401);
+                }
+                
+                try{
+                    $customer = \Stripe\Customer::retrieve($client->getStripeId());
+                    $resp = $customer->sources->retrieve($card_bd->getStripeId())->delete();
+                }catch(Exception $e){
+                    $logger->error($e->getMessage());
+                }
+                
+                
+                $card_bd->setDeleteStatus(1);
+            }else{
+                $result = array('code' => 400, 'description' => "Card does not exist.");
+                return new JsonResponse($result, 400);
+            } 
+        }
+        $em->flush();
+        $result['code'] = 200;
+        return new JsonResponse($result);
+          
+    }
+    
+    
+    /**
+     * @Put("/api/clients/{id}/avatar")
+     * 
+     *  @QueryParam(
+     *      name="avatar",
+     *      description="File",
+     *      strict=true
+     * )
+     * 
+     * *@SWG\Response(
+     *      response=200,
+     *      description="Update client's avatar."
+     * )
+     * 
+     * @SWG\Tag(name="Clients")
+     */
+    public function setAvatarAction(Request $request, $id){
+        $em = $this->getDoctrine()->getManager();
+        $client = $em->getRepository(User::class)->find($id);
+        if(!$client){
+            $result = array('code' => 400, 'description' => "Unexisting client");
+            return new JsonResponse($result, 400);
+        }
+        
+        if($request->getMethod("PUT")){
+            $photo = $request->files->get('avatar');
+            // Manage file
+            if (!is_null($photo)) {
+                $fileName = $this->generateUniqueFileName() . '.' . $photo->guessExtension();
+                $public_path = $request->server->get('DOCUMENT_ROOT');
+                $dest_dir = $public_path . "/images/avatars/{$id}/"; //die(var_dump($dest_dir));
+
+                if (file_exists($dest_dir) === FALSE) {
+                    mkdir($dest_dir, 0777, true);
+                }
+
+                $photo->move($dest_dir, $fileName);
+
+                $client->setAvatar($fileName);
+            }
+        }
+        
+        $em->flush();
+        
+        $result['code'] = 200;
+        $result['data']['avatar'] = $this->generateUrl('homepage', array(), UrlGeneratorInterface::ABSOLUTE_URL)."images/avartars/{$id}/".$client->getAvatar();
+        return new JsonResponse($result);
     }
 }

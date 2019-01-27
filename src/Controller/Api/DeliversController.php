@@ -371,6 +371,7 @@ class DeliversController extends Controller{
         $restaurant = $request->query->get('restaurant')?$request->query->get('restaurant'):$request->request->get('restaurant');
         
         
+        
         // Default values
         $limit = ($limit == null) ? 100 : $limit;
         $page = ($page == null) ? 1 : $page;
@@ -380,6 +381,8 @@ class DeliversController extends Controller{
             $result = array('code' => 400, 'description' => "Unexisting client");
             return new JsonResponse($result, 400);
         }
+        
+        
         
         $array = [];
         $orders = $em->getRepository(User::class)->getOrders(null, $id, $status, $restaurant, $limit, $page, false);
@@ -396,10 +399,9 @@ class DeliversController extends Controller{
             $array[$k]['delivery_note'] = $l->getDeliveryNote();
             $array[$k]['delivery_hour'] = $l->getDeliveryHour();
             $array[$k]['delivery_date'] = $l->getDeliveryDate();
+            $array[$k]['delivery_type'] = $l->getDeliveryType();
             $array[$k]['status']['id'] = $l->getOrderStatus()->getId();
             $array[$k]['status']['name'] = $l->getOrderStatus()->getName();
-            $array[$k]['restaurant']['id'] = $l->getRestaurant()->getId();
-            $array[$k]['restaurant']['name'] = $l->getRestaurant()->getName();
             $array[$k]["client"]["id"] = $l->getClient()->getId();
             $array[$k]["client"]["username"] = $l->getClient()->getUsername();
             $array[$k]["client"]["position"]["latitude"] = $l->getClient()->getLatitude();
@@ -411,13 +413,13 @@ class DeliversController extends Controller{
             $array[$k]['restaurant']['address'] = $l->getRestaurant()->getAddress();
             $array[$k]['restaurant']['city'] = $l->getRestaurant()->getCity();
             $array[$k]['restaurant']['postal_code'] = $l->getRestaurant()->getCp();
-            
-            $note = $em->getRepository(ShippingNote::class)->findOneBy(array('command' => $l));
-            if($note){
-                $array[$k]['deliver_note'] = ceil($note->getDeliverNote()/2);
-            }else{
-                $array[$k]['deliver_note'] = 0;
+            $array[$k]['restaurant']['note'] = $l->getRestauNote();
+            if($l->getMessenger()){
+                $array[$k]['deliver']['id'] = $l->getMessenger()->getId();
+                $array[$k]['deliver']['username'] = $l->getMessenger()->getusername();
+                $array[$k]['deliver']['note'] = $l->getDeliverNote();
             }
+            
             
         }
         $result['code'] = 200;
@@ -468,13 +470,14 @@ class DeliversController extends Controller{
         $orderRow = $em->getRepository(DeliveryProposition::class)->getOrderRow($deliver, $order);
         if($orderRow){
             $ord->setMessenger($del);
-            $ord->setOrderStatus($em->getRepository(OrderStatus::class)->find(6));
+            //$ord->setOrderStatus($em->getRepository(OrderStatus::class)->find(6));
             
         }
         
-        $propos = $em->getRepository(DeliveryProposition::class)->findBy(array("command" => $orderRow->getCommand()));
+        $propos = $em->getRepository(DeliveryProposition::class)->findBy(array("command" => $order));
         foreach($propos as $val)
             $em->remove ($val);
+        
         $em->flush();
         
         return new JsonResponse(array('code'=>200));
@@ -534,16 +537,18 @@ class DeliversController extends Controller{
                     // Set your secret key: remember to change this to your live secret key in production
                     // See your keys here: https://dashboard.stripe.com/account/apikeys
                     \Stripe\Stripe::setApiKey($stripePublicKey);
+                    
+                    // UPDATE CUSTOMER DEFAULT SOURCE
+                    $cu = \Stripe\Customer::retrieve($ord->getClient()->getStripeId());
+                    $cu->default_source = $ord->getPayment()->getStripeId();
+                    $cu->save();
+                    
 
                     $charge = \Stripe\Charge::create([
                         'amount' => $ord->getAmount()*100, // $15.00 this time
                         'currency' => 'eur',
                         'customer' => $ord->getClient()->getStripeId(), // Previously stored, then retrieved
-                        'metadata' => ['order_id' => $ord->getId()],
-//                        'destination' =>  [
-//                            'account' => $ord->getRestaurant()->getStripeAccountid(),
-//                            'amount' => $ord->getRestauEarn()
-//                        ]
+                        'metadata' => ['order_id' => $ord->getId()]
                     ]);
                     //echo '<pre>'; die(var_dump($charge)); echo '</pre>';
                     if($charge){
@@ -625,6 +630,18 @@ class DeliversController extends Controller{
     public function getDeliverAction(Request $request, $id){
         $em = $this->getDoctrine()->getManager();
         $deliver = $em->getRepository(User::class)->find(intval($id));
+        $infosShip = $em->getRepository(ShippingNote::class)->getShippingByDeliver($deliver);
+        $avg = 0;
+        if(count($infosShip)){
+            $som = 0;
+            $total = count($infosShip);
+            foreach ($infosShip as $ind){
+                $som += (int)$ind->getDeliverNote();
+            }
+            $avg = ceil(($som/$total)/2);
+        }else{
+            $total = 0;
+        }
         
         if(!is_null($deliver)){
             if(!in_array('ROLE_DELIVER', $deliver->getRoles())){
@@ -640,6 +657,8 @@ class DeliversController extends Controller{
                 $result['data']['address'] = $deliver->getAddress();
                 $result['data']['position']['latitude'] = $deliver->getLatitude();
                 $result['data']['position']['longitude'] = $deliver->getLongitude();
+                $result['data']['note']['stars'] = $avg;
+                $result['data']['note']['avis'] = $total;
             }
         }else{
             $result['code'] = 400;
@@ -785,6 +804,7 @@ class DeliversController extends Controller{
             $array[$k]['delivery_note'] = $l->getCommand()->getDeliveryNote();
             $array[$k]['delivery_hour'] = $l->getCommand()->getDeliveryHour();
             $array[$k]['delivery_date'] = $l->getCommand()->getDeliveryDate();
+            $array[$k]['delivery_type'] = $l->getCommand()->getDeliveryType();
             $array[$k]['status']['id'] = $l->getCommand()->getOrderStatus()->getId();
             $array[$k]['status']['name'] = $l->getCommand()->getOrderStatus()->getName();
             $array[$k]['client']['id'] = $l->getCommand()->getClient()->getId();
@@ -796,7 +816,13 @@ class DeliversController extends Controller{
             $array[$k]['restaurant']['name'] = $l->getCommand()->getRestaurant()->getName();
             $array[$k]['restaurant']['address'] = $l->getCommand()->getRestaurant()->getAddress();
             $array[$k]['restaurant']['city'] = $l->getCommand()->getRestaurant()->getCity();
+            $array[$k]['restaurant']['note'] = $l->getCommand()->getRestauNote();
             $array[$k]['restaurant']['image'] = $this->generateUrl('homepage', array(), UrlGeneratorInterface::ABSOLUTE_URL).'images/restaurant/'.$l->getCommand()->getRestaurant()->getImage();
+            if($l->getCommand()->getMessenger()){
+                $array[$k]['deliver']['id'] = $l->getCommand()->getMessenger()->getId();
+                $array[$k]['deliver']['username'] = $l->getCommand()->getMessenger()->getusername();
+                $array[$k]['deliver']['note'] = $l->getCommand()->getDeliverNote();
+            }
             
         }
         
@@ -825,8 +851,9 @@ class DeliversController extends Controller{
      */
     public function deconnexionAction(Request $request, $id){
         $em = $this->getDoctrine()->getManager();
+        $account = $em->getRepository(User::class)->find($id);
+        $user = $em->getRepository(ConnexionLog::class)->findOneBy(array('user'=>$account), array('id' => 'desc'), 1);
         
-        $user = $em->getRepository(ConnexionLog::class)->getLastConnectRow($id);
         if($user){
             if($user->getConnectStatus() == 0){
                 $result = array('code'=> 4022, 'description'=> "User not connected.");
@@ -839,6 +866,8 @@ class DeliversController extends Controller{
             $user->setConnectStatus(0);
             $user->setendDatetime(time());
             
+        }else{
+            $account->setConnectStatus(0);
         }
         
         $em->flush();
@@ -875,4 +904,107 @@ class DeliversController extends Controller{
         
         return new JsonResponse(array('code'=>200, 'data' => $result));
     }
+    
+    
+    
+    /**
+     * @Put("/api/delivers/{id}/avatar")
+     * 
+     *  @QueryParam(
+     *      name="avatar",
+     *      description="File",
+     *      strict=true
+     * )
+     * 
+     * *@SWG\Response(
+     *      response=200,
+     *      description="Update deliver's avatar."
+     * )
+     * 
+     * @SWG\Tag(name="Delivers")
+     */
+    public function setAvatarAction(Request $request, $id){
+        $em = $this->getDoctrine()->getManager();
+        $client = $em->getRepository(User::class)->find($id);
+        if(!$client){
+            $result = array('code' => 400, 'description' => "Unexisting client");
+            return new JsonResponse($result, 400);
+        }
+        
+        if($request->getMethod("PUT")){
+            $photo = $request->files->get('avatar');
+            // Manage file
+            if (!is_null($photo)) {
+                $fileName = $this->generateUniqueFileName() . '.' . $photo->guessExtension();
+                $public_path = $request->server->get('DOCUMENT_ROOT');
+                $dest_dir = $public_path . "/images/avatars/{$id}/"; //die(var_dump($dest_dir));
+
+                if (file_exists($dest_dir) === FALSE) {
+                    mkdir($dest_dir, 0777, true);
+                }
+
+                $photo->move($dest_dir, $fileName);
+
+                $client->setAvatar($fileName);
+            }
+        }
+        
+        $em->flush();
+        
+        $result['code'] = 200;
+        $result['data']['avatar'] = $this->generateUrl('homepage', array(), UrlGeneratorInterface::ABSOLUTE_URL)."images/avartars/{$id}/".$client->getAvatar();
+        return new JsonResponse($result);
+    }
+    
+    
+    
+    /**
+     * @Put("/api/delivers/{id}/update-password")
+     * 
+     * *@SWG\Response(
+     *      response=200,
+     *      description="Update deliver account password."
+     * )
+     * 
+     * @QueryParam(
+     *      name="password",
+     *      description="new password",
+     *      strict=true
+     * )
+     * 
+     * 
+     * @SWG\Tag(name="Clients")
+     */
+    public function updatePassAction(Request $request, UserPasswordEncoderInterface $encoder, $id){
+        $em = $this->getDoctrine()->getManager();
+        
+        $infos = file_get_contents('php://input');
+        $data = json_decode($infos, TRUE);
+        
+        if(array_key_exists('password', $data)){
+            if(!is_string($data['password'])){
+                $result = array('code'=> 4000, 'description' => 'password must be string.');
+                return new JsonResponse($result, 400);
+            }
+        }else{
+            $result = array('code'=> 4000, 'description' => 'password is required.');
+            return new JsonResponse($result, 400);
+        }
+        
+        $user = $em->getRepository(User::class)->find($id);
+        if(!$user){
+            $result = array('code'=> 4000, 'description' => 'Unexisting client.');
+            return new JsonResponse($result, 400);
+        }
+        
+        $pass_encoded = $encoder->encodePassword($user, $data['password']);
+        
+        $user->setPassword($pass_encoded);
+        $em->flush();
+        
+        return new JsonResponse(array('code' => 200));
+    }
+    
+    
+    
 }

@@ -22,8 +22,8 @@ $(document).ready(function () {
         var unitPrice = parseFloat(amount)/parseInt(qty);
         if (parseInt(qty) > 1)
             $('.qty').text(parseInt(qty) - 1);
-
-        $('.amount-menu').text(unitPrice * parseInt($('.qty').text()));
+        var sol = unitPrice * parseInt($('.qty').text());
+        $('.amount-menu').text(sol.toFixed(2));
     });
 
     $('#info div.actionqty.plus').click(function () {
@@ -31,8 +31,8 @@ $(document).ready(function () {
         var amount = $('.amount-menu').text();
         var unitPrice = parseFloat(amount)/parseInt(qty);
         $('.qty').text(parseInt(qty) + 1);
-
-        $('.amount-menu').text(unitPrice * parseInt($('.qty').text()));
+        var sol = unitPrice * parseInt($('.qty').text());
+        $('.amount-menu').text(sol.toFixed(2));
     });
 
     $('button.basket').click(function () {
@@ -41,8 +41,8 @@ $(document).ready(function () {
         var error = 0;
         if(options.length > 0){
             for(var i=0, c=options.length; i<c; i++){
-                if($(options[i]).data('options-require') == 1){
-                    var required = $(options[i]).data('max-allowed');
+                if($(options[i]).attr('data-options-require') == 1){
+                    var required = $(options[i]).attr('data-max-allowed');
                     var opts = $(options[i]).find('input:checked');
                     
                     if((typeof required != 'undefined') && required != opts.length){
@@ -64,7 +64,10 @@ $(document).ready(function () {
     });
 
     $('.box').on('click', function () {
-        var prd = $(this).data('menu');
+        $('.loader').removeClass('hide');
+        $('.infomenu').addClass('hide');
+        $('#unit-price').removeAttr('data-unit-price');
+        var prd = $(this).attr('data-menu');
         $.ajax({
             url: $('body').data('base-url')+'api/menus/' + prd,
             type: 'get',
@@ -77,46 +80,97 @@ $(document).ready(function () {
             $('#menu-description').html(resp.data.description);
             $('#unit-price').attr('data-unit-price', resp.data.price);
             $('.amount-menu').text(resp.data.price);
-            
+            var t = "";
             $('.qty').text(1);
             if (typeof resp.data.options !== 'undefined') {
                 var options = resp.data.options; console.log(options);
-                var t = "";
+                
                 t += options_html(options);
             }
             //console.log(t);
             $('.block-options').html(t);
             var height = $('.side-data').height();
-            $('.bck-img').css({
-                "background-image": 'url('+resp.data.image+')',
-                "background-size": "cover",
-                "height": height
-            });
+//            $('.bck-img').css({
+//                "background-image": 'url('+resp.data.image+')',
+//                "background-size": "cover",
+//                "height": height
+//            });
+            $('.bck-img').html('<img src="'+resp.data.image+'" alt="image">');
+            $('.loader').addClass('hide');
+            $('.infomenu').removeClass('hide');
+        }).fail();
+    });
+    
+    
+    $('.box.product').on('click', function () {
+        var prd = $(this).data('product');
+        $.ajax({
+            url: $('body').data('base-url')+'api/products/' + prd,
+            type: 'get',
+            crossDomain: true
+        }).done(function (resp) {
+            console.log(resp);
+            // set value
+            $('#menu-name').html(resp.data.name);
+            $('#menu-name').data('product', resp.data.id);
+            $('#menu-description').html(resp.data.description);
+            $('#unit-price').attr('data-unit-price', resp.data.price);
+            $('.amount-menu').text(resp.data.price);
+            
+            $('.qty').text(1);
+            var t = "";
+            if (typeof resp.data.options !== 'undefined') {
+                var options = resp.data.options; console.log(options);
+                
+                t += options_html(options);
+                
+            }
+            //console.log(t);
+            $('.block-options').html(t);
+            var height = $('.side-data').height();
+            $('.bck-img').html('<img src="'+resp.data.image+'" alt="image">');
         }).fail();
     });
     
     $('body').on('click', '.delete', function(){
         var id = $(this).data('command');
-        remove_from_cart(id);
         $(this).closest('.item').fadeOut(1000);
+        remove_from_cart(id);
     });
     
     
     $('body').on('click', '.block-options .blck-option input', function(){
         var subTotal = 0;
         var qty = parseInt($('.qty').text());
-        var unitPrice = parseFloat($('#unit-price').data('unit-price'));
+        var unitPrice = parseFloat($('#unit-price').attr('data-unit-price'));
         var inputChecked = $(".block-options .blck-option input:checked");
         console.log(inputChecked.length);
         if(inputChecked.length > 1){
             console.log(inputChecked);
             for(var i=0, c=inputChecked.length; i<c; i++){
-                subTotal += parseFloat($(inputChecked[i]).data('option-price'));
+                subTotal += parseFloat($(inputChecked[i]).attr('data-option-price'));
             }
         }else if(inputChecked.length == 1){
-            subTotal += parseFloat(inputChecked.data('option-price'));
+            subTotal += parseFloat(inputChecked.attr('data-option-price'));
         }
-        $('.amount-menu').html((subTotal+unitPrice) * qty);
+        console.log(subTotal);
+        console.log(unitPrice);
+        $('.amount-menu').html(((subTotal+unitPrice) * qty).toFixed(2));
+    });
+    
+    $('#info').on('hide.bs.modal', function (e) {
+        $('#unit-price').removeAttr('data-unit-price');
+    });
+    
+    $('#payment').on('click', function(){
+        if(typeof localStorage.amount != 'undefined' && localStorage.amount < 15){
+            toastr.options.closeButton = true;
+            toastr.options.timeOut = 3000; // How long the toast will display without user interaction
+            toastr.options.extendedTimeOut = 6000; // How long the toast will display after a user hovers over it
+            toastr.error('Votre commande doit être supérieure ou égale à 15€.');
+        }else{
+            window.location.replace($('body').data('base-url')+'checkout');
+        }
     });
 
 });
@@ -153,7 +207,7 @@ function options_html(dat) {
 
     for (var k = 0, g = dat.length; k < g; k++) {
         text += '<div class="blck-option"';
-        if (dat[k].item_required > 1)
+        if (dat[k].item_required >= 1)
             text += ' data-max-allowed="'+dat[k].item_required+'"';
         if (dat[k].type == "REQUIRED"){
             text += ' data-options-require="1"';
@@ -164,20 +218,19 @@ function options_html(dat) {
         text += '<div class="option-title" data-option="' + dat[k].id + '"><h3>';
         text += dat[k].name;
         text += '</h3>';
-        if (dat[k].item_required > 1)
+        if (dat[k].item_required >= 1){
             text += '<p>Choisissez ' + dat[k].item_required + '</p>';
-        if (dat[k].type == "REQUIRED"){
             text += '<span class="badge">Obligatoire</span>';
         }
         text += '</div><form class="form-horizontal"><div class="form-group">';
-        if(dat[k].item_required <= 1){
+        if(dat[k].item_required == 1){
             for (var j = 0, c = dat[k].products.length; j < c; j++) {
-                text += '<div class="opt"><div class="col-sm-1"><input type="radio" name="options" data-option-name="' + dat[k].products[j].name + '" data-option-prd="' + dat[k].products[j].id + '" data-option-price="' + dat[k].products[j].price + '"></div><label class="col-sm-8">' + dat[k].products[j].name + '</label><label class="col-sm-3"><span class="price">' + dat[k].products[j].price + '</span> <span class="currency">€</span></label></div>';
+                text += '<div class="opt clearfix"><div class="col-sm-1"><input type="radio" name="options" data-option-name="' + dat[k].products[j].name + '" data-option-prd="' + dat[k].products[j].id + '" data-option-price="' + dat[k].products[j].price + '"></div><label class="col-sm-8">' + dat[k].products[j].name + '</label><label class="col-sm-3"><span class="price">' + dat[k].products[j].price.toFixed(2) + '</span> <span class="currency">€</span></label></div>';
             }
             text += '</div></form></div></div>';
         }else{
             for (var j = 0, c = dat[k].products.length; j < c; j++) {
-                text += '<div class="opt"><div class="col-sm-1"><input type="checkbox" name="options" data-option-name="' + dat[k].products[j].name + '" data-option-prd="' + dat[k].products[j].id + '" data-option-price="' + dat[k].products[j].price + '"></div><label class="col-sm-8">' + dat[k].products[j].name + '</label><label class="col-sm-3"><span class="price">' + dat[k].products[j].price + '</span> <span class="currency">€</span></label></div>';
+                text += '<div class="opt clearfix"><div class="col-sm-1"><input type="checkbox" name="options" data-option-name="' + dat[k].products[j].name + '" data-option-prd="' + dat[k].products[j].id + '" data-option-price="' + dat[k].products[j].price + '"></div><label class="col-sm-8">' + dat[k].products[j].name + '</label><label class="col-sm-3"><span class="price">' + dat[k].products[j].price.toFixed(2) + '</span> <span class="currency">€</span></label></div>';
             }
             text += '</div></form></div></div>';
         }

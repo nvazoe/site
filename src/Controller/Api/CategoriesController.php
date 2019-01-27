@@ -208,6 +208,7 @@ class CategoriesController extends Controller{
             $array[$k]['longitude'] = $l->getRestaurant()->getLongitude();
             $array[$k]['latitude'] = $l->getRestaurant()->getLatidude();
             $array[$k]['status'] = $l->getRestaurant()->getStatus();
+            $array[$k]['note'] = $l->getRestaurant()->getNote();
             if($l->getRestaurant()->getImage())
                 $array[$k]['image'] = $this->generateUrl('homepage', array(), UrlGeneratorInterface::ABSOLUTE_URL).'images/restaurant/'.$l->getRestaurant()->getImage();
         }

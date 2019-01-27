@@ -48,18 +48,19 @@ class ProductRepository extends ServiceEntityRepository
     }
     */
     
-    public function findByNameField($value, $user)
+    public function findByNameField($value, $user=null)
     {
-        return $this->createQueryBuilder('p')
-            ->join('App\Entity\Restaurant', 'r', \Doctrine\ORM\Query\Expr\Join::WITH, 'r.id = p.restaurant')
-            ->join('App\Entity\User', 'u',\Doctrine\ORM\Query\Expr\Join::WITH, 'u.id = r.owner')
-            ->andWhere('p.name LIKE :val')
-            ->setParameter('val', '%'.$value.'%')
-            ->andWhere('u.id = :user')->setParameter('user', $user)
-            ->orderBy('p.id', 'DESC')
-            //->setMaxResults(10)
-            ->getQuery()
-            ->getResult();
+        $query = $this->createQueryBuilder('p');
+        
+        if($user){
+            $query->join('App\Entity\Restaurant', 'r', \Doctrine\ORM\Query\Expr\Join::WITH, 'r.id = p.restaurant');
+            $query->join('App\Entity\User', 'u',\Doctrine\ORM\Query\Expr\Join::WITH, 'u.id = r.owner');
+            $query->andWhere('u.id = :user')->setParameter('user', $user);
+        }
+        $query->andWhere('p.name LIKE :val')->setParameter('val', '%'.$value.'%');
+        $query->andWhere('p.status LIKE :stat')->setParameter('stat', 1);
+        $query->orderBy('p.id', 'DESC');
+        return $query->getQuery()->getResult();
     }
     
     public function getProducts($limit, $page, $count=false)

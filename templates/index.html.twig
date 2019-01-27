@@ -9,36 +9,93 @@
         .fg-slider {
             height: 500px;
         }
+        @media(max-width: 1024px){
+    .fg-slider {
+    height: 390px;
+}
+}
+
+@media(max-width: 768px){
+    .fg-slider {
+    height: 297px;
+}
+}
+
+@media(max-width: 375px){
+    .fg-slider {
+        height: 150px;
+    }
+    .je-commande {
+        border: 5px solid;
+        padding: 10px 20px;
+        font-size: 16px;
+        top: -25px;
+    }
+}
+
+@media (max-width: 414px){
+    .fg-slider {
+        height: 153px;
+    }
+    .je-commande {
+        border: 5px solid;
+        padding: 13px 20px;
+        font-size: 16px;
+        top: -33px;
+    }
+}
+
+@media(max-width: 360px){
+    .fg-slider {
+        height: 140px;
+    }
+}
+
+@media(max-width: 320px){
+    .fg-slider {
+        height: 125px;
+    }
+    .je-commande {
+        border: 5px solid;
+        padding: 10px 15px;
+        color: #aac330;
+        font-size: 15px;
+        top: -23px;
+    }
+}
     </style>
 {% endblock %}
 
 {% block carousel %}
-    <!-- SLIDER -->
-    <div class="fg-slider" id="slider-1">
-        <div class="fg-content text-center">
-            {#<p>Hi There... I'm Sarah Smith</p>
-            <a href="#about-me" class="btn hover">
-            <i class="fa fa-angle-right" aria-hidden="true"></i>More about me...</a>#}
-        </div>
-        <img src="{{ asset('images/banner1.png') }}" alt="">
+    
+        <!-- SLIDER -->
+        <div class="fg-slider" id="slider-1">
+            <div class="fg-content text-center">
+                {#<p>Hi There... I'm Sarah Smith</p>
+                <a href="#about-me" class="btn hover">
+                <i class="fa fa-angle-right" aria-hidden="true"></i>More about me...</a>#}
+            </div>
+            <img src="{{ asset('images/banner1.png') }}" alt="">
 
-        <div class="fg-content text-center">
-            {#<p>Hi There... I'm Sarah Smith</p>
-            <a href="#about-me" class="btn hover">
-                <i class="fa fa-angle-right" aria-hidden="true"></i> More about me...</a>#}
+            <div class="fg-content text-center">
+                {#<p>Hi There... I'm Sarah Smith</p>
+                <a href="#about-me" class="btn hover">
+                    <i class="fa fa-angle-right" aria-hidden="true"></i> More about me...</a>#}
+            </div>
+            <img src="{{ asset('images/banner2.png') }}" alt="">
+
+            <div class="fg-content text-center">
+                {#<p>Hi There... I'm Sarah Smith</p>
+                <a href="#about-me" class="btn hover">
+                    <i class="fa fa-angle-right" aria-hidden="true"></i> More about me...</a>#}
+            </div>
+            <img src="{{ asset('images/banner3.jpeg') }}" alt="">
         </div>
-        <img src="{{ asset('images/banner2.png') }}" alt="">
-        
-        <div class="fg-content text-center">
-            {#<p>Hi There... I'm Sarah Smith</p>
-            <a href="#about-me" class="btn hover">
-                <i class="fa fa-angle-right" aria-hidden="true"></i> More about me...</a>#}
-        </div>
-        <img src="{{ asset('images/banner3.jpeg') }}" alt="">
-    </div>
+    
 {% endblock %}
 
 {% block body %}
+    <a href="{{path('commander')}}" style="text-decoration:none;"><div class="je-commande">Je commande</div></a>
     <div class="block-infos">
         <div class="container">
             <div class="row">
@@ -91,13 +148,13 @@
     <div class="block-pub">
         <div class="container">
             <div class="row">
-                <div class="col-md-6 iphone"><img src="{{asset('images/iphone.png')}}"></div>
-                <div class="col-md-6">
-                    <div class="first-block hidden-sm hidden-xs">
+                <div class="col-md-6 col-sm-6 iphone"><img src="{{asset('images/iphone.png')}}"></div>
+                <div class="col-md-6 col-sm-6">
+                    <div class="first-block ">
                         <p><img class="allozoe" src="{{ asset('images/allo_zoe_logo_blanc.png') }}"/> ARRIVE PROCHAINEMENT SUR VOTRE TELEPHONE</p>
                         <p class="text-center"><img class="img-app" src="{{asset('images/App-portable.png')}}"</p>
                     </div>
-                    <div class="second-block hidden-sm hidden-xs">
+                    <div class="second-block">
                         <p>VOUS POUVEZ COMMANDER PENDANT CE TEMPS SUR NOTRE SITE EN LIGNE !</p>
                         <p><form method="get" action="{{ path('commander') }}"><button class="btn btn-order" type="submit">COMMANDEZ</button></form></p>
                     </div>
@@ -108,18 +165,18 @@
     </div>
                     
     <div class="block-social-network">
-        <h3 class="">
+        <h3 class="social">
             Retrouver nous sur
         </h3>
         <ul class="list-inline">
-            <li>
+            {#<li>
                 <a href="#"><img src="{{ asset('images/twitter.png') }}"</a>
             </li>
             <li>
                 <a href="#"><img src="{{ asset('images/instagram.png') }}"</a>
-            </li>
+            </li>#}
             <li>
-                <a href="#"><img src="{{ asset('images/facebook.png') }}"</a>
+                <a href="https://www.facebook.com/llozoe/"><img src="{{ asset('images/facebook.png') }}"</a>
             </li>
         </ul>
     </div>
@@ -134,6 +191,7 @@
             effect: 'slide', // fade, scale, slide, slide-top
             duration: 5000, // duration till the next slide
             bullets: true, // show / hide bullets
+            responsive: true
         });
     </script>
 {% endblock %}

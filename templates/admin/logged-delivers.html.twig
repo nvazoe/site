@@ -35,14 +35,14 @@
                                     {% for d in delivers %}
                                     <tr>
                                         <td>{{d.id}}</td>
-                                        <td><a href="{{path('info_deliver', {'id': d.id|base64_encode})}}">{{ d.lastname }} {{ d.firstname }}</a></td>
+                                        <td><a href="#">{{ d.lastname }} {{ d.firstname }}</a></td>
                                         <td>
                                             {#<ol>
                                                 {% for lg in d.ShippingLogs %}
                                                     <li><span class="text-info">{{ lg.makeAt }}</span></li>
                                                 {% endfor %}
                                             </ol>#}
-                                            <span class="badge badge-info">{{d.delCount}}</span>
+                                            <span class="badge badge-info">{{d.deliveryDuring(period)}}</span>
                                         </td>
                                     </tr>
                                 {% endfor %}
@@ -50,6 +50,13 @@
                                         Aucun résultat trouvé
                                 {%endif%}
                             </tbody>
+                            <tfoot>
+                                <tr>
+                                    <td colspan="5">
+                                        <ul class="pagination pull-right"></ul>
+                                    </td>
+                                </tr>
+                            </tfoot>
                         </table>
                     </div>
                 </div>

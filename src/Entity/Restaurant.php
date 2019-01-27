@@ -7,6 +7,7 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Vich\UploaderBundle\Mapping\Annotation as Vich;
 use Symfony\Component\HttpFoundation\File\File;
+use Doctrine\Common\Collections\Criteria;
 
 /**
  * @ORM\Entity(repositoryClass="App\Repository\RestaurantRepository")
@@ -112,11 +113,104 @@ class Restaurant
      * @ORM\Column(type="string", length=255, nullable=true)
      */
     private $cp;
+    
+    
+    private $distance;
 
     /**
      * @ORM\Column(type="string", length=255, nullable=true)
      */
     private $stripeAccountId;
+
+    /**
+     * @ORM\Column(type="string", length=255, nullable=true)
+     */
+    private $externalAccount;
+
+    /**
+     * @ORM\Column(type="string", length=255, nullable=true)
+     */
+    private $legalEntityAdditionnalOwners;
+
+    /**
+     * @ORM\Column(type="string", length=255, nullable=true)
+     */
+    private $legalEntityAddressCity;
+
+    /**
+     * @ORM\Column(type="string", length=255, nullable=true)
+     */
+    private $legalEntityAddressline1;
+
+    /**
+     * @ORM\Column(type="string", length=255, nullable=true)
+     */
+    private $legalEntityAddressPostalCode;
+
+    /**
+     * @ORM\Column(type="string", length=255, nullable=true)
+     */
+    private $legalEntityBusinessName;
+
+    /**
+     * @ORM\Column(type="string", length=255, nullable=true)
+     */
+    private $legalEntityBusinessTax1d;
+
+    /**
+     * @ORM\Column(type="string", length=255, nullable=true)
+     */
+    private $legalEntityDobDay;
+
+    /**
+     * @ORM\Column(type="string", length=255, nullable=true)
+     */
+    private $legalEntityDobMonth;
+
+    /**
+     * @ORM\Column(type="string", length=255, nullable=true)
+     */
+    private $legalEntityDobYear;
+
+    /**
+     * @ORM\Column(type="string", length=255, nullable=true)
+     */
+    private $legalEntityFirstName;
+
+    /**
+     * @ORM\Column(type="string", length=255, nullable=true)
+     */
+    private $legalEntityLastNane;
+
+    /**
+     * @ORM\Column(type="string", length=255, nullable=true)
+     */
+    private $legalEntityPersonalAddressCity;
+
+    /**
+     * @ORM\Column(type="string", length=255, nullable=true)
+     */
+    private $legalEntityPersonalAddressLine1;
+
+    /**
+     * @ORM\Column(type="string", length=255, nullable=true)
+     */
+    private $legalEntityPersonalAddressCodePostal;
+
+    /**
+     * @ORM\Column(type="string", length=255, nullable=true)
+     */
+    private $legalEntityType;
+
+    /**
+     * @ORM\Column(type="string", length=255, nullable=true)
+     */
+    private $tosAcceptanceDate;
+
+    /**
+     * @ORM\Column(type="string", length=255, nullable=true)
+     */
+    private $tosAcceptance1p;
 
     public function __construct()
     {
@@ -179,7 +273,7 @@ class Restaurant
     
     
     public function __toString(){
-        return $this->getName();
+        return $this->getName()?$this->getName(): '' ;
     }
 
     public function getDescription(): ?string
@@ -496,5 +590,259 @@ class Restaurant
         $this->stripeAccountId = $stripeAccountId;
 
         return $this;
+    }
+
+    public function getExternalAccount(): ?string
+    {
+        return $this->externalAccount;
+    }
+
+    public function setExternalAccount(?string $externalAccount): self
+    {
+        $this->externalAccount = $externalAccount;
+
+        return $this;
+    }
+
+    public function getLegalEntityAdditionnalOwners(): ?string
+    {
+        return $this->legalEntityAdditionnalOwners;
+    }
+
+    public function setLegalEntityAdditionnalOwners(?string $legalEntityAdditionnalOwners): self
+    {
+        $this->legalEntityAdditionnalOwners = $legalEntityAdditionnalOwners;
+
+        return $this;
+    }
+
+    public function getLegalEntityAddressCity(): ?string
+    {
+        return $this->legalEntityAddressCity;
+    }
+
+    public function setLegalEntityAddressCity(?string $legalEntityAddressCity): self
+    {
+        $this->legalEntityAddressCity = $legalEntityAddressCity;
+
+        return $this;
+    }
+
+    public function getLegalEntityAddressline1(): ?string
+    {
+        return $this->legalEntityAddressline1;
+    }
+
+    public function setLegalEntityAddressline1(?string $legalEntityAddressline1): self
+    {
+        $this->legalEntityAddressline1 = $legalEntityAddressline1;
+
+        return $this;
+    }
+
+    public function getLegalEntityAddressPostalCode(): ?string
+    {
+        return $this->legalEntityAddressPostalCode;
+    }
+
+    public function setLegalEntityAddressPostalCode(?string $legalEntityAddressPostalCode): self
+    {
+        $this->legalEntityAddressPostalCode = $legalEntityAddressPostalCode;
+
+        return $this;
+    }
+
+    public function getLegalEntityBusinessName(): ?string
+    {
+        return $this->legalEntityBusinessName;
+    }
+
+    public function setLegalEntityBusinessName(?string $legalEntityBusinessName): self
+    {
+        $this->legalEntityBusinessName = $legalEntityBusinessName;
+
+        return $this;
+    }
+
+    public function getLegalEntityBusinessTax1d(): ?string
+    {
+        return $this->legalEntityBusinessTax1d;
+    }
+
+    public function setLegalEntityBusinessTax1d(?string $legalEntityBusinessTax1d): self
+    {
+        $this->legalEntityBusinessTax1d = $legalEntityBusinessTax1d;
+
+        return $this;
+    }
+
+    public function getLegalEntityDobDay(): ?string
+    {
+        return $this->legalEntityDobDay;
+    }
+
+    public function setLegalEntityDobDay(?string $legalEntityDobDay): self
+    {
+        $this->legalEntityDobDay = $legalEntityDobDay;
+
+        return $this;
+    }
+
+    public function getLegalEntityDobMonth(): ?string
+    {
+        return $this->legalEntityDobMonth;
+    }
+
+    public function setLegalEntityDobMonth(?string $legalEntityDobMonth): self
+    {
+        $this->legalEntityDobMonth = $legalEntityDobMonth;
+
+        return $this;
+    }
+
+    public function getLegalEntityDobYear(): ?string
+    {
+        return $this->legalEntityDobYear;
+    }
+
+    public function setLegalEntityDobYear(?string $legalEntityDobYear): self
+    {
+        $this->legalEntityDobYear = $legalEntityDobYear;
+
+        return $this;
+    }
+
+    public function getLegalEntityFirstName(): ?string
+    {
+        return $this->legalEntityFirstName;
+    }
+
+    public function setLegalEntityFirstName(?string $legalEntityFirstName): self
+    {
+        $this->legalEntityFirstName = $legalEntityFirstName;
+
+        return $this;
+    }
+
+    public function getLegalEntityLastNane(): ?string
+    {
+        return $this->legalEntityLastNane;
+    }
+
+    public function setLegalEntityLastNane(?string $legalEntityLastNane): self
+    {
+        $this->legalEntityLastNane = $legalEntityLastNane;
+
+        return $this;
+    }
+
+    public function getLegalEntityPersonalAddressCity(): ?string
+    {
+        return $this->legalEntityPersonalAddressCity;
+    }
+
+    public function setLegalEntityPersonalAddressCity(?string $legalEntityPersonalAddressCity): self
+    {
+        $this->legalEntityPersonalAddressCity = $legalEntityPersonalAddressCity;
+
+        return $this;
+    }
+
+    public function getLegalEntityPersonalAddressLine1(): ?string
+    {
+        return $this->legalEntityPersonalAddressLine1;
+    }
+
+    public function setLegalEntityPersonalAddressLine1(?string $legalEntityPersonalAddressLine1): self
+    {
+        $this->legalEntityPersonalAddressLine1 = $legalEntityPersonalAddressLine1;
+
+        return $this;
+    }
+
+    public function getLegalEntityPersonalAddressCodePostal(): ?string
+    {
+        return $this->legalEntityPersonalAddressCodePostal;
+    }
+
+    public function setLegalEntityPersonalAddressCodePostal(?string $legalEntityPersonalAddressCodePostal): self
+    {
+        $this->legalEntityPersonalAddressCodePostal = $legalEntityPersonalAddressCodePostal;
+
+        return $this;
+    }
+
+    public function getLegalEntityType(): ?string
+    {
+        return $this->legalEntityType;
+    }
+
+    public function setLegalEntityType(?string $legalEntityType): self
+    {
+        $this->legalEntityType = $legalEntityType;
+
+        return $this;
+    }
+
+    public function getTosAcceptanceDate(): ?string
+    {
+        return $this->tosAcceptanceDate;
+    }
+
+    public function setTosAcceptanceDate(?string $tosAcceptanceDate): self
+    {
+        $this->tosAcceptanceDate = $tosAcceptanceDate;
+
+        return $this;
+    }
+
+    public function getTosAcceptance1p(): ?string
+    {
+        return $this->tosAcceptance1p;
+    }
+
+    public function setTosAcceptance1p(?string $tosAcceptance1p): self
+    {
+        $this->tosAcceptance1p = $tosAcceptance1p;
+
+        return $this;
+    }
+    
+    public function getActiveProducts(): Collection
+    {
+        $criteria = Criteria::create()->andWhere(Criteria::expr()->eq('status', 1))
+            ->orderBy(['id'=>'DESC']);
+        
+        return $this->products->matching($criteria);
+    }
+    
+    public function getMenusOrderByPosition(): Collection
+    {
+        $criteria = Criteria::create()->orderBy(['position'=>'asc']);
+        
+        return $this->menus->matching($criteria);
+    }
+    
+    public function getNote(){
+        $som = 0;
+        $orders = $this->getOrders();
+        $total = 0;
+        $stars = 0;
+        foreach ($orders as $o){
+            if($o->getShippingNote()){
+                $total ++;
+                $som += $o->getShippingNote()->getRestauNote();
+            }
+        }
+        if($total)
+            $stars = number_format(($som/$total)/2, 1);
+        
+        
+        return array('stars' => $stars, 'avis' => $total);
+    }
+    
+    
+    public function getDistance(){
+        return $this->distance;
     }
 }

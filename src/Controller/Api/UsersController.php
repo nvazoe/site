@@ -25,8 +25,11 @@ use GuzzleHttp\Client;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Cache\Adapter\FilesystemAdapter;
 use App\Entity\User;
+use App\Entity\Configuration;
 use App\Entity\ConnexionLog;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
+use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
+use App\Util\TokenGenerator;
 /**
  * Description of UsersController
  *
@@ -61,11 +64,12 @@ class UsersController extends Controller {
      * )
 	 * @SWG\Tag(name="Users")
      */
-    public function postLoginAction(Request $request)
+    public function postLoginAction(Request $request, \Swift_Mailer $mailer)
     {
         $em = $this->getDoctrine()->getManager();
         $login = $request->query->get('login')?$request->query->get('login'):$request->request->get('login');
         $pass = $request->query->get('pass')?$request->query->get('pass'):$request->request->get('pass');
+		$emailAdmin = $em->getRepository(Configuration::class)->findOneByName('AZ_ADMIN_EMAIL')->getValue();
 //        if(!$login || !$pass) {
 //          throw new HttpException(401, 'Credentials are required.');
 //        }
@@ -96,10 +100,33 @@ class UsersController extends Controller {
             return new JsonResponse($result, 400);
         }
         
-//        if($user_account->getConnectStatus() == 1){
-//            $result = array('code' => 4024, 'description' => "You're still log on.");
-//            return new JsonResponse($result, 400);
-//        }
+        if($user_account->getConnectStatus() == 1){
+            $result = array('code' => 4024, 'description' => "You're still log on.");
+            return new JsonResponse($result, 400);
+        }
+        
+        if($user_account->getState() == 0){
+            /** Sending code by email **/
+			$url = $this->generateUrl('activate_account', array('code' => $user_account->getGeneratedCode()), UrlGeneratorInterface::ABSOLUTE_URL);
+                $message = (new \Swift_Message('Validation de compte'))
+                    ->setFrom($emailAdmin)
+                    ->setTo($user_account->getEmail());
+                    $htmlBody = $this->renderView(
+                        'emails/registration.html.twig',
+                            array('name' => $user_account->getFirstname(), 'code' => $user_account->getCode(), 'link' => $url)
+                    );
+
+                    $context['titre'] = 'Validation de compte';
+                    $context['contenu_mail'] = $htmlBody;
+                    $message->setBody(
+                        $this->renderView('mail/default.html.twig', $context),
+                        'text/html'
+                    );
+                    $message->setCharset('utf-8');
+
+
+                $mailer->send($message);
+        }
         
         $encoded = $this->container->get("security.password_encoder")->isPasswordValid($user_account, $pass);
         //var_dump($encoded, $pass, $user_account2->getPassword(), $user_account->getPassword());
@@ -149,8 +176,10 @@ class UsersController extends Controller {
                 'username' => $user_account->getusername(),
                 'lastname' => $user_account->getlastname(),
                 'email' => $user_account->getemail(),
+                'phone' => $user_account->getPhonenumber(),
                 'role' => $user_account->getroles(),
                 'active' => $user_account->getstate(),
+                'avatar' => $user_account->getAvatar() ? $this->generateUrl('homepage', array(), UrlGeneratorInterface::ABSOLUTE_URL)."images/avartars/{$user_account->getId()}/".$user_account->getAvatar() : $this->generateUrl('homepage', array(), UrlGeneratorInterface::ABSOLUTE_URL)."images/avartars/default.png",
                 'cards' => $cards
             )
         ));

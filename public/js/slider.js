@@ -74,8 +74,11 @@ FgSlider.prototype.imageItems = function() {
         
         slides.classList.add('slider-item');
         slides.style.background = `url(${This.sliderItems[i].src}) no-repeat`;
-        slides.style.backgroundSize = 'cover';
+        slides.style.backgroundSize = '100%';
         slides.style.backgroundPosition = 'center center';
+        slides.style.backgroundRepeat = 'no repeat';
+//        slides.style.width = '100%';
+//        slides.style.height = '100%';
         fgContainer.appendChild(slides);
         This.createdSlides.push(slides);
         

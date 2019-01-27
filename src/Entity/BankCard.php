@@ -57,6 +57,11 @@ class BankCard
      */
     private $stripeId;
 
+    /**
+     * @ORM\Column(type="boolean")
+     */
+    private $deleteStatus;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -166,6 +171,18 @@ class BankCard
     public function setStripeId(string $stripeId): self
     {
         $this->stripeId = $stripeId;
+
+        return $this;
+    }
+
+    public function getDeleteStatus(): ?bool
+    {
+        return $this->deleteStatus;
+    }
+
+    public function setDeleteStatus(bool $deleteStatus): self
+    {
+        $this->deleteStatus = $deleteStatus;
 
         return $this;
     }

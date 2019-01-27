@@ -447,7 +447,15 @@ class Order
 
     public function getDeliveryType(): ?string
     {
-        return $this->deliveryType;
+        $text = "A DOMICILE";
+        if($this->deliveryType == "HOME"){
+            $text = "A DOMICILE";
+        }elseif($this->deliveryType == "ON_ROAD"){
+            $text = "AU VEHICULE";
+        } else {
+            $text;
+        }
+        return $text;
     }
 
     public function setDeliveryType(?string $deliveryType): self
@@ -619,6 +627,40 @@ class Order
 
         return $this;
     }
-
-
+    
+    public function getRestauNote(){
+        $note = 0.0;
+        if($this->getShippingNote()){
+            $note = number_format(($this->getShippingNote()->getRestauNote()/2), 1);
+        }
+        return $note;
+    }
+    
+    public function getDeliverNote(){
+        $note = 0.0;
+        if($this->getShippingNote()){
+            $note = number_format(($this->getShippingNote()->getDeliverNote()/2), 1);
+        }
+        return $note;
+    }
+    
+    public function getModePaiement(){
+        $string = "";
+        if($this->getPaymentMode()){
+            switch ($this->getPaymentMode()->getId()){
+                case 1:
+                    $string = "Carte bancaire";
+                    break;
+                case 2:
+                    $string = "Ticket";
+                    break;
+                default:
+                    $sting = "Aucun mode de paiement sélectionné.";
+                    break;
+            }
+        }
+        
+        
+        return $string;
+    }
 }

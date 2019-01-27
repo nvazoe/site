@@ -122,7 +122,7 @@ class MenusController extends Controller {
             $result['data']['id'] = $menu->getId();
             $result['data']['name'] = $menu->getName();
             $result['data']['description'] = $menu->getDescription();
-            $result['data']['price'] = floatval($menu->getPrice());
+            $result['data']['price'] = number_format($menu->getPrice(),2);
             $result['data']['restaurant']['id'] = $menu->getRestaurant() ? $menu->getRestaurant()->getId() : null;
             $result['data']['restaurant']['name'] = $menu->getRestaurant() ? $menu->getRestaurant()->getName() : null;
             $result['data']['category']['id'] = $menu->getCategoryMenu() ? $menu->getCategoryMenu()->getId() : null;

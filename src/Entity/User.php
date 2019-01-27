@@ -7,10 +7,13 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Doctrine\Common\Collections\Criteria;
+use Symfony\Component\Validator\Constraints as Assert;
+use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 
 /**
  * @ORM\Entity(repositoryClass="App\Repository\UserRepository")
  * @ORM\Table(name="sf_user")
+ * @UniqueEntity("email")
  */
 class User implements UserInterface, \Serializable
 {
@@ -42,7 +45,8 @@ class User implements UserInterface, \Serializable
     private $roles;
 
     /**
-     * @ORM\Column(type="string", length=255)
+     * @ORM\Column(type="string", length=255, unique=true)
+     * @Assert\Email
      */
     private $email;
 
@@ -170,6 +174,16 @@ class User implements UserInterface, \Serializable
      * @ORM\Column(type="string", length=255, nullable=true)
      */
     private $stripeId;
+
+    /**
+     * @ORM\Column(type="string", length=255, nullable=true)
+     */
+    private $generatedCode;
+
+    /**
+     * @ORM\Column(type="string", length=255, nullable=true)
+     */
+    private $avatar;
 
     
 
@@ -345,7 +359,9 @@ class User implements UserInterface, \Serializable
      */
     public function getBankCards(): Collection
     {
-        return $this->bankCards;
+        $criteria = Criteria::create()->andWhere(Criteria::expr()->eq('deleteStatus', 1))
+            ->orderBy(['id'=>'DESC']);
+        return $this->bankCards->matching($criteria);
     }
 
     public function addBankCard(BankCard $bankCard): self
@@ -842,5 +858,60 @@ class User implements UserInterface, \Serializable
         return $this;
     }
 
+    public function getGeneratedCode(): ?string
+    {
+        return $this->generatedCode;
+    }
+
+    public function setGeneratedCode(?string $generatedCode): self
+    {
+        $this->generatedCode = $generatedCode;
+
+        return $this;
+    }
+
+    public function getAvatar(): ?string
+    {
+        return $this->avatar;
+    }
+
+    public function setAvatar(?string $avatar): self
+    {
+        $this->avatar = $avatar;
+
+        return $this;
+    }
+
+    
+    public function getNote(){
+        $som = 0;
+        $orders = $this->getOrders();
+        $total = 0;
+        $stars = 0;
+        foreach ($orders as $o){
+            if($o->getShippingNote()){
+                $total ++;
+                $som += $o->getShippingNote()->getDeliverNote();
+            }
+        }
+        if($total)
+            $stars = number_format(($som/$total)/2, 1);
+        
+        
+        return array('stars' => $stars, 'avis' => $total);
+    }
+    
+    public function getdeliveryDuring($period = 1, $time = null){
+        if(is_null($time))
+            $time = time();
+        $time2 = $time - (3600*$period);
+        
+        $criteria = Criteria::create()->andWhere(Criteria::expr()->lte('makeAt', $time))->andWhere(Criteria::expr()->gte('makeAt', $time2));
+        
+        $result = $this->shippingLogs->matching($criteria);
+        
+        return count($result) ? count($result) : 0;
+        
+    }
     
 }

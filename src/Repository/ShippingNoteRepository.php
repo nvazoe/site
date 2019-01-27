@@ -47,4 +47,18 @@ class ShippingNoteRepository extends ServiceEntityRepository
         ;
     }
     */
+    
+    public function getShippingByDeliver($deliver){
+        $query = $this->createQueryBuilder('s');
+        $query->join('App\Entity\Order', 'o', \Doctrine\ORM\Query\Expr\Join::WITH, 'o.id = s.command');
+        $query->andWhere('o.messenger = :stat')->setParameter('stat', $deliver);
+        return $query->getQuery()->getResult();
+    }
+    
+    public function getShippingByRestaurant($restaurant){
+        $query = $this->createQueryBuilder('s');
+        $query->join('App\Entity\Order', 'o', \Doctrine\ORM\Query\Expr\Join::WITH, 'o.id = s.command');
+        $query->andWhere('o.restaurant = :stat')->setParameter('stat', $restaurant);
+        return $query->getQuery()->getResult();
+    }
 }

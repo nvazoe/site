@@ -36,6 +36,7 @@ p.header-text-1 {
 .type-menu-bar { padding: 10px 0px 10px 0px; border-bottom: 1px solid #ccc;background-color: #fff;}*/
 
 /* HEADER */
+
 .blck-logo{
     display: inline-block;
     float: left;
@@ -72,6 +73,7 @@ p.header-text-1 {
 
 .footer-menu ul li a {
     color: #fff;
+    text-transform: uppercase;
 }
 
 .footer-menu ul li a:hover {
@@ -111,10 +113,12 @@ ul {
     padding: 15px 5px;
 }
 
+
 p.descript {
     text-align: center;
-    font-family: cursive;
+    font-family: dosismedium;
     font-size: 1.1em;
+    line-height: 1.8;
 }
 
 .options > ul{
@@ -196,10 +200,91 @@ i.fa {
     font-size: 16px;
 }
 
+header.top-header .blck-menu i.fa-bars {
+    display: none;
+}
+
+header.top-header .blck-menu i.fa-close {
+    display: none;
+}
+
+.banner {
+    background-color: #f7f7f7;
+    padding: 50px;
+}
+
+.banner p {
+    text-transform: uppercase;
+    font-size: 24px;
+    color: #33333;
+}
+
+.fg-slider {
+    height: 500px;
+}
+
+
+
+@media(max-width: 880px){
+    header.top-header .blck-menu i.fa-bars { position: absolute; display: inline-block; top: 51px; font-size: 29px; right: 29px; }
+    header.top-header .blck-menu i.fa-close { z-index: 1; position: absolute; display: inline-block; top: 51px; font-size: 29px; right: 29px; }
+    header.top-header .blck-menu { position: relative; }
+    header.top-header .blck-menu ul { left: 0; padding-top: 76px; display: none; width: 100%; position: fixed; top: 0; bottom: 0; background: #8ebf25e8; z-index: 1; }
+    header.top-header .blck-menu ul li { width: 100%; margin-bottom: 31px; }
+    header.top-header .blck-menu ul li i.fa { font-size: 13px;
+    background: #000;
+    color: #fff;
+    width: 24px;
+    height: 24px;
+    text-align: center;
+    padding-top: 5px;
+    border-radius: 23px;}
+    .blck-menu li > span > a {     font-size: 18px;
+    padding-left: 9px;}
+    .blck-menu li.active > span > a { color: #fff; }
+    header.top-header .blck-menu i.fa-close { display: none; }
+}
+
 
 @media(max-width: 768px){
     .footer-2{
         margin-top: 25px;
         padding-left: unset;
     }
+    .form-horizontal .opt .col-sm-1 { width: 24px; float: left; padding-right: 0; }
+    .form-horizontal .opt .col-sm-8 { float: left; width: calc(100% - 114px); }
+    .form-horizontal .opt .col-sm-3 { float: left; width: 90px; }
+    .block-pub > .container { height: 1030px; background-size: auto; }
+}
+
+@media(max-width: 428px){
+    .blck-logo { height: 118px; }
+    .blck-logo img { width: 183px; padding: 33px 0 0 19px; }
+}
+
+
+
+h3.social{
+    font-family: dosismedium;
+    text-transform: uppercase;
+    font-weight: 700;
+    font-size: 15px;
+}
+
+.je-commande {
+    border: 7px solid;
+    padding: 20px 42px;
+    color: #aac330;
+    text-transform: uppercase;
+    font-size: 19px;
+    display: block;
+    width: max-content;
+    margin: 0 auto;
+    position: relative;
+    top: -33px;
+    background: #fff;
+}
+
+.restau-rating-stars i.fa {
+    bottom: 0px;
 }

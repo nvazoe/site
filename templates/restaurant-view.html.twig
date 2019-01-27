@@ -39,6 +39,7 @@
 
 {% block body %}
     <div class="padding-top-bottom">
+    
     <div class="container">
             <ol class="breadcrumb">
                 <li><a href="{{path('homepage')}}">Accueil</a></li>
@@ -46,10 +47,20 @@
                 <li class="active">{{restaurant.name}}</li>
             </ol>
         </div>
+    <div class="container">
+        <div class="find-place">
+            <form>
+                <input  class="form-control" id="user_input_autocomplete_address" placeholder="Votre adresse...">
+                <input type="hidden" id="latitude" name="latitude" disabled>
+                <input type="hidden" id="longitude" name="longitude" disabled>
+            </form>
+        </div>
+    </div>
     <div class="container" id="restau" data-restau="{{restaurant.name}}" data-restau-id="{{restaurant.id}}">
         <div class="row">
             <div class="col-md-8">
-                {%for menu in restaurant.menus %}
+                <div class="row">
+                {%for menu in restaurant.MenusOrderByPosition %}
                     <div class="col-sm-6">
                         <div class="box" data-menu="{{ menu.id }}"  data-toggle="modal" data-target="#info">
                             <div class="blck-descp">
@@ -60,26 +71,24 @@
                                 </div>
                                 <br><br>
                                 <div class="price">
-                                    {{menu.price}} €
+                                    {{menu.price|number_format(2)}} €
                                 </div>
                             </div>
 
                             <div class="blck-picture">
-                                <div style="background-image: url('{% if not menu.image %}{{ asset('images/menu/dish.jpg')}}{%else%}{{ asset('images/menu/')}}{{menu.image}}{%endif%}'); height:100%;background-size:cover;"></div>
+                                <div class="img-menu"><img src="{% if not menu.image %}{{ asset('images/menu/dish.jpg')}}{%else%}{{ asset('images/menu/')}}{{menu.image}}{%endif%}" alt="image menu"></div>
                             </div>
                         </div>
                     </div>
 
                 {%endfor%}
+                </div>
             </div>
             <div class="col-md-4">
                 <div class="box-payment">
-                    <a class="btn btn-success" href="{{path('checkout')}}">Paiement</a>
+                    <button class="btn btn-success" id="payment">Paiement</button>
                 </div>
-                <div class="box-basket">
-                    
-                    
-                </div>
+                <div class="box-basket"></div>
                 <div class="box-infos">
                     <span>Ajoutez des articles à votre panier et ils s'y afficheront</span>
                 </div>
@@ -98,10 +107,13 @@
                 </div>
                 <div class="modal-body">
                     <div class="row">
-                        <div class="col-md-6">
-                            <div class="bck-img"></div>
+                        <div class="col-md-12 loader text-center"><img src="{{asset('images/icons/loader.gif')}}" alt="loader"></div>
+                        <div class="col-md-6 infomenu hide">
+                            <div class="bck-img">
+                                
+                            </div>
                         </div>
-                        <section class="col-md-6 side-data">
+                        <section class="col-md-6 infomenu side-data hide">
                             <header>
                                 <h3 id="menu-name">NOM DU MENU</h3>
                                 <p id="menu-description">Marque</p>
@@ -125,7 +137,7 @@
                                         </div>
                                     </div>
                                 </div>
-                                <div class="option-info">Pour être informé sur les allergènes présents dans les produits proposés par ce restaurant, cliquez ici.</div>
+{#                                <div class="option-info">Pour être informé sur les allergènes présents dans les produits proposés par ce restaurant, cliquez ici.</div>#}
                             </main>
                             <footer class="footer-menu">
                                 <div class="row">
@@ -158,5 +170,10 @@
 {% endblock %}
 
 {% block javascripts %}
+    <script src="{{ asset('toastr/toastr.min.js') }}"></script>
     <script src="{{ asset('js/order-sys.js') }}"></script>
+{% endblock %}
+
+{% block stylesheets %}
+    <link rel="stylesheet" href="{{ asset('toastr/toastr.min.css') }}">
 {% endblock %}

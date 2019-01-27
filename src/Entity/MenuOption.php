@@ -5,6 +5,7 @@ namespace App\Entity;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Doctrine\Common\Collections\Criteria;
 
 /**
  * @ORM\Entity(repositoryClass="App\Repository\MenuOptionRepository")
@@ -73,7 +74,8 @@ class MenuOption
      */
     public function getYes(): Collection
     {
-        return $this->yes;
+        $criteria = Criteria::create()->orderBy(['position'=>'asc']);
+        return $this->yes->matching($criteria);;
     }
 
     public function addYe(MenuOptionProducts $ye): self

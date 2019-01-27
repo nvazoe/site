@@ -71,14 +71,16 @@ class OrderRepository extends ServiceEntityRepository
     }
     
     
-    public function getUserOrders($user, $limit, $page, $status, $count=false)
+    public function getUserOrders($user = null, $limit, $page, $status, $count=false)
     {
         $select = $this->createQueryBuilder('o');
+        if($user){
+            $select = $select->Join('App\Entity\Restaurant', 'r', \Doctrine\ORM\Query\Expr\Join::WITH, 'r.id = o.restaurant');
+            $select = $select->Join('App\Entity\User', 'u', \Doctrine\ORM\Query\Expr\Join::WITH, 'u.id = r.owner');
+
+            $select = $select->andWhere('r.owner = :u')->setParameter('u', $user);
+        }
         
-        $select = $select->Join('App\Entity\Restaurant', 'r', \Doctrine\ORM\Query\Expr\Join::WITH, 'r.id = o.restaurant');
-        $select = $select->Join('App\Entity\User', 'u', \Doctrine\ORM\Query\Expr\Join::WITH, 'u.id = r.owner');
-        
-        $select = $select->andWhere('r.owner = :u')->setParameter('u', $user);
         
         if($status){
             if(!is_array($status)){

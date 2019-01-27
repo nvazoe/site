@@ -6,6 +6,7 @@
         <title>{% block page_title %}{% endblock %} - Allo Zoé</title>
         <link rel="stylesheet" href="{{ asset('allozoe/css/bootstrap.css') }}">
         <link rel="stylesheet" href="{{ asset('fonts/css/font-awesome.min.css') }}">
+        <link rel="stylesheet" href="{{ asset('fonts/dosismedium.css') }}">
         <link rel="stylesheet" href="{{ asset('allozoe/css/style.css') }}">
         <link rel="stylesheet" href="{{ asset('css/styles.css') }}">
         {% block stylesheets %}{% endblock %}
@@ -39,25 +40,28 @@
                         <i class="underline"></i>
                     </li>#}
                 </ul>
+                <i class="fa fa-bars"></i>
+                <i class="fa fa-close"></i>
             </div>
             
             
             
         </header>
         {% block carousel %}{% endblock %}
-        <main>
-            {% for label, messages in app.flashes %}
-                {% for message in messages %}
-                    <div class="flash-{{ label }} alert alert-{{ label }} text-center">
-                        {{ message }}
-                    </div>
+        
+            <main>
+                {% for label, messages in app.flashes %}
+                    {% for message in messages %}
+                        <div class="flash-{{ label }} alert alert-{{ label }} text-center">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
                 {% endfor %}
-            {% endfor %}
-            
-            
-            {% block body %}{% endblock %}
-        </main>
-        <footer class="pied">
+
+
+                {% block body %}{% endblock %}
+            </main>
+            <footer class="pied">
             <div class="container footer">
                 <div class="row">
                     <div class="col-md-6 col-sm-6 col-xs-12 footer-1">
@@ -68,14 +72,13 @@
                         <div class="footer-img"><img src="{{ asset('images/paiement-300x53.png') }}" alt="img-payment" /></div>
                         <div class="footer-menu">
                             <ul class="list-inline">
-                                <li><a href="#">Accueil</a></li>
-                                <li><a href="#">Commandez</a></li>
-                                <li><a href="#">Contact</a></li>
+                                <li><a href="{{path('homepage')}}">Accueil</a></li>
+                                <li><a href="{{path('commander')}}">Commandez</a></li>
+                                <li><a href="{{path('contact')}}">Contact</a></li>
+                                <li><a href="{{path('mention_legale')}}">Mentions légales</a></li>
                             </ul>
                         </div>
-                        <div class="footer-links">
-                            <ul class="list-inline"><li>Mentions légales</li></ul>
-                        </div>
+                        
                     </div>
                 </div>
                 
@@ -87,6 +90,55 @@
         <script src="{{ asset('js/jquery.min.js') }}"></script>
         <script src="{{ asset('assets/js/bootstrap.min.js') }}"></script>
         <script src="{{ asset('js/main.js') }}"></script>
+        <script src="https://maps.googleapis.com/maps/api/js?libraries=places&key=AIzaSyDlHJyOaa1i7sl_VvSJ-MR3w5uAT3M_UgQ" type="text/javascript"></script>
+        
+        <script>
+            
+            var url = "{{base}}";
+            function initializeAutocomplete(id) {  
+                var element = document.getElementById(id);  
+
+                if (element) {    
+                    var autocomplete = new google.maps.places.Autocomplete(element, { types: ['geocode'] });
+                    google.maps.event.addListener(autocomplete, 'place_changed', onPlaceChanged);
+                }
+            }
+            
+            
+            function onPlaceChanged() {  
+                var place = this.getPlace();
+                // console.log(place);  // Uncomment this line to view the full object returned by Google API.
+
+                for (var i in place.address_components) {    
+                  var component = place.address_components[i];    
+
+                  for (var j in component.types) {  
+                    // Some types are ["country", "political"]      
+                    var type_element = document.getElementById(component.types[j]);      
+
+                    if (type_element) {        
+                      type_element.value = component.long_name;
+                    }    
+                  }  
+                }
+                
+                console.log(place);
+                var longitude = document.getElementById("longitude");
+                var latitude = document.getElementById("latitude");
+                var location = document.getElementById("user_input_autocomplete_address");
+                longitude.value = place.geometry.location.lng();
+                latitude.value = place.geometry.location.lat();
+                
+                localStorage.setItem('search_resto_lat_arround', latitude.value);
+                localStorage.setItem('search_resto_lng_arround', longitude.value);
+                
+                window.location.href = url+'?lieu='+location.value+'&lng='+longitude.value+'&lat='+latitude.value;
+            }
+            
+            google.maps.event.addDomListener(window, 'load', function() {  
+                initializeAutocomplete('user_input_autocomplete_address');
+              });
+        </script>
         {% block javascripts %}
         {% endblock %}       
     </body>

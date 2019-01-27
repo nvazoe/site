@@ -67,11 +67,13 @@ li.carousel-item.active {
 }
 
 .box {
+    display: flex;
+    align-items: stretch;
     border: 1px solid #ccc;
     padding: 15px;
     margin: 15px 0px;
     height: 175px;
-    max-height: 175px;
+    max-height: 170px;
 }
 
 .box:hover {
@@ -91,7 +93,7 @@ li.carousel-item.active {
 }
 
 .box-basket{
-    height: 200px;
+    max-height: 200px;
     overflow: auto;
 }
 
@@ -141,7 +143,9 @@ li.carousel-item.active {
 }
 
 .blck-picture {
-    display: inline-block;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     width: 40%;
     height: 100%;
 }
@@ -340,6 +344,8 @@ footer.footer-menu{
 
 .pied {
     background: rgb(93, 93, 94);
+    font-family: dosismedium;
+    
 }
 
 .footer {
@@ -352,4 +358,8 @@ footer.footer-menu{
 
 main > header {
     padding: 10px 20px 0px 40px;
+}
+
+.img-menu img, .bck-img img {
+    width: 100%;
 }

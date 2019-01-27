@@ -91,8 +91,13 @@ class UserRepository extends ServiceEntityRepository
             $query = $query->andWhere ('o.client = :client')->setParameter ('client', $client);
         if($messenger)
             $query = $query->andWhere ('o.messenger = :msg')->setParameter ('msg', $messenger);
-        if($status)
-            $query = $query->andWhere ('o.orderStatus = :status')->setParameter ('status', $status);
+        if($status){
+            if(!is_array($status)){
+                $query = $query->andWhere ('o.orderStatus = :status')->setParameter ('status', $status);
+            }else{
+                $query = $query->andWhere ('o.orderStatus IN (:status)')->setParameter ('status', $status);
+            }
+        }
         if($restaurant)
             $query = $query->andWhere ('o.restaurant = :restau')->setParameter ('restau', $restaurant);
         if($count)

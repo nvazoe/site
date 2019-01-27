@@ -125,6 +125,9 @@ class ProductsController extends Controller {
         $result['code'] = 201;
         $result['product_id'] = $product->getId();
         
+        $restaurantObj->selectfield = "t.*,  ( 6371  acos( cos( radians($lat) )  cos( radians( latitude ) )  cos( radians( longitude ) - radians($lng) ) + sin( radians($lat) ) * sin( radians( latitude ) ) ) ) AS distance";
+    $restaurantObj->setTri('distance ASC');
+        
         return new JsonResponse($result, $result['code']);
         
     }
@@ -186,5 +189,42 @@ class ProductsController extends Controller {
         $result['per_page'] = $limit;
         
         return new JsonResponse($result, $result['code'] = 200);
+    }
+    
+    
+    /**
+     * @Get("/api/products/{id}")
+     * 
+     * *@SWG\Response(
+     *      response=200,
+     *      description="Get product infos"
+     * )
+     * 
+     
+     * 
+     * @SWG\Tag(name="Products")
+     */
+    public function getProductAction(Request $request, $id){
+        $em = $this->getDoctrine()->getManager();
+        $product = $em->getRepository(Product::class)->find($id);
+        
+        if(!$product){
+            $result['code'] = 400;
+            $result['description'] = "Ce client n'existe pas.";
+        }else{
+            $result['code'] = 200;
+            $result['data']['id'] = $product->getId();
+            $result['data']['name'] = $product->getName();
+            $result['data']['price'] = $product->getPrice();
+            $result['data']['description'] = $product->getDescription();
+            if($product->getImage()){
+                $result['data']['image'] = $this->generateUrl('homepage', array(), UrlGeneratorInterface::ABSOLUTE_URL).'images/product/'.$product->getImage();
+            }else{
+                $result['data']['image'] = $this->generateUrl('homepage', array(), UrlGeneratorInterface::ABSOLUTE_URL).'images/menu/dish.jpg';
+            }
+            
+        }
+        
+        return new JsonResponse($result, $result['code']);
     }
 }
