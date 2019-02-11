@@ -5,26 +5,46 @@
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
         <title>Impression ticket </title>
         <link rel="stylesheet"  href="impression-ticket.css" media="print" />
+        <link rel="stylesheet"  href="{{ asset('assets/css/bootstrap.css') }}" />
+        <style>
+            
+            div > strong.title-1 {
+                font-size: 2em;
+            }
+            table tr th, .total {
+                font-size: 1.4em;
+            }
+            .master, tbody td ul li{
+                font-size: 1.3em;
+            }
+            tbody td ul li{
+                position: relative;
+                right: 15px;
+            }
+            div{
+                font-size: 1.1em;
+            }
+        </style>
     </head>
     <body>
         <div class="ticket text-center"">
                                 <div><img class="ticket-logo" src="{{ asset('images/logo.png') }}"></div>
-                                <div><strong>INFOS RESTAURANT</strong></div>
+                                <div><strong class="title-1">INFOS RESTAURANT</strong></div>
                                 <div class="title">{{ order.restaurant.name }}</div>
                                     <div>{{ order.restaurant.address }}</div>
                                     <div>Du {{ order.dateCreated|date('d - m - Y H:i:s')}}</div>
                                     <br><br>
-                                    <div><strong>INFOS CLIENT</strong></div>
+                                    <div><strong class="title-1">INFOS CLIENT</strong></div>
                                     <div>Tel : {{order.client.phoneNumber}}</div>
                                     <div>Adresse : {{order.address}}</div>
                                     <br><br>
                                     <table class="table table-bordered text-center">
                                         <thead>
                                             <tr>
-                                                <th>Qte</th>
-                                                <th>Produit</th>
-                                                <th>Unit</th>
-                                                <th>Total</th>
+                                                <th class="text-center">Qte</th>
+                                                <th class="text-center">Produits</th>
+                                                <th class="text-center">Unit</th>
+                                                <th class="text-center">Total</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -32,11 +52,11 @@
                                                 <tr>
                                                     <td>
                                                         <div>
-                                                            <strong>{{ord.quantity}}</strong>
+                                                            <strongs style="font-size: 1.5em;">{{ord.quantity}}</strong>
                                                         </div>
                                                     </td>
                                                     <td>
-                                                        {{ord.menuname}}
+                                                        <span class="master">{{ord.menuname}}</span>
                                                         <ul style="list-style-type:none;">
                                                             {% for dt in ord.OrderDetailsMenuProducts %}
                                                                 <li>{{dt.product.name}}</li>
@@ -44,18 +64,18 @@
                                                         </ul>
                                                     </td>
                                                     <td>
-                                                        {{ord.price}}
+                                                        <span class="master">{{ord.price|number_format(2) }}</span>
                                                         <ul style="list-style-type:none;">
                                                             {% for dt in ord.OrderDetailsMenuProducts %}
-                                                                <li>{{dt.price}}</li>
+                                                                <li>{{dt.price|number_format(2)}}</li>
                                                             {%endfor%}
                                                         </ul>
                                                     </td>
                                                     <td>
-                                                        {{ord.price * ord.quantity}}
+                                                        <span class="master">{{(ord.price * ord.quantity)|number_format(2)}}</span>
                                                         <ul style="list-style-type:none;">
                                                             {% for dt in ord.OrderDetailsMenuProducts %}
-                                                                <li>{{dt.price * ord.quantity}}</li>
+                                                                <li>{{(dt.price * ord.quantity)|number_format(2)}}</li>
                                                             {%endfor%}
                                                         </ul>
                                                     </td>
@@ -65,7 +85,7 @@
                                         <tfooter>
                                             <tr>
                                                 <th colspan="3">Total commande</th>
-                                                <td>{{order.amount}} EUR</td>
+                                                <td class="total"><strong>{{order.amount|number_format(2)}} EUR</strong></td>
                                             </tr>
                                         </tfooter>
                                     </table>
@@ -91,6 +111,6 @@
                             </div>
     </body>
     <script>
-        window.print();
+        {#window.print();#}
     </script>
 </html>

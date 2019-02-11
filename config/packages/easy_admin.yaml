@@ -26,6 +26,9 @@ easy_admin:
                         property: status
                         label: Statut
                         type: toggle
+                    -
+                        property: restaurantSpecialities
+                        label: Catégories
             
             form:
                 fields:
@@ -765,6 +768,11 @@ easy_admin:
             -
                 entity: CategoryMenu
                 label: Catégories / Spécialités
+                icon: folder-open
+                role: ROLE_RESTAURANT
+            -
+                entity: RestaurantSpeciality
+                label: Restaurants / Spécialités
                 icon: folder-open
                 role: ROLE_RESTAURANT
             -

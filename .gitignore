@@ -4,6 +4,10 @@
 /public/bundles/
 /var/
 /vendor/
+/filess
+/public/images/
+/public/swf/
+/public/starwebprint/
 ###< symfony/framework-bundle ###
 
 ###> symfony/phpunit-bridge ###
@@ -22,3 +26,4 @@ restau.zip
 npm-debug.log
 yarn-error.log
 ###< symfony/webpack-encore-bundle ###
+/nbproject/private/

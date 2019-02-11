@@ -244,6 +244,7 @@ class AdminController extends BaseAdminController {
      */ 
     public function addMenu(Request $request, $id=null){
         $em = $this->getDoctrine()->getManager();
+        $page = $request->get('page', 1);
         $products = $em->getRepository(Product::class)->findAll();
         $categories = $em->getRepository(CategoryMenu::class)->findAll();
         if ( !$this->get('security.authorization_checker')->isGranted('ROLE_SUPER_ADMIN')){
@@ -353,7 +354,8 @@ class AdminController extends BaseAdminController {
                 'entity'=> 'Menu',
                 'action'=> 'list',
                 'menyIndex' => 3,
-                'submenuIndex'=> -1
+                'submenuIndex'=> -1,
+                'page' => $page
             ]);
         }
         return array(

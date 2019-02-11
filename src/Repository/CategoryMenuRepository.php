@@ -4,6 +4,7 @@ namespace App\Repository;
 
 use App\Entity\CategoryMenu;
 use App\Entity\Menu;
+use App\Entity\Restaurant;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Symfony\Bridge\Doctrine\RegistryInterface;
 
@@ -67,6 +68,24 @@ class CategoryMenuRepository extends ServiceEntityRepository
         
         if($category)
             $query = $query->andWhere ('m.categoryMenu = :val')->setParameter ('val', $category);
+        
+        if($count)
+            return $query->select('COUNT(m)')->getQuery()->getSingleScalarResult();
+        
+        if($limit)
+            $query = $query->setFirstResult( ($page-1)*$limit )->setMaxResults( $limit );
+        
+        return $query->getQuery()->getResult();
+    }
+    
+    public function getRestaurants($category, $limit, $page, $count = false){
+        $this->_entityName = Restaurant::class;
+        $query = $this->createQueryBuilder('r');
+        $query->select('r');
+        $query->distinct();
+        $query->join('App\Entity\Menu', 'm', \Doctrine\ORM\Query\Expr\Join::WITH, 'm.restaurant = r.id');
+        $query->join('App\Entity\categoryMenu', 'c', \Doctrine\ORM\Query\Expr\Join::WITH, 'm.categoryMenu = c.id');
+        $query->andWhere ('m.categoryMenu = :val')->setParameter ('val', $category);
         
         if($count)
             return $query->select('COUNT(m)')->getQuery()->getSingleScalarResult();
