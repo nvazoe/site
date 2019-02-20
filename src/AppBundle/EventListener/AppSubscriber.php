@@ -67,7 +67,6 @@ class AppSubscriber implements EventSubscriberInterface
         $config = $this->config->getBackendConfig(); 
         // check for permission for each action
         foreach ($config['entities'] as $k => $v) {
-            //echo '<pre>'; die(var_dump($v[$action])); echo '</pre>';
             if ($entity == $k && !$this->authorization->isGranted($v[$action]['role'])) {
                 throw new AccessDeniedException();
             }
