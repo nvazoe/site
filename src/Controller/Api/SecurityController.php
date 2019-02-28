@@ -55,6 +55,7 @@ class SecurityController extends Controller {
         $em = $this->getDoctrine()->getManager();
         
         $email = $request->query->get('email')?$request->query->get('email'):$request->request->get('email');
+        $emailAdmin = $em->getRepository(Configuration::class)->findOneByName('AZ_ADMIN_EMAIL')->getValue();
         if(is_null($email)){
             $result = array('code' => 4000, 'description' => "Email is required.");
             return new JsonResponse($result, 400);
@@ -78,7 +79,7 @@ class SecurityController extends Controller {
         
         // Sending code by email
         $message = (new \Swift_Message('Mot de passe oublié'))
-            ->setFrom('contact@ubereat.com')
+            ->setFrom($emailAdmin)
             ->setTo($email)
             ->setBody(
                 $this->renderView(

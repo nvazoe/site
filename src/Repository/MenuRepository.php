@@ -75,17 +75,17 @@ class MenuRepository extends ServiceEntityRepository
     
     public function getMenus($limit, $page, $count=false)
     {
-        $query = $this->createQueryBuilder('e');
+        $select = $this->createQueryBuilder('e');
+        $select->Join('App\Entity\Restaurant', 'r', \Doctrine\ORM\Query\Expr\Join::WITH, 'r.id = e.restaurant');
+        $select->andWhere('r.status = :u')->setParameter('u', 1);
+        
         if($count){
-            return $this->createQueryBuilder('e')->select('COUNT(e)')->getQuery()->getSingleScalarResult();
+            return $select->select('COUNT(e)')->getQuery()->getSingleScalarResult();
         }else{
-            $qb=$this->createQueryBuilder('e')->select('e')    
-               ->setFirstResult( ($page-1)*$limit )
+               
+            $select->setFirstResult( ($page-1)*$limit )
                ->setMaxResults( $limit );
-            return $qb->getQuery()->getResult();            
+            return $select->getQuery()->getResult();            
         }
     }
-    
-    
-    
 }

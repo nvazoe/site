@@ -88,7 +88,7 @@ class RestaurantsController extends Controller {
         // Default values
         $limit = ($limit == null) ? 100 : $limit;
         $page = ($page == null) ? 1 : $page;
-        $status = ($status == null) ? 1 : $status;
+        $status = 1;
         
         $listrestau = $em->getRepository(Restaurant::class)->getRestaurants($longitude, $latitude, $status, intval($limit), intval($page), false, $distance);
         $array = [];
