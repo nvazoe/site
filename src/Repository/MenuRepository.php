@@ -73,19 +73,26 @@ class MenuRepository extends ServiceEntityRepository
         return $select->getQuery()->getResult();
     }
     
-    public function getMenus($limit, $page, $count=false)
+    public function getMenus($limit, $page, $count=false, $distance = 30, $longitude, $latitude)
     {
+        if(is_null($latitude))
+            $latitude = 48.864716;
+        if(is_null($longitude))
+            $longitude = 2.349014;
+        
+        
         $select = $this->createQueryBuilder('e');
         $select->Join('App\Entity\Restaurant', 'r', \Doctrine\ORM\Query\Expr\Join::WITH, 'r.id = e.restaurant');
+        $select->select('e.*, r.( 6371 * acos( cos( radians('.$latitude.') ) * cos( radians( latidude ) ) * cos( radians( longitude ) - radians('.$longitude.') ) + sin( radians('.$latitude.') ) * sin( radians( latidude ) ) ) ) AS distance');
         $select->andWhere('r.status = :u')->setParameter('u', 1);
-        
+        $select->having('distance <= :distance')->setParameter('distance', $distance);
         if($count){
             return $select->select('COUNT(e)')->getQuery()->getSingleScalarResult();
         }else{
                
             $select->setFirstResult( ($page-1)*$limit )
                ->setMaxResults( $limit );
-            return $select->getQuery()->getResult();            
+            return $select->getSql();            
         }
     }
 }

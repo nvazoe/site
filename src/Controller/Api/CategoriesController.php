@@ -32,6 +32,7 @@ use App\Entity\CategoryMenu;
 use App\Entity\MenuOption;
 use App\Entity\MenuNote;
 use App\Entity\MenuMenuOption;
+use App\Entity\Configuration;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 
@@ -124,6 +125,9 @@ class CategoriesController extends Controller{
         $em = $this->getDoctrine()->getManager();
         $limit = $request->query->get('limit')?$request->query->get('limit'):$request->request->get('limit');
         $page = $request->query->get('page')?$request->query->get('page'):$request->request->get('page');
+        $distance = $em->getRepository(Configuration::class)->findOneByName('RESTAURANT_RANGE')->getValue();
+        $longitude = $request->query->get('longitude')?$request->query->get('longitude'):$request->request->get('longitude');
+        $latitude = $request->query->get('latitude')?$request->query->get('latitude'):$request->request->get('latitude');
         
         // Default values
         $limit = ($limit == null) ? 100 : $limit;
@@ -136,7 +140,7 @@ class CategoriesController extends Controller{
         }
         
         $array = [];
-        $menus = $em->getRepository(CategoryMenu::class)->getMenus($id, $limit, $page, false);
+        $menus = $em->getRepository(CategoryMenu::class)->getMenus($id, $limit, $page, false, $distance, $longitude, $longitude);
         foreach ($menus as $k => $l){
             $array[$k]["id"] = $l->getId();
             $array[$k]["name"] = $l->getName();
@@ -153,7 +157,7 @@ class CategoriesController extends Controller{
             
         $result['code'] = 200;
         $result['items'] = $array;
-        $result['total'] = $em->getRepository(CategoryMenu::class)->getMenus($id, $limit, $page, true);;
+        $result['total'] = $em->getRepository(CategoryMenu::class)->getMenus($id, $limit, $page, true, $distance, $longitude, $longitude);
         $result['current_page'] = $page;
         $result['per_page'] = $limit;
         

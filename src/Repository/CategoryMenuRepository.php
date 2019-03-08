@@ -7,6 +7,8 @@ use App\Entity\Menu;
 use App\Entity\Restaurant;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Symfony\Bridge\Doctrine\RegistryInterface;
+use Doctrine\ORM\Query\ResultSetMapping;
+use Doctrine\ORM\Query\ResultSetMappingBuilder;
 
 /**
  * @method CategoryMenu|null find($id, $lockMode = null, $lockVersion = null)
@@ -50,8 +52,7 @@ class CategoryMenuRepository extends ServiceEntityRepository
     }
     */
     
-    public function getCategories($limit, $page, $count=false)
-    {
+    public function getCategories($limit, $page, $count=false){
         if($count){
             return $this->createQueryBuilder('e')->select('COUNT(e)')->getQuery()->getSingleScalarResult();
         }else{
@@ -62,20 +63,47 @@ class CategoryMenuRepository extends ServiceEntityRepository
         }
     }
     
-    public function getMenus($category, $limit, $page, $count = false){
-        $this->_entityName = Menu::class;
-        $query = $this->createQueryBuilder('m');
+    public function getMenus($category, $limit, $page, $count = false, $distance, $longitude, $latitude){
         
-        if($category)
-            $query = $query->andWhere ('m.categoryMenu = :val')->setParameter ('val', $category);
+        if(is_null($latitude))
+            $latitude = 48.864716;
+        if(is_null($longitude))
+            $longitude = 2.349014;
         
-        if($count)
-            return $query->select('COUNT(m)')->getQuery()->getSingleScalarResult();
+        $rsm = new ResultSetMapping();
+        $rsm = new ResultSetMappingBuilder($this->_em);
+        $rsm->addRootEntityFromClassMetadata('App\Entity\Menu', 'm');
         
-        if($limit)
-            $query = $query->setFirstResult( ($page-1)*$limit )->setMaxResults( $limit );
+        $query = $this->_em->createNativeQuery(
+            'SELECT m.*, ( 6371 * acos( cos( radians('.$latitude.') ) * cos( radians( r.latidude ) ) * cos( radians( r.longitude ) - radians('.$longitude.') ) + sin( radians('.$latitude.') ) * sin( radians( r.latidude ) ) ) ) AS distance '
+            . 'FROM menu m '
+            . 'JOIN restaurant r ON r.id = m.restaurant_id'
+            .' WHERE 1 '
+            . ' AND r.status = 1' 
+            . ' HAVING distance <= '.$distance
+            .' ORDER BY distance asc '
+            .($limit ? ' LIMIT '.(($page - 1) * $limit).", $limit" : '')
+            , $rsm
+        );
         
-        return $query->getQuery()->getResult();
+        if($count) {
+            $query = $this->_em->createNativeQuery(
+                'SELECT m.*, ( 6371 * acos( cos( radians('.$latitude.') ) * cos( radians( r.latidude ) ) * cos( radians( r.longitude ) - radians('.$longitude.') ) + sin( radians('.$latitude.') ) * sin( radians( r.latidude ) ) ) ) AS distance '
+                . 'FROM menu m '
+                . 'JOIN restaurant r ON r.id = m.restaurant_id'
+                .' WHERE 1 '
+                . ' AND r.status = 1' 
+                . ' HAVING distance <= '.$distance
+                .' ORDER BY distance asc '
+                .($limit ? ' LIMIT '.(($page - 1) * $limit).", $limit" : '')
+                , $rsm
+            );
+            
+            return count($query->getResult());
+        }
+        
+
+        return $query->getResult();
     }
     
     public function getRestaurants($category, $limit, $page, $count = false){
