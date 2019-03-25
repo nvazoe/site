@@ -2,8 +2,9 @@
 
 namespace App\Entity;
 
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
-
 /**
  * @ORM\Entity(repositoryClass="App\Repository\BankCardRepository")
  */
@@ -48,7 +49,7 @@ class BankCard
     private $yearExp;
 
     /**
-     * @ORM\OneToOne(targetEntity="App\Entity\Order", mappedBy="payment", cascade={"persist", "remove"})
+     * @ORM\OneToMany(targetEntity="App\Entity\Order", mappedBy="payment")
      */
     private $command;
 
@@ -61,6 +62,11 @@ class BankCard
      * @ORM\Column(type="boolean")
      */
     private $deleteStatus;
+    
+    public function __construct()
+    {
+        $this->command = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {

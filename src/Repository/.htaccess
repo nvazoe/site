@@ -1,0 +1,14 @@
+RewriteEngine on
+
+RewriteCond %{HTTP_HOST} ^(www.)?http://objectfinder.gdt-core.com/$
+RewriteCond %{REQUEST_URI} !^/public/
+
+# Ne changez pas cette ligne.
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+
+# Changez 'sousdossier' pour le dossier que vous voulez donner à votre domaine.
+RewriteRule ^(.*)$ /public/$1
+
+RewriteCond %{HTTP_HOST} ^(www.)?http://objectfinder.gdt-core.com/$
+RewriteRule ^(/)?$ public/index.php [L]

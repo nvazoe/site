@@ -84,7 +84,7 @@ li.carousel-item.active {
     width: 100%;
 }
 
-.box-basket, .box-infos{
+.box-basket, .box-infos, .ship-fees, .box-total{
     margin-top: 0px;
     border-top: 1px solid #ccc;
     border: 1px solid #ccc;

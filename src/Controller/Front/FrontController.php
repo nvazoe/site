@@ -172,6 +172,7 @@ class FrontController extends Controller{
         
         $azCommission = $em->getRepository(Configuration::class)->findOneByName('AZ_STRIPE_COMMISSION')->getValue();
         $adminEmail = $em->getRepository(Configuration::class)->findOneByName('AZ_ADMIN_EMAIL')->getValue();
+        $shipping_cost = $em->getRepository(Configuration::class)->findOneByName('SHIPPING_COST')->getValue();
         
         try{
             $stripePublicKey = $em->getRepository(Configuration::class)->findOneByName('AZ_STRIPE_ACCOUNT_SECRET')->getValue();
@@ -282,6 +283,7 @@ class FrontController extends Controller{
             $order->setDeliveryNote($delivery_note);
             $order->setDeliveryType($delivery_type);
             $order->setCommission(intval($azCommission) / 100);
+            $order->setShippingCost($shipping_cost);
 
             $order->setPaymentMode($em->getRepository(PaymentMode::class)->find($pymde));
             $order->setOrderStatus($em->getRepository(OrderStatus::class)->find(1));
@@ -426,7 +428,7 @@ class FrontController extends Controller{
             // YOUR CODE: Save the customer ID and other info in a database for later.
             // When it's time to charge the customer again, retrieve the customer ID.
     
-            $order->setAmount($total);
+            $order->setAmount($total+$shipping_cost);
             $em->flush();
             //echo '<pre>'; die(var_dump($charge)); echo '</pre>';
             $this->addFlash('success', "Votre commande a été enregistrée.");

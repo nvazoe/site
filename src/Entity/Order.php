@@ -120,7 +120,7 @@ class Order
     private $deliveryType;
 
     /**
-     * @ORM\OneToOne(targetEntity="App\Entity\BankCard", inversedBy="command", cascade={"persist", "remove"})
+     * @ORM\ManyToOne(targetEntity="App\Entity\BankCard", inversedBy="command")
      */
     private $payment;
 
@@ -168,6 +168,11 @@ class Order
      * @ORM\OneToOne(targetEntity="App\Entity\ShippingNote", mappedBy="command", cascade={"persist", "remove"})
      */
     private $shippingNote;
+
+    /**
+     * @ORM\Column(type="float", nullable=true)
+     */
+    private $shippingCost;
 
     public function __construct()
     {
@@ -662,5 +667,17 @@ class Order
         
         
         return $string;
+    }
+
+    public function getShippingCost(): ?float
+    {
+        return $this->shippingCost;
+    }
+
+    public function setShippingCost(?float $shippingCost): self
+    {
+        $this->shippingCost = $shippingCost;
+
+        return $this;
     }
 }

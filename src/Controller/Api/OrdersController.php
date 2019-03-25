@@ -51,6 +51,31 @@ use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
  * @author user
  */
 class OrdersController extends Controller {
+    
+    /**
+     * @Get("/api/orders/shipping-fees")
+     * 
+     * *@SWG\Response(
+     *      response=200,
+     *      description="Get order shipping fees"
+     * )
+     *
+     * 
+     * @SWG\Tag(name="Orders")
+     */
+    public function getShippingFees(Request $request){
+        $em = $this->getDoctrine()->getManager();
+        $shipping_cost = $em->getRepository(Configuration::class)->findOneByName('SHIPPING_COST')->getValue();
+        
+        $result = array(
+            'code' => 200,
+            'data' => array(
+                'shipping_cost' => $shipping_cost
+            )
+        );
+
+        return new JsonResponse($result);
+    }
 
     /**
      * @Get("/api/orders")
@@ -248,6 +273,7 @@ class OrdersController extends Controller {
         $order_infos = file_get_contents('php://input');
         $data = json_decode($order_infos, TRUE);
         
+        
         //echo '<pre>'; die(var_dump($data)); echo '</pre>';
 
         if (!is_array($data)) {
@@ -288,6 +314,7 @@ class OrdersController extends Controller {
         $azCommission = $em->getRepository(Configuration::class)->findOneByName('AZ_STRIPE_COMMISSION')->getValue();
         $emailAdmin = $em->getRepository(Configuration::class)->findOneByName('AZ_ADMIN_EMAIL')->getValue();
         $stripePublicKey = $em->getRepository(Configuration::class)->findOneByName('AZ_STRIPE_ACCOUNT_SECRET')->getValue();
+        $shipping_cost = $em->getRepository(Configuration::class)->findOneByName('SHIPPING_COST')->getValue();
 
         // End validation
         $order = new Order();
@@ -394,7 +421,7 @@ class OrdersController extends Controller {
                 }
             }
         }
-        $order->setAmount($total);
+        $order->setAmount($total+$shipping_cost);
         
         
         //propositions to dlivers
@@ -1053,5 +1080,7 @@ class OrdersController extends Controller {
 
         return new JsonResponse($result);
     }
+    
+    
 
 }

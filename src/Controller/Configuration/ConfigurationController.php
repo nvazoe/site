@@ -42,6 +42,7 @@ class ConfigurationController extends BaseAdminController {
         $rayon_resto = $em->getRepository(Configuration::class)->findOneByName('RESTAURANT_RANGE');
         $rayon_liv = $em->getRepository(Configuration::class)->findOneByName('DELIVER_RANGE');
         $admail = $em->getRepository(Configuration::class)->findOneByName('AZ_ADMIN_EMAIL');
+        $shipping_cost = $em->getRepository(Configuration::class)->findOneByName('SHIPPING_COST');
         if($request->isMethod('POST')){
             $info = $request->get('data'); //echo '<pre>'; die(var_dump($info)); echo '</pre>';
             $stripe_id->setValue($info['id']);
@@ -50,6 +51,7 @@ class ConfigurationController extends BaseAdminController {
             $rayon_resto->setValue($info['rayon_restaurant']);
             $rayon_liv->setValue($info['rayon_livreur']);
             $admail->setValue($info['admail']);
+            $shipping_cost->setValue($info['shipping_cost']);
             $em->flush();
             
             $this->addFlash('success', "Configurations mises à jour.");
@@ -62,6 +64,7 @@ class ConfigurationController extends BaseAdminController {
             'rayon_resto'=> $rayon_resto->getValue(),
             'rayon_liv'=> $rayon_liv->getValue(),
             'admail'=> $admail->getValue(),
+            'shipping_cost' => $shipping_cost->getValue()
             );
     }
 }

@@ -161,13 +161,13 @@
                                     <td><strong>Sub Total :</strong></td>
                                     <td>{{ total }} <span>€</span></td>
                                 </tr>
-                                {#<tr>
-                                    <td><strong>TAX :</strong></td>
-                                    <td>$235.98</td>
-                                </tr>#}
+                                <tr>
+                                    <td><strong>Frais de livraison :</strong></td>
+                                    <td>{{ shipping_cost }} <span>€</span></td>
+                                </tr>
                                 <tr>
                                     <td><strong>TOTAL :</strong></td>
-                                    <td>{{ total }} <span>€</span></td>
+                                    <td>{{ total + shipping_cost }} <span>€</span></td>
                                 </tr>
                                 </tbody>
                             </table>

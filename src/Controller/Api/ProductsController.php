@@ -125,9 +125,6 @@ class ProductsController extends Controller {
         $result['code'] = 201;
         $result['product_id'] = $product->getId();
         
-        $restaurantObj->selectfield = "t.*,  ( 6371  acos( cos( radians($lat) )  cos( radians( latitude ) )  cos( radians( longitude ) - radians($lng) ) + sin( radians($lat) ) * sin( radians( latitude ) ) ) ) AS distance";
-    $restaurantObj->setTri('distance ASC');
-        
         return new JsonResponse($result, $result['code']);
         
     }

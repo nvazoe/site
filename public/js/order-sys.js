@@ -326,6 +326,16 @@ function setup_cart($tring) {
 
         $('.box-basket').html($html);
         $('.box-infos').html(info_cart_html(localStorage.nb_article, localStorage.amount));
+        
+        var nb_art = parseInt($('#nbr-article').text());
+        if(!nb_art){
+            $('.ship-fees').fadeOut();
+            var total = parseFloat($('#total-w-ship'));
+            $('#total-span').text(0.00);
+        }else{
+            var total = parseFloat($('#total-w-ship').text()) + parseFloat($('#ship-fees').text());
+            $('#total-span').text(total.toFixed(2));
+        }
 
     } catch (error) {
         console.log(error);
@@ -337,14 +347,14 @@ function info_cart_html(articles, montant) {
 
     text += '<div class="row">';
     text += '<div class="col-sm-6">';
-    text += 'Sous-total (' + articles + ' ';
+    text += 'Sous-total (<span id="nbr-article">' + articles + '</span> ';
     if (articles > 1) {
         text += 'articles)';
     } else {
         text += 'article)';
     }
-    text += '</div><div class="col-sm-6">';
-    text += montant + '<span>€</span>';
+    text += '</div><div class="col-sm-6"><span id="total-w-ship">';
+    text += montant + '</span><span>€</span>';
     text += '</div></div>';
 
     return text;

@@ -9,11 +9,14 @@ doctrine:
     dbal:
         # configure these for your database server
         driver: 'pdo_mysql'
-        server_version: '5.7'
+        server_version: '10.1.36-MariaDB'
         charset: utf8mb4
         default_table_options:
             charset: utf8mb4
             collate: utf8mb4_unicode_ci
+        mapping_types:
+            enum: string
+            json: text
 
         url: '%env(resolve:DATABASE_URL)%'
     orm:

@@ -17,6 +17,7 @@ use App\Entity\Menu;
 use App\Entity\Restaurant;
 use App\Entity\RestaurantSpeciality;
 use App\Entity\CategoryMenu;
+use App\Entity\Configuration;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 /**
@@ -82,6 +83,10 @@ class RestaurantsController extends Controller {
      * @Template("/checkout.html.twig")
      */
     public function checkoutAction(Request $request){
-        return array('base' => $this->generateUrl('commander', array(), UrlGeneratorInterface::ABSOLUTE_URL));
+        $em = $this->getDoctrine()->getManager();
+        return array(
+            'base' => $this->generateUrl('commander', array(), UrlGeneratorInterface::ABSOLUTE_URL),
+            'shipping_cost' => $em->getRepository(Configuration::class)->findOneByName('SHIPPING_COST')->getValue()
+        );
     }
 }

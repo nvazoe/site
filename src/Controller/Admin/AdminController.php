@@ -455,6 +455,7 @@ class AdminController extends BaseAdminController {
         $order = $em->getRepository(Order::class)->find($id);
         $delivers = $em->getRepository(User::class)->findAllUserByRole('ROLE_DELIVER', false);
         $status = $em->getRepository(OrderStatus::class)->findAll();
+        $shipping_cost = $order->getShippingCost();
         
         $total = 0.00;
         $details = $order->getOrderDetails();
@@ -469,12 +470,12 @@ class AdminController extends BaseAdminController {
         $lieu = $order->getAddress().', '.$order->getCp().', '.$order->getCity();
         
         $url = "https://maps.google.com/maps/api/geocode/json?components=country:FR&key=AIzaSyAt0qBmUbppuFGzGCqhqREOdgwBq-vgJkA&address=".urlencode($lieu);
-         $location = file_get_contents($url);
-         $loc = json_decode($location, true);
-        //echo '<pre>'; die(var_dump($loc["results"][0]["geometry"]["location"])); echo '</pre>';
-        $geo_order = $loc["results"][0]["geometry"]["location"];
+        $location = file_get_contents($url);
+        $loc = json_decode($location, true);
+        //echo '<pre>'; var_dump($loc["results"]); echo '</pre>'; die();
+        $geo_order = isset($loc["results"][0]) ? $loc["results"][0]["geometry"]["location"] : null;
         
-        return array('order' => $order, 'delivers' => $delivers, 'total' => $total, 'geo_order'=>$geo_order, 'status'=>$status);
+        return array('order' => $order, 'delivers' => $delivers, 'total' => $total, 'geo_order'=>$geo_order, 'status'=>$status, 'shipping_cost'=> is_null($shipping_cost) ? 0 : $shipping_cost);
     }
     
     
@@ -564,12 +565,17 @@ class AdminController extends BaseAdminController {
             $orderObj->setMessenger($messenger);
             $orderObj->setOrderStatus($status);
             
+            
+            $propos = $em->getRepository(DeliveryProposition::class)->findBy(array("command" => $orderObj));
+            foreach($propos as $val)
+                $em->remove ($val);
+            
             $em->flush();
             
             
             // send mail notification
             
-            $this->addFlash('success', "Propositions de livraison envoyées.");
+            $this->addFlash('success', "Livreur assigné.");
             
             return $this->redirectToRoute('invoice', array('id'=>$order));
         }
