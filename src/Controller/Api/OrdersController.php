@@ -310,7 +310,7 @@ class OrdersController extends Controller {
             $reference = substr(strtoupper(md5(random_bytes(6))), 0, 12);
         }
         
-        $delivers = $em->getRepository(User::class)->findAllUserByRole('ROLE_DELIVER', false);
+        
         $azCommission = $em->getRepository(Configuration::class)->findOneByName('AZ_STRIPE_COMMISSION')->getValue();
         $emailAdmin = $em->getRepository(Configuration::class)->findOneByName('AZ_ADMIN_EMAIL')->getValue();
         $stripePublicKey = $em->getRepository(Configuration::class)->findOneByName('AZ_STRIPE_ACCOUNT_SECRET')->getValue();
@@ -422,36 +422,6 @@ class OrdersController extends Controller {
             }
         }
         $order->setAmount($total+$shipping_cost);
-        
-        
-        //propositions to dlivers
-        foreach ($delivers as $dl){
-            $delProposition = new DeliveryProposition();
-            $delProposition->setRestaurant($restau);
-            $delProposition->setValueResto(1);
-            $delProposition->setDeliver($dl);
-            $delProposition->setValueDeliver(0);
-            $delProposition->setCommand($order);
-
-            $em->persist($delProposition);
-            
-            // Send mail to delivers
-            $message2 = (new \Swift_Message('Nouvelle commande Ã  livrer'))
-                ->setFrom($emailAdmin)
-                ->setTo($dl->getEmail());
-            $htmlBody = $this->renderView(
-                'emails/new-order-to-deliver.html.twig', array('name' => $dl->getFirstname(), 'order' => $order)
-            );
-            
-            $context['titre'] = 'Nouvelle commande Ã  livrer';
-            $context['contenu_mail'] = $htmlBody;
-            $message2->setBody(
-                $this->renderView('mail/default.html.twig', $context),
-                'text/html'
-            );
-
-            $mailer->send($message2);
-        }
         
         $em->flush();
 

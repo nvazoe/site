@@ -596,6 +596,13 @@ class AdminController extends BaseAdminController {
             $orderObj = $em->getRepository(Order::class)->find($order);
             
             if($status == 4 || $status == 5){
+                
+                if(is_null($orderObj->getMessenger())){
+                    $this->addFlash('warning', "Cette action nécessite l'assignation de cette commande à un livreur.");
+                    return $this->redirectToRoute('invoice', array('id'=>$order));
+                }
+                
+                
                 try{
                     if($orderObj->getPaymentMode()->getId() == 1){
                         
@@ -627,6 +634,23 @@ class AdminController extends BaseAdminController {
                 }catch(\Exception $e){
                     echo $e->getMessage();
                 }
+            }elseif($status == 6){
+                $delivers = $em->getRepository(User::class)->findAllUserByRole('ROLE_DELIVER', false);
+                
+                if(is_array($delivers)){
+                    foreach ($delivers as $dl){
+                        $delProposition = new DeliveryProposition();
+                        $delProposition->setRestaurant($orderObj->getRestaurant());
+                        $delProposition->setValueResto(1);
+                        $delProposition->setDeliver($em->getRepository(User::class)->find($dl));
+                        $delProposition->setValueDeliver(0);
+                        $delProposition->setCommand($orderObj);
+
+                        $em->persist($delProposition);
+                    }
+                }
+                
+                $orderObj->setOrderStatus($em->getRepository(OrderStatus::class)->find($status));
             }else{
                 $orderObj->setOrderStatus($em->getRepository(OrderStatus::class)->find($status));
             }
@@ -740,7 +764,7 @@ class AdminController extends BaseAdminController {
      * @Method({"GET"})
      * @Route("/orders/change-status")
      */ 
-    public function orderchangestatus(Request $request){
+    public function orderchangestatus(Request $request, \Swift_Mailer $mailer){
         $em = $this->getDoctrine()->getManager();
         $status = $request->get('status');
         $ord = $request->get('order');
@@ -749,7 +773,45 @@ class AdminController extends BaseAdminController {
         if($order){
             $order->setOrderStatus($em->getRepository(OrderStatus::class)->find($status));
         }
+        
+        
+        if($status == 6){
+            //propositions to dlivers
+            $delivers = $em->getRepository(User::class)->findAllUserByRole('ROLE_DELIVER', false);
+            $emailAdmin = $em->getRepository(Configuration::class)->findOneByName('AZ_ADMIN_EMAIL')->getValue();
+            foreach ($delivers as $dl){
+                $delProposition = new DeliveryProposition();
+                $delProposition->setRestaurant($restau);
+                $delProposition->setValueResto(1);
+                $delProposition->setDeliver($dl);
+                $delProposition->setValueDeliver(0);
+                $delProposition->setCommand($order);
+
+                $em->persist($delProposition);
+
+                // Send mail to delivers
+                $message2 = (new \Swift_Message('Nouvelle commande à livrer'))
+                    ->setFrom($emailAdmin)
+                    ->setTo($dl->getEmail());
+                $htmlBody = $this->renderView(
+                    'emails/new-order-to-deliver.html.twig', array('name' => $dl->getFirstname(), 'order' => $order)
+                );
+
+                $context['titre'] = 'Nouvelle commande Ã  livrer';
+                $context['contenu_mail'] = $htmlBody;
+                $message2->setBody(
+                    $this->renderView('mail/default.html.twig', $context),
+                    'text/html'
+                );
+
+                $mailer->send($message2);
+            }
+        }
+        
+        
         $em->flush();
+        
+        
         
         return new JsonResponse(array('code'=>200 ));
     }
