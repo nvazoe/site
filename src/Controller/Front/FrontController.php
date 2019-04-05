@@ -384,47 +384,6 @@ class FrontController extends Controller{
 
         $mailer->send($message1);
 
-
-
-            //propositions to dlivers
-            foreach ($delivers as $dl){
-                $delProposition = new DeliveryProposition();
-                $delProposition->setRestaurant($em->getRepository(Restaurant::class)->find($restauId));
-                $delProposition->setValueResto(1);
-                $delProposition->setDeliver($dl);
-                $delProposition->setValueDeliver(0);
-                $delProposition->setCommand($order);
-
-                $em->persist($delProposition);
-
-                // Send mail to delivers
-                $message2 = (new \Swift_Message('Nouvelle commande à livrer'))
-                    ->setFrom($adminEmail)
-                    ->setTo($dl->getEmail());
-                $htmlBody3 = $this->renderView(
-                    'emails/new-order-to-deliver.html.twig', array('name' => $dl->getFirstname(), 'order' => $order)
-                );
-                    
-                $context['titre'] = "Nouvelle commande";
-                $context['contenu_mail'] = $htmlBody3;
-                $message2->setBody(
-                    $this->renderView('mail/default.html.twig', $context), 'text/html'
-                );
-                $message2->setCharset('utf-8');
-                $mailer->send($message2);
-            }
-
-
-
-            //echo '<pre>'; die(var_dump($customer)); echo '</pre>';
-
-            // Charge the Customer instead of the card:
-    //        $charge = \Stripe\Charge::create([
-    //                'amount' => 1000,
-    //                'currency' => 'usd',
-    //                'customer' => $customer->id,
-    //        ]);
-
             // YOUR CODE: Save the customer ID and other info in a database for later.
             // When it's time to charge the customer again, retrieve the customer ID.
     

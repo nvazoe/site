@@ -463,12 +463,19 @@ class DeliversController extends Controller{
             $result = array('code' => 400, 'description' => "Unexisting order");
             return new JsonResponse($result, 400);
         }elseif($ord->getMessenger()){
-            $result = array('code' => 400, 'description' => "Deliver already assigned.");
+            $result = array('code' => 400, 'description' => "A deliver already assigned.");
+            
+            $propos = $em->getRepository(DeliveryProposition::class)->findBy(array("command" => $order));
+            foreach($propos as $val)
+                $em->remove ($val);
+            
             return new JsonResponse($result, 400);
         }
         
-        $orderRow = $em->getRepository(DeliveryProposition::class)->getOrderRow($deliver, $order);
-        if($orderRow){
+        $orderRow = $em->getRepository(DeliveryProposition::class)->findOneBy(array(
+            'command' => $ord
+        ));
+        if(!is_null($orderRow)){
             $ord->setMessenger($del);
             //$ord->setOrderStatus($em->getRepository(OrderStatus::class)->find(6));
             

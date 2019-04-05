@@ -34,15 +34,15 @@
 		{% endif %}
         {% block javascripts %}{% endblock %}
 		{% for label, messages in app.flashes %}
-        {% for message in messages %}
-            {% if label == 'success' %}
-                <div class="appmsg" data-type="success" data-msg="{{ message }}"></div>
-            {% elseif label == 'notice' %}
-                <div class="appmsg" data-type="warning" data-msg="{{ message }}"></div>
-            {% elseif label == 'error' %}
-                <div class="appmsg" data-type="error" data-msg="{{ message }}"></div>
-            {% endif %}
+            {% for message in messages %}
+                {% if label == 'success' %}
+                    <div class="appmsg" data-type="success" data-msg="{{ message }}"></div>
+                {% elseif label == 'notice' %}
+                    <div class="appmsg" data-type="warning" data-msg="{{ message }}"></div>
+                {% elseif label == 'error' %}
+                    <div class="appmsg" data-type="error" data-msg="{{ message }}"></div>
+                {% endif %}
+            {% endfor %}
         {% endfor %}
-    {% endfor %}
     </body>
 </html>

@@ -634,8 +634,10 @@ class AdminController extends BaseAdminController {
                 }catch(\Exception $e){
                     echo $e->getMessage();
                 }
-            }elseif($status == 6){
+            }elseif($status == 7){
                 $delivers = $em->getRepository(User::class)->findAllUserByRole('ROLE_DELIVER', false);
+                
+                $orderObj->setMessenger(null);
                 
                 if(is_array($delivers)){
                     foreach ($delivers as $dl){
@@ -775,13 +777,14 @@ class AdminController extends BaseAdminController {
         }
         
         
-        if($status == 6){
+        if($status == 7){
+            $order->setMessenger(null);
             //propositions to dlivers
             $delivers = $em->getRepository(User::class)->findAllUserByRole('ROLE_DELIVER', false);
             $emailAdmin = $em->getRepository(Configuration::class)->findOneByName('AZ_ADMIN_EMAIL')->getValue();
             foreach ($delivers as $dl){
                 $delProposition = new DeliveryProposition();
-                $delProposition->setRestaurant($restau);
+                $delProposition->setRestaurant($order->getRestaurant());
                 $delProposition->setValueResto(1);
                 $delProposition->setDeliver($dl);
                 $delProposition->setValueDeliver(0);
