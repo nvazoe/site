@@ -239,7 +239,7 @@
                         'Accept': 'application/json'
                     },
                     crossDomain: true,
-                    data: {status: 6, order: data}
+                    data: {status: 8, order: data}
                 }).done(function(resp){
                     console.log(resp);
                     $('button.btn.btn-success.btn-sm.ship[data-order='+data+']').closest('.col-lg-4').fadeOut();

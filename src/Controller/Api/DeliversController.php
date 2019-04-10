@@ -477,7 +477,7 @@ class DeliversController extends Controller{
         ));
         if(!is_null($orderRow)){
             $ord->setMessenger($del);
-            //$ord->setOrderStatus($em->getRepository(OrderStatus::class)->find(6));
+            $ord->setOrderStatus($em->getRepository(OrderStatus::class)->find(6));
             
         }
         
