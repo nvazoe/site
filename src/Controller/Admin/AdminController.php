@@ -653,17 +653,6 @@ class AdminController extends BaseAdminController {
                 }
                 
                 $orderObj->setOrderStatus($em->getRepository(OrderStatus::class)->find($status));
-            }elseif($status == 8){
-                if(!in_array($status, [6,4,5,3])){
-                    $orderObj->setOrderStatus($em->getRepository(OrderStatus::class)->find($status));
-                }
-                
-            }elseif($status == 6){
-                if(is_null($orderObj->getMessenger())){
-                    $this->addFlash('warning', "Cette action nécessite l'assignation de cette commande à un livreur.");
-                    return $this->redirectToRoute('invoice', array('id'=>$order));
-                }
-                $orderObj->setOrderStatus($em->getRepository(OrderStatus::class)->find($status));
             }else{
                 $orderObj->setOrderStatus($em->getRepository(OrderStatus::class)->find($status));
             }
@@ -784,16 +773,9 @@ class AdminController extends BaseAdminController {
         //die(var_dump($ord));
         $order = $em->getRepository(Order::class)->find($ord);
         if($order){
-            if($status == 8){
-                if(!in_array($order->getOrderStatus()->getId(), [6,4,5,3])){
                     $order->setOrderStatus($em->getRepository(OrderStatus::class)->find($status));
                 }
-            }else{
-                $order->setOrderStatus($em->getRepository(OrderStatus::class)->find($status));
-            }
             
-        }
-        
         
         if($status == 7){
             $order->setMessenger(null);

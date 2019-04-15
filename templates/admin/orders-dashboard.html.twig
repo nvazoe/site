@@ -179,7 +179,7 @@
             
             setInterval(function(){
                 window.location.reload();
-            }, 15000000000);
+            }, 15000);
             
             // action preparer button
             $('body').on('click', 'button.btn.btn-danger2.btn-sm.prepared',function(){
@@ -239,7 +239,7 @@
                         'Accept': 'application/json'
                     },
                     crossDomain: true,
-                    data: {status: 8, order: data}
+                    data: {status: 6, order: data}
                 }).done(function(resp){
                     console.log(resp);
                     $('button.btn.btn-success.btn-sm.ship[data-order='+data+']').closest('.col-lg-4').fadeOut();
