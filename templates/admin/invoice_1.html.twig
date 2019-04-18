@@ -34,7 +34,7 @@
                             <div class="text-right">
                                 {#<button class="btn btn-default btn-sm"><i class="fa fa-pencil"></i> Edit </button>
                                 <button class="btn btn-default btn-sm"><i class="fa fa-check "></i> Save </button>#}
-                                <input class="print btn btn-default btn-sm" id="sendBtnAscii" type="button" value="Imprimer ticket" onclick="impression()">
+                                <a href="#" class="btn btn-primary btn-sm print" onclick="onBuild();"><i class="fa fa-print"></i> Imprimer ticket</a>
                             </div>
 
                         </div>
@@ -149,11 +149,7 @@
                                     </td>
                                 </tr>
                             {%endfor%}
-                                <div style="display:none;" id="print">
-                                    {% for ord in order.orderdetails %}
-                                        request += builder.createTextElement({data:'{{dt.product.name}} x {{ord.quantity}}          dt.price€\n'});
-                                    {%endfor%}
-                                </div>
+
                             </tbody>
                         </table>
                     </div>
@@ -162,16 +158,16 @@
                             <table class="table table-striped text-right">
                                 <tbody>
                                 <tr>
-                                    <td><span>Sub Total :</span></td>
-                                    <td id="subtotal">{{ total }} <span>€</span></td>
+                                    <td><strong>Sub Total :</strong></td>
+                                    <td>{{ total }} <span>€</span></td>
                                 </tr>
                                 <tr>
                                     <td><strong>Frais de livraison :</strong></td>
-                                    <td id="shipping">{{ shipping_cost }} <span>€</span></td>
+                                    <td>{{ shipping_cost }} <span>€</span></td>
                                 </tr>
                                 <tr>
                                     <td><strong>TOTAL :</strong></td>
-                                    <td id="total">{{ total + shipping_cost }} <span>€</span></td>
+                                    <td>{{ total + shipping_cost }} <span>€</span></td>
                                 </tr>
                                 </tbody>
                             </table>
@@ -199,105 +195,8 @@
 
 {% block body_javascript %}
     {{ parent() }}
-    <script type='text/javascript' src='js/StarWebPrintBuilder.js'></script>
-    <script type='text/javascript' src='js/StarWebPrintTrader.js'></script>
+    <script type='text/javascript' src={{ asset('StarWebPrint/js/StarWebPrintDisplayBuilder.js') }}></script>
     <script>
-function sendMessage(request) {
-    showNowPrinting();
-    var url              = 'http://localhost:8001/StarWebPRNT/SendMessage';
-    var papertype        = 'normal';
-
-    var trader = new StarWebPrintTrader({url:url, papertype:papertype});
-
-    trader.onReceive = function (response) {
-        hideNowPrinting();
-
-        var msg = '- onReceive -\n\n';
-
-        msg += 'TraderSuccess : [ ' + response.traderSuccess + ' ]\n';
-        msg += 'TraderStatus : [ ' + response.traderStatus + ',\n';
-
-        if (trader.isCoverOpen            ({traderStatus:response.traderStatus})) {msg += '\tCoverOpen,\n';}
-        if (trader.isOffLine              ({traderStatus:response.traderStatus})) {msg += '\tOffLine,\n';}
-        if (trader.isCompulsionSwitchClose({traderStatus:response.traderStatus})) {msg += '\tCompulsionSwitchClose,\n';}
-        if (trader.isEtbCommandExecute    ({traderStatus:response.traderStatus})) {msg += '\tEtbCommandExecute,\n';}
-        if (trader.isHighTemperatureStop  ({traderStatus:response.traderStatus})) {msg += '\tHighTemperatureStop,\n';}
-        if (trader.isNonRecoverableError  ({traderStatus:response.traderStatus})) {msg += '\tNonRecoverableError,\n';}
-        if (trader.isAutoCutterError      ({traderStatus:response.traderStatus})) {msg += '\tAutoCutterError,\n';}
-        if (trader.isBlackMarkError       ({traderStatus:response.traderStatus})) {msg += '\tBlackMarkError,\n';}
-        if (trader.isPaperEnd             ({traderStatus:response.traderStatus})) {msg += '\tPaperEnd,\n';}
-        if (trader.isPaperNearEnd         ({traderStatus:response.traderStatus})) {msg += '\tPaperNearEnd,\n';}
-
-        msg += '\tEtbCounter = ' + trader.extractionEtbCounter({traderStatus:response.traderStatus}).toString() + ' ]\n';
-
-        alert(msg);
-    }
-
-    trader.onError = function (response) {
-        hideNowPrinting();
-
-        var msg = '- onError -\n\n';
-
-        msg += '\tStatus:' + response.status + '\n';
-
-        msg += '\tResponseText:' + response.responseText;
-
-        alert(msg);
-    }
-
-    trader.sendMessage({request:request});
-}
-
-function impression() {
-    var builder = new StarWebPrintBuilder();
-
-    var request = '';
-    
-    var orderdetails = document.getElementById('print').innerHTML;
-    var subtotal = document.getElementById('subtotal').innerHTML;
-    var shipping = document.getElementById('shipping').innerHTML;
-    var total = document.getElementById('total').innerHTML;
-
-    request += builder.createInitializationElement();
-
-            request += builder.createTextElement({characterspace:0});
-
-            request += builder.createAlignmentElement({position:'right'});
-            request += builder.createLogoElement({number:1});
-            request += builder.createTextElement({data:'TEL 07-69-79-58-30\n'});
-            request += builder.createAlignmentElement({position:'left'});
-
-            request += builder.createTextElement({data:'\n'});
-
-            request += builder.createAlignmentElement({position:'center'});
-            request += builder.createTextElement({data:'Bienvenue. Allozoé.fr \n'});
-            request += builder.createAlignmentElement({position:'left'});
-
-            request += builder.createTextElement({data:'\n'});
-    
-            request += builder.createTextElement({emphasis:true, data:'Sous total                                 '.subtotal.'\n'});
-            request += builder.createTextElement({data:'\n'});
-
-            request += builder.createTextElement({underline:true, data:'Livraison                                     '.shipping.'\n'});
-            request += builder.createTextElement({underline:false});
-
-            request += builder.createTextElement({emphasis:true});
-            request += builder.createTextElement({width:2, data:'Total            '.total.'\n'});
-            request += builder.createTextElement({width:1});
-            request += builder.createTextElement({emphasis:false});
-    
-            request += builder.createTextElement({data:'\n'});
-
-            request += builder.createTextElement({characterspace:0});
-            break;
-
-    request += builder.createCutPaperElement({feed:true});
-
-    sendMessage(request);
-}
-window.onload = function() {
-	nowLoading();
-}
       var map;
       var france = {lat: 48.864716, lng: 2.349014};
       var iconBase = '/images/icons/';

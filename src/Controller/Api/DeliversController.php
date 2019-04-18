@@ -228,6 +228,7 @@ class DeliversController extends Controller{
         $del->setEmail($email);
         $del->setPassword($encoder->encodePassword($del, $password));
         $del->setRoles(["ROLE_DELIVER"]);
+        $del->setConnectStatus(0);
         $em->persist($del);
         $em->flush();
         

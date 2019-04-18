@@ -21,4 +21,5 @@ return [
     FOS\RestBundle\FOSRestBundle::class => ['all' => true],
     App\AppBundle\AppBundle::class => ['all' => true],
     Symfony\WebpackEncoreBundle\WebpackEncoreBundle::class => ['all' => true],
+    FOS\JsRoutingBundle\FOSJsRoutingBundle::class => ['all' => true],
 ];
