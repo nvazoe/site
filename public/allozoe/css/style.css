@@ -136,6 +136,8 @@ p.descript {
 
 .block-pub{
     padding-top: 100px;
+    width: 100%;
+    overflow: hidden;
 }
 
 .block-pub > .container{
@@ -153,7 +155,8 @@ body > main > div.block-social-network > ul > li > a > img{
 }
 
 .first-block, .second-block {
-    background-color: #aac230a8;
+    background-color: #aac230;
+    opacity: 0.8;
     max-width: 340px;
 }
 
@@ -278,7 +281,7 @@ h3.social{
     text-transform: uppercase;
     font-size: 19px;
     display: block;
-    width: max-content;
+    width: 240px;
     margin: 0 auto;
     position: relative;
     top: -33px;

@@ -5,7 +5,6 @@
 /var/
 /vendor/
 /filess
-/public/images/
 /public/swf/
 /public/starwebprint/
 ###< symfony/framework-bundle ###

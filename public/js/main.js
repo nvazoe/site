@@ -13,11 +13,11 @@ var settings = {
         },
         staging:{
             base_url: $('body').data('base-url'),
-            stripe_pk: "sk_live_2MZgXvgU6JqgLD7oEEyqZYfu"
+            stripe_pk: "pk_live_eo4MYvhD0gazKbeMzchjmrSU"
         }
     }
 };
-var environment = 'local';
+var environment = 'staging';
 var config = settings.environments[environment];
 
 $('header.top-header .blck-menu i.fa-bars').click(function(){

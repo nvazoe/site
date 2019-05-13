@@ -9,7 +9,7 @@ $(document).ready(function(){
     toastr.options.closeButton = true;
     
     // Create a Stripe client.
-    var stripe = Stripe(config.stripe_pk);
+    var stripe = Stripe('pk_live_eo4MYvhD0gazKbeMzchjmrSU');
     console.log(config.stripe_pk);
     // Create an instance of Elements.
     var elements = stripe.elements();
