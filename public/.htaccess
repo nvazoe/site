@@ -29,9 +29,6 @@ DirectoryIndex index.php
     # the following 2 lines to eliminate the overhead.
     RewriteCond %{REQUEST_URI}::$1 ^(/.+)/(.*)::\2$
     RewriteRule ^(.*) - [E=BASE:%1]
-	
-	RewriteCond %{HTTPS} off
-	RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
 
     # Sets the HTTP_AUTHORIZATION header removed by Apache
     RewriteCond %{HTTP:Authorization} .
@@ -57,7 +54,6 @@ DirectoryIndex index.php
     RewriteRule ^ - [L]
 
     # Rewrite all other queries to the front controller.
-    
     RewriteRule ^ %{ENV:BASE}/index.php [L]
 </IfModule>
 

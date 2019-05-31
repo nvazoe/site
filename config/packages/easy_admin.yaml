@@ -727,10 +727,10 @@ easy_admin:
             
     design:
         form_theme: '%env(APP_TEMPLATE_ADMIN)%%env(DS)%easy_admin%env(DS)%form%env(DS)%bootstrap_3_horizontal_layout.html.twig'
-#        templates:
-#            layout: '%env(APP_TEMPLATE_ADMIN)%%env(DS)%easy_admin%env(DS)%main.html.twig'
-#            menu: '%env(APP_TEMPLATE_ADMIN)%%env(DS)%easy_admin%env(DS)%menu.html.twig'
-#            list: '%env(APP_TEMPLATE_ADMIN)%%env(DS)%easy_admin%env(DS)%list.html.twig'
+        templates:
+            layout: '%env(APP_TEMPLATE_ADMIN)%%env(DS)%easy_admin%env(DS)%main.html.twig'
+            menu: '%env(APP_TEMPLATE_ADMIN)%%env(DS)%easy_admin%env(DS)%menu.html.twig'
+            list: '%env(APP_TEMPLATE_ADMIN)%%env(DS)%easy_admin%env(DS)%list.html.twig'
         menu:
             -
                 label: Utilisateurs

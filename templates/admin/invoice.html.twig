@@ -5,74 +5,95 @@
 {% block head_stylesheets %}
     {{ parent() }}
     <style>
-      /* Always set the map height explicitly to define the size of the div
+        /* Always set the map height explicitly to define the size of the div
        * element that contains the map. */
-      #map {
-        height: 500px;
-      }
-      @media print{
-          .change-deliver{
-              display: none;
-          }
-      }
+        #map {
+            height: 500px;
+        }
+        @media print {
+            .change-deliver {
+                display: none;
+            }
+        }
+
+        #print-ticket .table > thead > tr > th,
+        #print-ticket .table > tbody > tr > th,
+        #print-ticket .table > tfoot > tr > th,
+        #print-ticket .table > thead > tr > td,
+        #print-ticket .table > tbody > tr > td,
+        #print-ticket .table > tfoot > tr > td {
+            padding: 1px;
+        }
+
+        #print-ticket {
+            font-size: 10px;
+        }
     </style>
     <link rel="stylesheet" href="{{ asset('styles/style.css') }}">
 {% endblock %}
 
 {% block main %}
+    <div id="overlay"></div>
     <div class="content animate-panel">
 
-    <div class="row">
-        <div class="col-lg-12">
-            <div class="hpanel">
-                <div class="panel-body">
-                    <div class="row">
-                        <div class="col-md-6">
-                            <h4>Invoice <small>{{ order.ref }}</small></h4>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="text-right">
-                                {#<button class="btn btn-default btn-sm"><i class="fa fa-pencil"></i> Edit </button>
-                                <button class="btn btn-default btn-sm"><i class="fa fa-check "></i> Save </button>#}
-                                <input class="print btn btn-default btn-sm" id="sendBtnAscii" type="button" value="Imprimer ticket" onclick="impression()">
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="hpanel">
+                    <div class="panel-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h4>Invoice
+                                    <small>{{ order.ref }}</small>
+                                </h4>
                             </div>
+                            <div class="col-md-6">
+                                <div
+                                    class="text-right">
+                                    {#<button class="btn btn-default btn-sm"><i class="fa fa-pencil"></i> Edit </button>
+                                                                                                        <button class="btn btn-default btn-sm"><i class="fa fa-check "></i> Save </button>#}
+                                    <input class="print btn btn-default btn-sm" id="sendBtnAscii" type="button" value="Imprimer ticket">
+                                </div>
 
+                            </div>
                         </div>
                     </div>
-                </div>
-                <div class="panel-body p-xl">
-                    <div class="row m-b-xl">
-                        <div class="col-sm-6">
-                            <h4>{{ order.ref }} </h4>
+                    <div class="panel-body p-xl">
+                        <div class="row m-b-xl">
+                            <div class="col-sm-6">
+                                <h4>{{ order.ref }}
+                                </h4>
 
-                            <address>
-                                <strong>{{ order.restaurant.name }}</strong><br>
-                                {{ order.restaurant.cp }}, {{ order.restaurant.address }} {{ order.restaurant.city }}<br>
-                                
-                                <abbr title="Phone">P:</abbr> {{ order.restaurant.owner.phoneNumber }}
-                            </address>
-                            
-                            <form class="form-horizontal change-deliver" action="{{path('assign_deliver')}}" method="post">
-                                <input type="hidden" name="order" value="{{order.id}}" />
-                                <div class="form-group">
-                                <div class="col-sm-8">
-                                    <select name="deliver" class="form-control"  >
-                                        <option>Livreur de la commande</option>
-                                        {% for d in delivers %}
-                                            <option value="{{d.id}}" {{ order.messenger ? order.messenger.id == d.id ? 'selected' : '' : '' }}>{{d.firstname}}</option>
-                                        {% endfor %}
-                                    </select>
-                                </div>
-                                <div class="col-sm-4">
-                                    <button class="btn btn-primary">Changer le livreur</button>
-                                </div>
-                            </div>
-                            </form>
-                            <form class="form-horizontal" action="{{path('change_status')}}" method="post">
-                                <input type="hidden" name="order" value="{{order.id}}" />
+                                <address>
+                                    <strong>{{ order.restaurant.name }}</strong><br>
+                                    {{ order.restaurant.cp }},
+                                    {{ order.restaurant.address }}
+                                    {{ order.restaurant.city }}<br>
+
+                                    <abbr title="Phone">P:</abbr>
+                                    {{ order.restaurant.owner.phoneNumber }}
+                                </address>
+
+                                <form class="form-horizontal change-deliver" action="{{path('assign_deliver')}}" method="post">
+                                    <input type="hidden" name="order" value="{{order.id}}"/>
                                     <div class="form-group">
                                         <div class="col-sm-8">
-                                            <select name="status" class="form-control"  >
+                                            <select class="form-control" name="deliver">
+                                                <option>Livreur de la commande</option>
+                                                {% for d in delivers %}
+                                                    <option value="{{d.id}}" {{ order.messenger ? order.messenger.id == d.id ? 'selected' : '' : '' }}>{{d.firstname}}</option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                        <div class="col-sm-4">
+                                            <button class="btn btn-primary">Changer le livreur</button>
+                                        </div>
+                                    </div>
+                                </form>
+                                <form class="form-horizontal" action="{{path('change_status')}}" method="post">
+                                    <input type="hidden" name="order" value="{{order.id}}"/>
+                                    <div class="form-group">
+                                        <div class="col-sm-8">
+                                            <select class="form-control" name="status">
                                                 <option>Statut de la commande</option>
                                                 {% for s in status %}
                                                     <option value="{{s.id}}" {{ order.orderStatus ? order.orderStatus.id == s.id ? 'selected' : '' : '' }}>{{s.name}}</option>
@@ -83,281 +104,326 @@
                                             <button class="btn btn-primary">Changer le statut</button>
                                         </div>
                                     </div>
-                                        
-                            </form>
-                        </div>
-                        <div class="col-sm-6 text-right">
-                            <span>To:</span>
-                            <address>
-                                <strong>{{ order.client.lastname }} {{ order.client.firstname }}</strong><br>
-                                {{ order.cp }}, {{ order.address }} {{ order.city }}<br>
-                                <abbr title="Phone">P:</abbr> {{ order.phoneNumber }}
-                            </address>
-                            <p>
-                                <span><strong>Invoice Date:</strong> {{ order.dateCreated|date('D, d M Y') }}</span><br/><br/><br/>
-                                <span>Paiement par <strong>{{ order.ModePaiement }}</span>
-                            </p>
-                        </div>
-                    </div>
 
-                    <div class="table-responsive m-t">
-                        <table class="table table-striped">
-                            <thead>
-                            <tr>
-                                <th>Item List</th>
-                                <th>Quantity</th>
-                                <th>Unit Price</th>
-                                <th>Total Price</th>
-                            </tr>
-                            </thead>
-                            <tbody>
-                            {% for ord in order.orderdetails %}
-                                <tr>
-                                    <td>
-                                        <div><strong>{{ord.menuName}}</strong></div>
-                                        <small>
-                                            <ol>
-                                            {% for dt in ord.OrderDetailsMenuProducts %}
-                                                <li>{{dt.product.name}}</li>
-                                            {%endfor%}
-                                            </ol>
-                                        </small>
-                                    </td>
-                                    <td>
-                                        {{ord.quantity}}
-                                        <ul class="list-unstyled">
-                                        {% for dt in ord.OrderDetailsMenuProducts %}
-                                            <li>{{ord.quantity}}</li>
-                                        {%endfor%}
-                                        </ul>
-                                    </td>
-                                    <td>
-                                        {{ord.price}}
-                                        <ul class="list-unstyled">
-                                            {% for dt in ord.OrderDetailsMenuProducts %}
-                                                <li>{{dt.price}}</li>
-                                            {%endfor%}
-                                        </ul>
-                                    </td>
-                                    <td>
-                                        {{ord.price * ord.quantity}}
-                                        <ul class="list-unstyled">
-                                            {% for dt in ord.OrderDetailsMenuProducts %}
-                                                <li>{{dt.price * ord.quantity}}</li>
-                                            {%endfor%}
-                                        </ul>
-                                    </td>
-                                </tr>
-                            {%endfor%}
-                                <div style="display:none;" id="print">
-                                    {% for ord in order.orderdetails %}
-                                        request += builder.createTextElement({data:'{{dt.product.name}} x {{ord.quantity}}          dt.price€\n'});
-                                    {%endfor%}
-                                </div>
-                            </tbody>
-                        </table>
-                    </div>
-                    <div class="row m-t">
-                        <div class="col-md-4 col-md-offset-8">
-                            <table class="table table-striped text-right">
+                                </form>
+                            </div>
+                            <div class="col-sm-6 text-right">
+                                <span>To:</span>
+                                <address>
+                                    <strong>{{ order.client.lastname }}
+                                        {{ order.client.firstname }}</strong><br>
+                                    {{ order.cp }},
+                                    {{ order.address }}
+                                    {{ order.city }}<br>
+                                    <abbr title="Phone">P:</abbr>
+                                    {{ order.phoneNumber }}
+                                </address>
+                                <p>
+                                    <span>
+                                        <strong>Invoice Date:</strong>
+                                        {{ order.dateCreated|date('D, d M Y') }}</span><br/><br/><br/>
+                                    <span>Paiement par
+                                        <strong>{{ order.ModePaiement }}</span>
+                                    </p>
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="table-responsive m-t">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Item List</th>
+                                        <th>Quantity</th>
+                                        <th>Unit Price</th>
+                                        <th>Total Price</th>
+                                    </tr>
+                                </thead>
                                 <tbody>
-                                <tr>
-                                    <td><span>Sub Total :</span></td>
-                                    <td id="subtotal">{{ total }} <span>€</span></td>
-                                </tr>
-                                <tr>
-                                    <td><strong>Frais de livraison :</strong></td>
-                                    <td id="shipping">{{ shipping_cost }} <span>€</span></td>
-                                </tr>
-                                <tr>
-                                    <td><strong>TOTAL :</strong></td>
-                                    <td id="total">{{ total + shipping_cost }} <span>€</span></td>
-                                </tr>
+                                    {% for ord in order.orderdetails %}
+                                        <tr>
+                                            <td>
+                                                <div>
+                                                    <strong>{{ord.menuName}}</strong>
+                                                </div>
+                                                <small>
+                                                    <ol>
+                                                        {% for dt in ord.OrderDetailsMenuProducts %}
+                                                            <li>{{dt.product.name}}</li>
+                                                            {%endfor%}
+                                                        </ol>
+                                                    </small>
+                                                </td>
+                                            </td>
+                                            <td>
+                                                {{ord.quantity}}
+                                                <ul class="list-unstyled">
+                                                    {% for dt in ord.OrderDetailsMenuProducts %}
+                                                        <li>{{ord.quantity}}</li>
+                                                        {%endfor%}
+                                                    </ul>
+                                                </td>
+                                            </td>
+                                            <td>
+                                                {{ord.price}}
+                                                <ul class="list-unstyled">
+                                                    {% for dt in ord.OrderDetailsMenuProducts %}
+                                                        <li>{{dt.price}}</li>
+                                                        {%endfor%}
+                                                    </ul>
+                                                </td>
+                                            </td>
+                                            <td>
+                                                {{ord.price * ord.quantity}}
+                                                <ul class="list-unstyled">
+                                                    {% for dt in ord.OrderDetailsMenuProducts %}
+                                                        <li>{{dt.price * ord.quantity}}</li>
+                                                        {%endfor%}
+                                                    </ul>
+                                                </td>
+                                            </td>
+                                        </tr>
+                                        {%endfor%}
+                                        <div
+                                            id="print" style="display:none;">{#{% for ord in order.orderdetails %}
+                                                                                                                                        request += builder.createTextElement({data:'{{ord.product.name}} x {{ord.quantity}}          dt.price€\n'});
+                                                                                                                                    {%endfor%}#}
+                                        </div>
+                                    </tbody>
                                 </tbody>
                             </table>
                         </div>
-                    </div>
-
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="m-t"><strong>Commentaire :</strong>
-                                {{order.DeliveryNote}}
+                        <div class="row m-t">
+                            <div class="col-md-4 col-md-offset-8">
+                                <table class="table table-striped text-right">
+                                    <tbody>
+                                        <tr>
+                                            <td>
+                                                <span>Sub Total :</span>
+                                            </td>
+                                            <td id="subtotal">{{ total }}
+                                                <span>EUR</span>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>
+                                                <strong>Frais de livraison :</strong>
+                                            </td>
+                                            <td id="shipping">{{ shipping_cost }}
+                                                <span>EUR</span>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>
+                                                <strong>TOTAL :</strong>
+                                            </td>
+                                            <td id="total">{{ total + shipping_cost }}
+                                                <span>EUR</span>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
                             </div>
                         </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="m-t">
+                                    <strong>Commentaire :</strong>
+                                    {{order.DeliveryNote}}
+                                </div>
+                            </div>
+                        </div>
+
                     </div>
-
                 </div>
+
             </div>
-
         </div>
-    </div>
 
-<div id="map"></div>
-</div>
+
+        <div class="hidden" id="box-ticket">
+            <div class="ticket text-center" id="print-ticket">
+                <div><img class="ticket-logo" src="{{ asset('images/logo.png') }}"></div>
+                <div>
+                    <strong class="title-1">INFOS RESTAURANT</strong>
+                </div>
+                <div class="title">{{ order.restaurant.name }}</div>
+                <div>{{ order.restaurant.address }}</div>
+                <div>Du
+                    {{ order.dateCreated|date('d - m - Y H:i:s')}}</div>
+                <br>
+                <div>
+                    <strong class="title-1">INFOS CLIENT</strong>
+                </div>
+                <div>Tel :
+                    {{order.client.phoneNumber}}</div>
+                <div>Adresse :
+                    {{order.address}}</div>
+                <table class="table table-bordered" style="width:90%">
+                    <thead>
+                        <tr>
+                            <th class="text-center" style="padding:1px;">Qte</th>
+                            <th class="text-center" style="padding:1px;">Produits</th>
+                            <th class="text-center" style="padding:1px;">Unit</th>
+                            <th class="text-center" style="padding:1px;">Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for ord in order.orderdetails %}
+                            <tr>
+                                <td style="padding:1px;">
+                                    <strongs>{{ord.quantity}}</strong>
+                                </td>
+                                <td class="text-left" style="padding:1px;">
+                                    <span class="master">{{ord.menuname}}</span>
+                                    <ul style="list-style-type:none;">
+                                        {% for dt in ord.OrderDetailsMenuProducts %}
+                                            <li>{{dt.product.name}}</li>
+                                            {%endfor%}
+                                        </ul>
+                                </td>
+                                <td style="padding:1px;">
+                                    <span class="master">{{ord.price|number_format(2) }}</span><br>
+                                    {% for dt in ord.OrderDetailsMenuProducts %}
+                                        <span>{{dt.price|number_format(2)}}</span><br>
+                                        {%endfor%}
+                                    </td>
+                                </td>
+                                <td style="padding:1px;">
+                                    <span class="master">{{(ord.price * ord.quantity)|number_format(2)}}</span><br>
+                                    {% for dt in ord.OrderDetailsMenuProducts %}
+                                        <span>{{(dt.price * ord.quantity)|number_format(2)}}</span><br>
+                                        {%endfor%}
+                                    </td>
+                                </td>
+                            </tr>
+                            {%endfor%}
+                        </tbody>
+                        <tfooter>
+                            <tr>
+                                <th colspan="3" style="padding:1px;">Total commande</th>
+                                <td class="total" style="padding:1px;">
+                                    <strong>{{order.amount|number_format(2)}}
+                                        EUR</strong>
+                                </td>
+                            </tr>
+                        </tfooter>
+                    </tbody>
+                </table>
+                <div>
+                    <strong>Note
+                    </strong>:
+                    {{order.deliveryNote}}</div>
+                <br>
+                <div>
+                    <strong>{{order.deliveryType}}</strong>
+                </div>
+
+                {% if order.payment %}
+                    <div>
+                        <strong>CARTE BANCAIRE</strong>
+                    </div>
+                    <div>N° ********
+                        {{ order.payment.cardnumber }}</div>
+                    <div>MONTANT =
+                        {{ order.amount }}
+                        EUR</div>
+                    <div>TICKET CLIENT A CONSERVER</div>
+                {% endif %}
+
+                {% if order.ticket %}
+                    <div class="title">
+                        <strong>TICKET RESTAURANT</strong>
+                    </div>
+                    <div>N°
+                        {{ order.ref }}</div>
+                    <div>MONTANT =
+                        {{ order.amount }}
+                        EUR</div>
+                    <div>TICKET CLIENT A CONSERVER</div>
+                {% endif %}
+            </div>
+        </div>
+
+
+        <div id="map"></div>
+    </div>
 
 {% endblock %}
 
 {% block body_javascript %}
     {{ parent() }}
-    <script type='text/javascript' src='js/StarWebPrintBuilder.js'></script>
-    <script type='text/javascript' src='js/StarWebPrintTrader.js'></script>
+    <script src='/js/printThis.js' type='text/javascript'></script>
     <script>
-function sendMessage(request) {
-    showNowPrinting();
-    var url              = 'http://localhost:8001/StarWebPRNT/SendMessage';
-    var papertype        = 'normal';
 
-    var trader = new StarWebPrintTrader({url:url, papertype:papertype});
-
-    trader.onReceive = function (response) {
-        hideNowPrinting();
-
-        var msg = '- onReceive -\n\n';
-
-        msg += 'TraderSuccess : [ ' + response.traderSuccess + ' ]\n';
-        msg += 'TraderStatus : [ ' + response.traderStatus + ',\n';
-
-        if (trader.isCoverOpen            ({traderStatus:response.traderStatus})) {msg += '\tCoverOpen,\n';}
-        if (trader.isOffLine              ({traderStatus:response.traderStatus})) {msg += '\tOffLine,\n';}
-        if (trader.isCompulsionSwitchClose({traderStatus:response.traderStatus})) {msg += '\tCompulsionSwitchClose,\n';}
-        if (trader.isEtbCommandExecute    ({traderStatus:response.traderStatus})) {msg += '\tEtbCommandExecute,\n';}
-        if (trader.isHighTemperatureStop  ({traderStatus:response.traderStatus})) {msg += '\tHighTemperatureStop,\n';}
-        if (trader.isNonRecoverableError  ({traderStatus:response.traderStatus})) {msg += '\tNonRecoverableError,\n';}
-        if (trader.isAutoCutterError      ({traderStatus:response.traderStatus})) {msg += '\tAutoCutterError,\n';}
-        if (trader.isBlackMarkError       ({traderStatus:response.traderStatus})) {msg += '\tBlackMarkError,\n';}
-        if (trader.isPaperEnd             ({traderStatus:response.traderStatus})) {msg += '\tPaperEnd,\n';}
-        if (trader.isPaperNearEnd         ({traderStatus:response.traderStatus})) {msg += '\tPaperNearEnd,\n';}
-
-        msg += '\tEtbCounter = ' + trader.extractionEtbCounter({traderStatus:response.traderStatus}).toString() + ' ]\n';
-
-        alert(msg);
-    }
-
-    trader.onError = function (response) {
-        hideNowPrinting();
-
-        var msg = '- onError -\n\n';
-
-        msg += '\tStatus:' + response.status + '\n';
-
-        msg += '\tResponseText:' + response.responseText;
-
-        alert(msg);
-    }
-
-    trader.sendMessage({request:request});
-}
-
-function impression() {
-    var builder = new StarWebPrintBuilder();
-
-    var request = '';
-    
-    var orderdetails = document.getElementById('print').innerHTML;
-    var subtotal = document.getElementById('subtotal').innerHTML;
-    var shipping = document.getElementById('shipping').innerHTML;
-    var total = document.getElementById('total').innerHTML;
-
-    request += builder.createInitializationElement();
-
-            request += builder.createTextElement({characterspace:0});
-
-            request += builder.createAlignmentElement({position:'right'});
-            request += builder.createLogoElement({number:1});
-            request += builder.createTextElement({data:'TEL 07-69-79-58-30\n'});
-            request += builder.createAlignmentElement({position:'left'});
-
-            request += builder.createTextElement({data:'\n'});
-
-            request += builder.createAlignmentElement({position:'center'});
-            request += builder.createTextElement({data:'Bienvenue. Allozoé.fr \n'});
-            request += builder.createAlignmentElement({position:'left'});
-
-            request += builder.createTextElement({data:'\n'});
-    
-            request += builder.createTextElement({emphasis:true, data:'Sous total                                 '.subtotal.'\n'});
-            request += builder.createTextElement({data:'\n'});
-
-            request += builder.createTextElement({underline:true, data:'Livraison                                     '.shipping.'\n'});
-            request += builder.createTextElement({underline:false});
-
-            request += builder.createTextElement({emphasis:true});
-            request += builder.createTextElement({width:2, data:'Total            '.total.'\n'});
-            request += builder.createTextElement({width:1});
-            request += builder.createTextElement({emphasis:false});
-    
-            request += builder.createTextElement({data:'\n'});
-
-            request += builder.createTextElement({characterspace:0});
-            break;
-
-    request += builder.createCutPaperElement({feed:true});
-
-    sendMessage(request);
-}
-window.onload = function() {
-	nowLoading();
-}
-      var map;
-      var france = {lat: 48.864716, lng: 2.349014};
-      var iconBase = '/images/icons/';
-      var icons = {
-        livreur: {
-            icon: iconBase + 'livreur_icone_leonel.png'
-        },
-        restaurant:{
-            icon: iconBase + 'restaurant_icone_leonel.png'
-        },
-        order:{
-            icon: iconBase + 'commande_icone_leonel.png'
-        }
-    };
-    
-      function initMap() {
-        var directionsService = new google.maps.DirectionsService;
-        var directionsDisplay = new google.maps.DirectionsRenderer;
-        map = new google.maps.Map(document.getElementById('map'), {
-          center: france,
-          zoom: 12
+        $('#sendBtnAscii').on('click', function () {
+            $('#box-ticket > #print-ticket').printThis();
         });
-        directionsDisplay.setMap(map);
-        
-        var order = {
-            'name' : "{{ order.ref }}",
-            'lat' : "{{ geo_order.lat }}",
-            'lng': "{{ geo_order.lng }}",
-            'city': "{{ order.city }}",
-            'adr': "{{ order.address }}"
+        var map;
+        var france = {
+            lat: 48.864716,
+            lng: 2.349014
         };
-        
-        // Marker du order
-        var infowindowOrder = new google.maps.InfoWindow();
-        var mOrder = new google.maps.Marker({
-            position: {lat: parseFloat(order.lat), lng: parseFloat(order.lng)},
-            map: map,
-            title: 'COMMANDE : '+order.name,
-            icon: icons.order.icon,
-            draggable: false
-        });
-        google.maps.event.addListener(mOrder, 'click', (function (mOrder) {
-            return function () {
-                var html = '<div class="content-pin"><strong>COMMANDE : </strong>' +order.name;
-                html += '<ul class="list-unstyled">';
-                html += '<li><strong>Adresse</strong> : '+order.adr+'</li>';
-                html += '<li><strong>Ville</strong> : '+order.city+'</li>';
-                html += '</ul></div>';
-                map.panTo(mOrder.getPosition());
-                infowindowOrder.setContent(html);
-                infowindowOrder.open(map, mOrder, html);
+        var iconBase = '/images/icons/';
+        var icons = {
+            livreur: {
+                icon: iconBase + 'livreur_icone_leonel.png'
+            },
+            restaurant: {
+                icon: iconBase + 'restaurant_icone_leonel.png'
+            },
+            order: {
+                icon: iconBase + 'commande_icone_leonel.png'
+            }
+        };
 
-                    };
-        })(mOrder));
-        
-        var dels = [];
-        {% if order.messenger %}
-                var liv = {
-                    'name' : "{{ order.messenger.username }}",
-                    'lat' : "{{ order.messenger.latitude }}",
+        function initMap() {
+            var directionsService = new google.maps.DirectionsService;
+            var directionsDisplay = new google.maps.DirectionsRenderer;
+            map = new google.maps.Map(document.getElementById('map'), {
+                center: france,
+                zoom: 12
+            });
+            directionsDisplay.setMap(map);
+
+            var order = {
+                'name': "{{ order.ref }}",
+                'lat': "{{ geo_order.lat }}",
+                'lng': "{{ geo_order.lng }}",
+                'city': "{{ order.city }}",
+                'adr': "{{ order.address }}"
+            };
+
+            // Marker du order
+            var infowindowOrder = new google.maps.InfoWindow();
+            var mOrder = new google.maps.Marker({
+                position: {
+                    lat: parseFloat(order.lat),
+                    lng: parseFloat(order.lng)
+                },
+                map: map,
+                title: 'COMMANDE : ' + order.name,
+                icon: icons.order.icon,
+                draggable: false
+            });
+            google.maps.event.addListener(mOrder, 'click', (function (mOrder) {
+                return function () {
+                    var html = '<div class="content-pin"><strong>COMMANDE : </strong>' + order.name;
+                    html += '<ul class="list-unstyled">';
+                    html += '<li><strong>Adresse</strong> : ' + order.adr + '</li>';
+                    html += '<li><strong>Ville</strong> : ' + order.city + '</li>';
+                    html += '</ul></div>';
+                    map.panTo(mOrder.getPosition());
+                    infowindowOrder.setContent(html);
+                    infowindowOrder.open(map, mOrder, html);
+
+                };
+            })(mOrder));
+
+            var dels = [];{% if order.messenger %}var liv = {
+                    'name': "{{ order.messenger.username }}",
+                    'lat': "{{ order.messenger.latitude }}",
                     'lng': "{{ order.messenger.longitude }}",
                     'phone': "{{ order.messenger.PhoneNumber }}",
                     'address': "{{ order.messenger.Address }}"
@@ -365,7 +431,10 @@ window.onload = function() {
                 // Marker du livreur
                 var infowindowLivreur = new google.maps.InfoWindow();
                 var mLiv = new google.maps.Marker({
-                    position: {lat: parseFloat(liv.lat), lng: parseFloat(liv.lng)},
+                    position: {
+                        lat: parseFloat(liv.lat),
+                        lng: parseFloat(liv.lng)
+                    },
                     map: map,
                     title: liv.name,
                     icon: icons.livreur.icon,
@@ -373,41 +442,43 @@ window.onload = function() {
                 });
                 google.maps.event.addListener(mLiv, 'click', (function (mLiv) {
                     return function () {
-                        var html = '<div class="content-pin">' +liv.name;
+                        var html = '<div class="content-pin">' + liv.name;
                         html += '<ul class="list-unstyled">';
-                        html += '<li><strong>Phone</strong> : '+liv.phone+'</li>';
-                        html += '<li><strong>Adresse</strong> : '+liv.address+'</li>';
+                        html += '<li><strong>Phone</strong> : ' + liv.phone + '</li>';
+                        html += '<li><strong>Adresse</strong> : ' + liv.address + '</li>';
                         html += '</ul></div>';
                         map.panTo(mLiv.getPosition());
                         infowindowLivreur.setContent(html);
                         infowindowLivreur.open(map, mLiv, html);
 
-                            };
+                    };
                 })(mLiv));
-                
-                setInterval(function(){
-                    //mLiv.setMap(null);
-                    
+
+                setInterval(function () { // mLiv.setMap(null);
+
                     $.ajax({
-                        url: $('body').data('base-url')+'api/delivers/'+{{ order.messenger.id }},
+                        url: $('body').data('base-url') + 'api/delivers/' + {{ order.messenger.id }},
                         type: 'get',
-                        headers:{
+                        headers: {
                             'Content-Type': 'application/json',
                             'Accept': 'application/json'
                         },
                         crossDomain: true
-                    }).done(function(resp){
+                    }).done(function (resp) {
                         var data = resp.data;
                         var livr = {
-                            'name' : data.username,
-                            'lat' : data.position.latitude,
+                            'name': data.username,
+                            'lat': data.position.latitude,
                             'lng': data.position.longitude,
                             'phone': data.phone,
                             'address': data.address
                         };
                         var infowindowLivreur = new google.maps.InfoWindow();
                         var mLivr = new google.maps.Marker({
-                            position: {lat: parseFloat(livr.lat), lng: parseFloat(livr.lng)},
+                            position: {
+                                lat: parseFloat(livr.lat),
+                                lng: parseFloat(livr.lng)
+                            },
                             map: map,
                             title: livr.name,
                             icon: icons.livreur.icon,
@@ -415,133 +486,138 @@ window.onload = function() {
                         });
                         google.maps.event.addListener(mLivr, 'click', (function (mLivr) {
                             return function () {
-                                var html = '<div class="content-pin">' +livr.name;
+                                var html = '<div class="content-pin">' + livr.name;
                                 html += '<ul class="list-unstyled">';
-                                html += '<li><strong>Phone</strong> : '+livr.phone+'</li>';
-                                html += '<li><strong>Adresse</strong> : '+livr.address+'</li>';
+                                html += '<li><strong>Phone</strong> : ' + livr.phone + '</li>';
+                                html += '<li><strong>Adresse</strong> : ' + livr.address + '</li>';
                                 html += '</ul></div>';
                                 map.panTo(mLivr.getPosition());
                                 infowindowLivreur.setContent(html);
                                 infowindowLivreur.open(map, mLivr, html);
 
-                                    };
+                            };
                         })(mLivr));
-                        
-                        
+
+
                         var orig = new google.maps.LatLng(livr.lat, livr.lng);
                         var dest = new google.maps.LatLng(order.lat, order.lng);
                         console.log(orig);
                         console.log(dest);
-                        if(!orig.isEmpty() & !dest.isEmpty())
+                        if (! orig.isEmpty() & ! dest.isEmpty()) 
                             calculateAndDisplayRoute(directionsService, directionsDisplay, orig, dest);
                         
-                        setTimeout(function(){
-                             mLivr.setMap(null);
-                        },3000);
+
+
+                        setTimeout(function () {
+                            mLivr.setMap(null);
+                        }, 3000);
                     }).fail();
                 }, 5000);
-                
-                {%else%}
-                    {% if delivers %}
-                        {% for del in delivers %}
-                            var o = {
-                                'name':"{{ del.username }}",
-                                'lat': "{{ del.latitude }}",
-                                'lng': "{{ del.longitude }}",
-                                'phone': "{{ del.PhoneNumber }}",
-                                'address': "{{ del.Address }}"
-                            };
-                            dels.push(o);
-                        {% endfor %}
-                    {% endif %}
 
-                    // The marker, des liveurs
-                    var icon = icons.livreur.icon;
-                    var infowindow = new google.maps.InfoWindow();
-                    for(var i=0, c=dels.length; i<c; i++){
-                        var marker = new google.maps.Marker({
-                            position: {lat: parseFloat(dels[i].lat), lng: parseFloat(dels[i].lng)},
-                            map: map,
-                            title: dels[i].name,
-                            draggable: false,
-                            content: dels[i].name,
-                            icon: icon
-                        });
+            {% else %}
+                {% if delivers %}
+                    {% for del in delivers %}
+                        var o = {
+                            'name': "{{ del.username }}",
+                            'lat': "{{ del.latitude }}",
+                            'lng': "{{ del.longitude }}",
+                            'phone': "{{ del.PhoneNumber }}",
+                            'address': "{{ del.Address }}"
+                        };
+                        dels.push(o);{% endfor %}{% endif %}
 
-                        google.maps.event.addListener(marker, 'click', (function (marker, i) {
-                            return function () {
-                                var html = '<div class="content-pin">' +dels[i].name;
-                                html += '<ul class="list-unstyled">';
-                                html += '<li><strong>Phone</strong> : '+dels[i].phone+'</li>';
-                                html += '<li><strong>Adresse</strong> : '+dels[i].address+'</li>';
-                                html += '</ul></div>';
-                                map.panTo(marker.getPosition());
-                                infowindow.setContent(html);
-                                infowindow.open(map, marker, html);
+                // The marker, des liveurs
+                var icon = icons.livreur.icon;
+                var infowindow = new google.maps.InfoWindow();
+                for (var i = 0, c = dels.length; i < c; i++) {
+                    var marker = new google.maps.Marker({
+                        position: {
+                            lat: parseFloat(dels[i].lat),
+                            lng: parseFloat(dels[i].lng)
+                        },
+                        map: map,
+                        title: dels[i].name,
+                        draggable: false,
+                        content: dels[i].name,
+                        icon: icon
+                    });
 
-                                    };
-                        })(marker, i));
-                    }
-        {% endif %}
-        
-            
-        var resto = {
-            'name' : "{{ order.restaurant.name }}",
-            'lat' : "{{ order.restaurant.Latidude }}",
-            'lng': "{{ order.restaurant.Longitude }}",
-            'city': "{{ order.restaurant.city }}",
-            'adr': "{{ order.restaurant.address }}"
-        };
-        
-        // Marker du restaurant
-        var infowindowResto = new google.maps.InfoWindow();
-        var mResto = new google.maps.Marker({
-            position: {lat: parseFloat(resto.lat), lng: parseFloat(resto.lng)},
-            map: map,
-            title: 'RESTAURANT : '+resto.name,
-            icon: icons.restaurant.icon,
-            draggable: false
-        });
-        google.maps.event.addListener(mResto, 'click', (function (mResto) {
+                    google.maps.event.addListener(marker, 'click', (function (marker, i) {
+                        return function () {
+                            var html = '<div class="content-pin">' + dels[i].name;
+                            html += '<ul class="list-unstyled">';
+                            html += '<li><strong>Phone</strong> : ' + dels[i].phone + '</li>';
+                            html += '<li><strong>Adresse</strong> : ' + dels[i].address + '</li>';
+                            html += '</ul></div>';
+                            map.panTo(marker.getPosition());
+                            infowindow.setContent(html);
+                            infowindow.open(map, marker, html);
+
+                        };
+                    })(marker, i));
+                }
+            {% endif %}
+
+
+            var resto = {
+                'name': "{{ order.restaurant.name }}",
+                'lat': "{{ order.restaurant.Latidude }}",
+                'lng': "{{ order.restaurant.Longitude }}",
+                'city': "{{ order.restaurant.city }}",
+                'adr': "{{ order.restaurant.address }}"
+            };
+
+            // Marker du restaurant
+            var infowindowResto = new google.maps.InfoWindow();
+            var mResto = new google.maps.Marker({
+                position: {
+                    lat: parseFloat(resto.lat),
+                    lng: parseFloat(resto.lng)
+                },
+                map: map,
+                title: 'RESTAURANT : ' + resto.name,
+                icon: icons.restaurant.icon,
+                draggable: false
+            });
+            google.maps.event.addListener(mResto, 'click', (function (mResto) {
                 return function () {
-                    var html = '<div class="content-pin">' +resto.name;
+                    var html = '<div class="content-pin">' + resto.name;
                     html += '<ul class="list-unstyled">';
-                    html += '<li><strong>Ville</strong> : '+resto.city+'</li>';
-                    html += '<li><strong>Adresse</strong> : '+resto.adr+'</li>';
+                    html += '<li><strong>Ville</strong> : ' + resto.city + '</li>';
+                    html += '<li><strong>Adresse</strong> : ' + resto.adr + '</li>';
                     html += '</ul></div>';
                     map.panTo(mResto.getPosition());
                     infowindowResto.setContent(html);
                     infowindowResto.open(map, mResto, html);
 
-                        };
+                };
             })(mResto));
-        
-      }
-      
-      
-      function calculateAndDisplayRoute(directionsService, directionsDisplay, mrkO, mrkD) {
-      //var geocoder = new google.maps.Geocoder;
-        directionsService.route({
-          origin: mrkO,
-          destination: mrkD,
-          travelMode: 'DRIVING'
-        }, function(response, status) {
-          if (status === 'OK') {
-            directionsDisplay.setDirections(response);
-          } else {
-            window.alert('Directions request failed due to ' + status);
-          }
-        });
-      }
+
+        }
+
+
+        function calculateAndDisplayRoute(directionsService, directionsDisplay, mrkO, mrkD) { // var geocoder = new google.maps.Geocoder;
+            directionsService.route({
+                origin: mrkO,
+                destination: mrkD,
+                travelMode: 'DRIVING'
+            }, function (response, status) {
+                if (status === 'OK') {
+                    directionsDisplay.setDirections(response);
+                } else {
+                    window.alert('Directions request failed due to ' + status);
+                }
+            });
+        }
     </script>
-    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDlHJyOaa1i7sl_VvSJ-MR3w5uAT3M_UgQ&callback=initMap" async defer></script>
-    
+    <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDlHJyOaa1i7sl_VvSJ-MR3w5uAT3M_UgQ&callback=initMap"></script>
+
     {# icheck #}
     <script scr="{{ asset('iCheck/icheck.min.js') }}"></script>
     <script>
-        function onBuild(){
+        function onBuild() {
             var builder = new StarWebPrintDisplayBuilder();
-            
+
             var request = builder.createTextElement({
                 codepage: 'cp437',
                 international: 'france',

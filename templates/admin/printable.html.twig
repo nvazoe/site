@@ -2,115 +2,145 @@
 <html lang="{{ app.request.locale|split('_')|first|default('en') }}">
     <head>
         <meta charset="utf-8">
-        <meta http-equiv="X-UA-Compatible" content="IE=edge">
-        <title>Impression ticket </title>
-        <link rel="stylesheet"  href="impression-ticket.css" media="print" />
-        <link rel="stylesheet"  href="{{ asset('assets/css/bootstrap.css') }}" />
+        <meta content="IE=edge" http-equiv="X-UA-Compatible">
+        <title>Impression ticket
+        </title>
+        <link href="impression-ticket.css" media="print" rel="stylesheet"/>
+        <link rel="stylesheet" href="{{ asset('assets/css/bootstrap.css') }}"/>
         <style>
-            
+
             div > strong.title-1 {
                 font-size: 2em;
             }
-            table tr th, .total {
+            table tr th,
+            .total {
                 font-size: 1.4em;
             }
-            .master, tbody td ul li{
+            .master,
+            tbody td ul li {
                 font-size: 1.3em;
             }
-            tbody td ul li{
+            tbody td ul li {
                 position: relative;
                 right: 15px;
             }
-            div{
+            div {
                 font-size: 1.1em;
             }
         </style>
     </head>
     <body>
-        <div class="ticket text-center"">
-                                <div><img class="ticket-logo" src="{{ asset('images/logo.png') }}"></div>
-                                <div><strong class="title-1">INFOS RESTAURANT</strong></div>
-                                <div class="title">{{ order.restaurant.name }}</div>
-                                    <div>{{ order.restaurant.address }}</div>
-                                    <div>Du {{ order.dateCreated|date('d - m - Y H:i:s')}}</div>
-                                    <br><br>
-                                    <div><strong class="title-1">INFOS CLIENT</strong></div>
-                                    <div>Tel : {{order.client.phoneNumber}}</div>
-                                    <div>Adresse : {{order.address}}</div>
-                                    <br><br>
-                                    <table class="table table-bordered text-center">
-                                        <thead>
-                                            <tr>
-                                                <th class="text-center">Qte</th>
-                                                <th class="text-center">Produits</th>
-                                                <th class="text-center">Unit</th>
-                                                <th class="text-center">Total</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {% for ord in order.orderdetails %}
-                                                <tr>
-                                                    <td>
-                                                        <div>
-                                                            <strongs style="font-size: 1.5em;">{{ord.quantity}}</strong>
-                                                        </div>
-                                                    </td>
-                                                    <td>
-                                                        <span class="master">{{ord.menuname}}</span>
-                                                        <ul style="list-style-type:none;">
-                                                            {% for dt in ord.OrderDetailsMenuProducts %}
-                                                                <li>{{dt.product.name}}</li>
-                                                            {%endfor%}
-                                                        </ul>
-                                                    </td>
-                                                    <td>
-                                                        <span class="master">{{ord.price|number_format(2) }}</span>
-                                                        <ul style="list-style-type:none;">
-                                                            {% for dt in ord.OrderDetailsMenuProducts %}
-                                                                <li>{{dt.price|number_format(2)}}</li>
-                                                            {%endfor%}
-                                                        </ul>
-                                                    </td>
-                                                    <td>
-                                                        <span class="master">{{(ord.price * ord.quantity)|number_format(2)}}</span>
-                                                        <ul style="list-style-type:none;">
-                                                            {% for dt in ord.OrderDetailsMenuProducts %}
-                                                                <li>{{(dt.price * ord.quantity)|number_format(2)}}</li>
-                                                            {%endfor%}
-                                                        </ul>
-                                                    </td>
-                                                </tr>
-                                            {%endfor%}
-                                        </tbody>
-                                        <tfooter>
-                                            <tr>
-                                                <th colspan="3">Total commande</th>
-                                                <td class="total"><strong>{{order.amount|number_format(2)}} EUR</strong></td>
-                                            </tr>
-                                        </tfooter>
-                                    </table>
-                                    <br>
-                                        <div><strong>Note </strong>: {{order.deliveryNote}}</div>
-                                    <br>
-                                    <div><strong>{{order.deliveryType}}</strong></div>
-                                    <br><br>
+        <div class="ticket text-center">
+            <div><img class="ticket-logo" src="{{ asset('images/logo.png') }}"></div>
+            <div>
+                <strong class="title-1">INFOS RESTAURANT</strong>
+            </div>
+            <div class="title">{{ order.restaurant.name }}</div>
+            <div>{{ order.restaurant.address }}</div>
+            <div>Du
+                {{ order.dateCreated|date('d - m - Y H:i:s')}}</div>
+            <br><br>
+            <div>
+                <strong class="title-1">INFOS CLIENT</strong>
+            </div>
+            <div>Tel :
+                {{order.client.phoneNumber}}</div>
+            <div>Adresse :
+                {{order.address}}</div>
+            <br><br>
+            <table class="table table-bordered text-center">
+                <thead>
+                    <tr>
+                        <th class="text-center">Qte</th>
+                        <th class="text-center">Produits</th>
+                        <th class="text-center">Unit</th>
+                        <th class="text-center">Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for ord in order.orderdetails %}
+                        <tr>
+                            <td>
+                                <div>
+                                    <strongs style="font-size: 1.5em;">{{ord.quantity}}</strong>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="master">{{ord.menuname}}</span>
+                                <ul style="list-style-type:none;">
+                                    {% for dt in ord.OrderDetailsMenuProducts %}
+                                        <li>{{dt.product.name}}</li>
+                                        {%endfor%}
+                                    </ul>
+                                </td>
+                            </td>
+                            <td>
+                                <span class="master">{{ord.price|number_format(2) }}</span>
+                                <ul style="list-style-type:none;">
+                                    {% for dt in ord.OrderDetailsMenuProducts %}
+                                        <li>{{dt.price|number_format(2)}}</li>
+                                        {%endfor%}
+                                    </ul>
+                                </td>
+                            </td>
+                            <td>
+                                <span class="master">{{(ord.price * ord.quantity)|number_format(2)}}</span>
+                                <ul style="list-style-type:none;">
+                                    {% for dt in ord.OrderDetailsMenuProducts %}
+                                        <li>{{(dt.price * ord.quantity)|number_format(2)}}</li>
+                                        {%endfor%}
+                                    </ul>
+                                </td>
+                            </td>
+                        </tr>
+                        {%endfor%}
+                    </tbody>
+                    <tfooter>
+                        <tr>
+                            <th colspan="3">Total commande</th>
+                            <td class="total">
+                                <strong>{{order.amount|number_format(2)}}
+                                    EUR</strong>
+                            </td>
+                        </tr>
+                    </tfooter>
+                </tbody>
+            </table>
+            <br>
+            <div>
+                <strong>Note
+                </strong>:
+                {{order.deliveryNote}}</div>
+            <br>
+            <div>
+                <strong>{{order.deliveryType}}</strong>
+            </div>
+            <br><br>
 
-                                    {% if order.payment %}
-                                        <div><strong>CARTE BANCAIRE</strong></div>
-                                        <div>N° ******** {{ order.payment.cardnumber }}</div>
-                                        <div>MONTANT = {{ order.amount }} EUR</div>
-                                        <div>TICKET CLIENT A CONSERVER</div>
-                                    {% endif %}
+            {% if order.payment %}
+                <div>
+                    <strong>CARTE BANCAIRE</strong>
+                </div>
+                <div>N° ********
+                    {{ order.payment.cardnumber }}</div>
+                <div>MONTANT =
+                    {{ order.amount }}
+                    EUR</div>
+                <div>TICKET CLIENT A CONSERVER</div>
+            {% endif %}
 
-                                    {% if order.ticket %}
-                                        <div class="title"><strong>TICKET RESTAURANT</strong></div>
-                                        <div>N° {{ order.ref }}</div>
-                                        <div>MONTANT = {{ order.amount }} EUR</div>
-                                        <div>TICKET CLIENT A CONSERVER</div>
-                                    {% endif %}
-                            </div>
+            {% if order.ticket %}
+                <div class="title">
+                    <strong>TICKET RESTAURANT</strong>
+                </div>
+                <div>N°
+                    {{ order.ref }}</div>
+                <div>MONTANT =
+                    {{ order.amount }}
+                    EUR</div>
+                <div>TICKET CLIENT A CONSERVER</div>
+            {% endif %}
+        </div>
     </body>
-    <script>
-        {#window.print();#}
-    </script>
+    
 </html>
