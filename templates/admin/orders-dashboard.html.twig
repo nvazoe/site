@@ -86,12 +86,13 @@
                                                     <div>
                                                         <strong class="title-1">INFOS CLIENT</strong>
                                                     </div>
+                                                    <div>Nom : {{o.client.fullname}}</div>
                                                     <div>Tel :
-                                                        {{o.client.phoneNumber}}</div>
+                                                        {{o.phoneNumber}}</div>
                                                     <div>Adresse :
-                                                        {{o.address}}</div>
+                                                        {{ o.cp }}, {{ o.address }} {{ o.city }}</div>
                                                     <br>
-                                                    <table class="table table-bordered" style="width:90%;">
+                                                    <table class="table table-bordered">
                                                         <thead>
                                                             <tr>
                                                                 <th class="text-center" style="padding:1px;">Qte</th>

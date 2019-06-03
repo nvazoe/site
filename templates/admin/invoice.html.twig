@@ -110,8 +110,7 @@
                             <div class="col-sm-6 text-right">
                                 <span>To:</span>
                                 <address>
-                                    <strong>{{ order.client.lastname }}
-                                        {{ order.client.firstname }}</strong><br>
+                                    <strong>{{ order.client.fullname }}</strong><br>
                                     {{ order.cp }},
                                     {{ order.address }}
                                     {{ order.city }}<br>
@@ -256,10 +255,12 @@
                 <div>
                     <strong class="title-1">INFOS CLIENT</strong>
                 </div>
+                <div>Nom :
+                    {{order.client.fullname}}</div>
                 <div>Tel :
-                    {{order.client.phoneNumber}}</div>
+                    {{order.phoneNumber}}</div>
                 <div>Adresse :
-                    {{order.address}}</div>
+                    {{ order.cp }}, {{ order.address }} {{ order.city }}</div>
                 <table class="table table-bordered" style="width:90%">
                     <thead>
                         <tr>

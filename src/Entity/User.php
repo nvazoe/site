@@ -913,5 +913,10 @@ class User implements UserInterface, \Serializable
         return count($result) ? count($result) : 0;
         
     }
+
+
+    public function getFullname(){
+        return $this->getFirstname().' '.$this->getLastname();
+    }
     
 }
