@@ -238,7 +238,7 @@ class RestaurantsController extends Controller {
             }
         $result['code'] = 200;
         $result['items'] = $array;
-        $result['total'] = $em->getRepository(Menu::class)->findByRestau(intval($id), intval($limit), intval($page), true, $category);
+        $result['total'] = $em->getRepository(Menu::class)->findByRestau(intval($id), intval($limit), intval($page), $category, true);
         $result['current_page'] = $page;
         $result['per_page'] = $limit;
         
